@@ -316,6 +316,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                 LookupTracker.DO_NOTHING,
                 environment.createPackagePartProvider(moduleContentScope),
                 moduleClassResolver,
+                CompilerEnvironment,
                 JvmTarget.JVM_1_6,
                 languageVersionSettings
         )
