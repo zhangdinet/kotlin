@@ -62,9 +62,6 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         fqName: FqName -> LazyPackageViewDescriptorImpl(this, fqName, storageManager)
     }
 
-    @Deprecated("This method is not going to be supported. Please do not use it")
-    val testOnly_AllDependentModules: List<ModuleDescriptorImpl> get() = this.dependencies!!.allDependencies
-
     override val allDependencyModules: List<ModuleDescriptor>
         get() = this.dependencies.sure { "Dependencies of module $id were not set" }.allDependencies.filter { it != this }
 

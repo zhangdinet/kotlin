@@ -16,94 +16,50 @@
 
 package org.jetbrains.kotlin.checkers
 
-import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.kotlin.analyzer.LibraryModuleInfo
+import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.context.ModuleContext
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
-import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS
-import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
-import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.js.config.JsConfig
 import org.jetbrains.kotlin.js.resolve.JsPlatform
 import org.jetbrains.kotlin.js.resolve.MODULE_KIND
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.serialization.js.ModuleKind
-import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.test.KotlinTestUtils
-import java.util.*
+import org.jetbrains.kotlin.test.InTextDirectivesUtils
 
 abstract class AbstractDiagnosticsTestWithJsStdLib : AbstractDiagnosticsTest() {
-    private var lazyConfig: Lazy<JsConfig>? = lazy(LazyThreadSafetyMode.NONE) {
-        JsConfig(project, environment.configuration.copy().apply {
-            put(CommonConfigurationKeys.MODULE_NAME, KotlinTestUtils.TEST_MODULE_NAME)
-            put(JSConfigurationKeys.LIBRARIES, JsConfig.JS_STDLIB)
-        })
-    }
-
-    protected val config: JsConfig get() = lazyConfig!!.value
-
-    override fun tearDown() {
-        lazyConfig = null
-        super.tearDown()
-    }
-
     override fun getEnvironmentConfigFiles(): EnvironmentConfigFiles = EnvironmentConfigFiles.JS_CONFIG_FILES
 
-    override fun analyzeModuleContents(
-            moduleContext: ModuleContext,
-            files: List<KtFile>,
-            moduleTrace: BindingTrace,
-            languageVersionSettings: LanguageVersionSettings,
-            separateModules: Boolean
-    ): JsAnalysisResult {
-        // TODO: support LANGUAGE directive in JS diagnostic tests
-        moduleTrace.record<ModuleDescriptor, ModuleKind>(MODULE_KIND, moduleContext.module, getModuleKind(files))
-        return TopDownAnalyzerFacadeForJS.analyzeFilesWithGivenTrace(files, moduleTrace, moduleContext, config)
+    override fun beforeAnalysisStarted(trace: BindingTrace, module: ModuleDescriptor, files: List<KtFile>) {
+        trace.record(MODULE_KIND, module, getModuleKind(files))
     }
 
-    private fun getModuleKind(ktFiles: List<KtFile>): ModuleKind {
-        var kind = ModuleKind.PLAIN
+    private fun getModuleKind(ktFiles: Collection<KtFile>): ModuleKind {
         for (file in ktFiles) {
-            val text = file.text
-            for (textLine in StringUtil.splitByLines(text)) {
-                var line = textLine.trim { it <= ' ' }
-                if (!line.startsWith("//")) continue
-                line = line.substring(2).trim { it <= ' ' }
-                val parts = StringUtil.split(line, ":")
-                if (parts.size != 2) continue
-
-                if (parts[0].trim { it <= ' ' } != "MODULE_KIND") continue
-                kind = ModuleKind.valueOf(parts[1].trim { it <= ' ' })
+            val kind = InTextDirectivesUtils.findStringWithPrefixes(file.text, "// MODULE_KIND:")
+            if (kind != null) {
+                return ModuleKind.valueOf(kind)
             }
         }
 
-        return kind
+        return ModuleKind.PLAIN
     }
 
-    override fun getAdditionalDependencies(module: ModuleDescriptorImpl): List<ModuleDescriptorImpl> =
-            config.moduleDescriptors.map { it.data }
+    object StdlibJsModuleInfo : LibraryModuleInfo {
+        override val name: Name get() = Name.special("<kotlin-stdlib-js>")
 
-    override fun shouldSkipJvmSignatureDiagnostics(groupedByModule: Map<TestModule?, List<TestFile>>): Boolean = true
+        override fun dependencies(): List<ModuleInfo> = listOf(this)
 
-    override fun createModule(moduleName: String, storageManager: StorageManager): ModuleDescriptorImpl =
-            ModuleDescriptorImpl(Name.special("<$moduleName>"), storageManager, JsPlatform.builtIns)
+        override val platform: TargetPlatform get() = JsPlatform
 
-    override fun createSealedModule(storageManager: StorageManager): ModuleDescriptorImpl {
-        val module = createModule("kotlin-js-test-module", storageManager)
-
-        val dependencies = ArrayList<ModuleDescriptorImpl>()
-        dependencies.add(module)
-
-        dependencies.addAll(getAdditionalDependencies(module))
-
-        dependencies.add(module.builtIns.builtInsModule)
-        module.setDependencies(dependencies)
-
-        return module
+        override fun getLibraryRoots(): Collection<String> = JsConfig.JS_STDLIB
     }
+
+    override fun getLibraryAndSdkDependency(): ModuleInfo =
+            StdlibJsModuleInfo
+
+    override fun shouldSkipJvmSignatureDiagnostics(groupedByModule: Map<TestModule, List<TestFile>>): Boolean = true
 }

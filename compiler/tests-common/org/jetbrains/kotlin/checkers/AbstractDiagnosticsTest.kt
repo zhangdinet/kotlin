@@ -16,33 +16,32 @@
 
 package org.jetbrains.kotlin.checkers
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.analyzer.LanguageSettingsProvider
+import org.jetbrains.kotlin.analyzer.ModuleContent
+import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.analyzer.ResolverForProjectImpl
 import org.jetbrains.kotlin.analyzer.common.CommonAnalyzerFacade
-import org.jetbrains.kotlin.cli.jvm.compiler.CliLightClassGenerationSupport
+import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.context.ModuleContext
 import org.jetbrains.kotlin.context.SimpleGlobalContext
-import org.jetbrains.kotlin.context.withModule
 import org.jetbrains.kotlin.context.withProject
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackagePartProvider
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
-import org.jetbrains.kotlin.descriptors.impl.CompositePackageFragmentProvider
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
 import org.jetbrains.kotlin.diagnostics.Errors.*
-import org.jetbrains.kotlin.frontend.java.di.createContainerForTopDownAnalyzerForJvm
-import org.jetbrains.kotlin.frontend.java.di.initJvmBuiltInsForTopDownAnalysis
-import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.load.java.lazy.SingleModuleClassResolver
+import org.jetbrains.kotlin.js.resolve.JsAnalyzerFacade
+import org.jetbrains.kotlin.js.resolve.JsPlatform
+import org.jetbrains.kotlin.load.java.structure.impl.JavaClassImpl
+import org.jetbrains.kotlin.load.java.structure.impl.classFiles.BinaryJavaClass
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -52,9 +51,9 @@ import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.USE_NEW_INFERENCE
 import org.jetbrains.kotlin.resolve.calls.model.MutableResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.jvm.JavaDescriptorResolver
-import org.jetbrains.kotlin.resolve.lazy.KotlinCodeAnalyzer
-import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
+import org.jetbrains.kotlin.resolve.jvm.JvmAnalyzerFacade
+import org.jetbrains.kotlin.resolve.jvm.JvmPlatformParameters
+import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.storage.ExceptionTracker
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
@@ -70,10 +69,22 @@ import java.io.File
 import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.contains
+import kotlin.collections.set
 
 abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
     override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
         val groupedByModule = files.groupBy(TestFile::module)
+
+        if (groupedByModule.values.count { filesInModule -> filesInModule.any { it.fileName.endsWith(".java") } } > 1) {
+            // This is not supported yet because:
+            // 1) All .java files are created in the same directory and that directory is added as a JavaSourceRoot
+            //    to the compiler configuration in KotlinMultiFileTestWithJava
+            // 2) AllJavaSourcesInProjectScope is used below in each modules scope, making each module contain all .java files
+            throw AssertionError(".java sources in more than one module are not supported yet in this test")
+        }
 
         var lazyOperationsLog: LazyOperationsLog? = null
 
@@ -92,41 +103,123 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
 
         val context = SimpleGlobalContext(storageManager, tracker)
 
-        val modules = createModules(groupedByModule, context.storageManager)
-        val moduleBindings = HashMap<TestModule?, BindingContext>()
+        val libraryAndSdk = getLibraryAndSdkDependency()
 
-        for ((testModule, testFilesInModule) in groupedByModule) {
-            val ktFiles = getKtFiles(testFilesInModule, true)
+        val ktFilesByModule: MutableMap<TestModule, List<KtFile>> =
+                groupedByModule.keys.keysToMap { testModule -> getKtFiles(groupedByModule[testModule]!!, true) }.toMutableMap()
 
-            val oldModule = modules[testModule]!!
+        for (moduleInfo in ktFilesByModule.keys) {
+            if (moduleInfo.platform == TargetPlatform.Common) continue
 
-            val languageVersionSettings = loadLanguageVersionSettings(testFilesInModule)
-            val moduleContext = context.withProject(project).withModule(oldModule)
+            val commonModules = moduleInfo.dependencies().filter { it.platform == TargetPlatform.Common }
+            assert(commonModules.size <= 1) { "Multiple common modules in dependencies is not supported yet in this test" }
 
-            val separateModules = groupedByModule.size == 1 && groupedByModule.keys.single() == null
-            val result = analyzeModuleContents(
-                    moduleContext, ktFiles, CliLightClassGenerationSupport.NoScopeRecordCliBindingTrace(),
-                    languageVersionSettings, separateModules
-            )
-            if (oldModule != result.moduleDescriptor) {
-                // For common modules, we use DefaultAnalyzerFacade who creates ModuleDescriptor instances by itself
-                // (its API does not support working with a module created beforehand).
-                // So, we should replace the old (effectively discarded) module with the new one everywhere in dependencies.
-                // TODO: dirty hack, refactor this test so that it doesn't create ModuleDescriptor instances
-                modules[testModule] = result.moduleDescriptor as ModuleDescriptorImpl
-                for (module in modules.values) {
-                    @Suppress("DEPRECATION")
-                    val it = (module.testOnly_AllDependentModules as MutableList).listIterator()
-                    while (it.hasNext()) {
-                        if (it.next() == oldModule) {
-                            it.set(result.moduleDescriptor as ModuleDescriptorImpl)
-                        }
+            val commonModule = commonModules.singleOrNull() ?: continue
+            ktFilesByModule[moduleInfo] = ktFilesByModule[moduleInfo]!! + ktFilesByModule[commonModule]!!
+        }
+
+        val languageSettingsProvider = object : LanguageSettingsProvider {
+            override fun getLanguageVersionSettings(moduleInfo: ModuleInfo, project: Project): LanguageVersionSettings {
+                return when (moduleInfo) {
+                    is TestModule -> loadLanguageVersionSettings(groupedByModule[moduleInfo]!!)
+                    else -> {
+                        // If there's only one module in a test (majority of tests), we use its LanguageVersionSettings for SDK as well.
+                        // Otherwise we use default LanguageVersionSettings
+                        groupedByModule.values.singleOrNull()?.let { loadLanguageVersionSettings(it) }
+                        ?: LanguageVersionSettingsImpl.DEFAULT
                     }
                 }
             }
 
-            moduleBindings[testModule] = result.bindingContext
-            checkAllResolvedCallsAreCompleted(ktFiles, result.bindingContext)
+            override fun getTargetPlatform(moduleInfo: ModuleInfo): TargetPlatformVersion {
+                // TODO: support JVM_TARGET directive in diagnostic tests
+                return TargetPlatformVersion.NoVersion
+            }
+        }
+
+        fun computeModuleScope(module: ModuleInfo): GlobalSearchScope {
+            return when (module) {
+                is TestModule -> {
+                    GlobalSearchScope.filesScope(project, ktFilesByModule[module]!!.map { it.virtualFile })
+                            .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(project))
+                }
+                is TestJvmBinaryModuleInfo -> {
+                    GlobalSearchScope.notScope(GlobalSearchScope.union(groupedByModule.keys.map(::computeModuleScope).toTypedArray()))
+                }
+                libraryAndSdk -> GlobalSearchScope.EMPTY_SCOPE
+                else -> error("Unknown module info: $module")
+            }
+        }
+
+        val resolverForProject = ResolverForProjectImpl(
+                "diagnostic tests",
+                context.withProject(project),
+                groupedByModule.keys + libraryAndSdk,
+                analyzerFacade = { module ->
+                    when (module.platform!!) {
+                        JvmPlatform -> JvmAnalyzerFacade
+                        JsPlatform -> JsAnalyzerFacade
+                        TargetPlatform.Common -> CommonAnalyzerFacade
+                        else -> error("Unknown platform: ${module.platform} (module=$module)")
+                    }
+                },
+                modulesContent = { module ->
+                    ModuleContent(ktFilesByModule[module].orEmpty(), computeModuleScope(module))
+                },
+                platformParameters = JvmPlatformParameters { javaClass ->
+                    when (javaClass) {
+                        is BinaryJavaClass -> TestJvmBinaryModuleInfo
+                        is JavaClassImpl -> groupedByModule.keys.singleOrNull { module ->
+                            module.platform.multiTargetPlatform != MultiTargetPlatform.Common &&
+                            javaClass.psi.containingFile.virtualFile in computeModuleScope(module)
+                        } ?: TestJvmBinaryModuleInfo
+                        else -> error("Unknown Java class: $javaClass (${javaClass.javaClass})")
+                    }
+                },
+                languageSettingsProvider = languageSettingsProvider,
+                builtIns = { module ->
+                    when (module.platform) {
+                        JvmPlatform -> JvmBuiltIns(context.storageManager)
+                        JsPlatform -> JsPlatform.builtIns
+                        TargetPlatform.Common -> DefaultBuiltIns.Instance
+                        else -> error("Unknown platform: ${module.platform}")
+                    }
+                },
+                packagePartProviderFactory = { _, moduleContent -> environment.createPackagePartProvider(moduleContent.moduleContentScope) },
+                firstDependency = null
+        )
+
+        resolverForProject.resolverForModule(libraryAndSdk)
+
+        val modules: Map<TestModule, ModuleDescriptor> = groupedByModule.keys.keysToMap(resolverForProject::descriptorForModule)
+
+        for (moduleInfo in resolverForProject.allModules) {
+            val moduleDescriptor = resolverForProject.descriptorForModule(moduleInfo)
+            val builtIns = moduleDescriptor.builtIns
+            if (builtIns is JvmBuiltIns) {
+                val languageVersionSettings = languageSettingsProvider.getLanguageVersionSettings(moduleInfo, project)
+                builtIns.initialize(moduleDescriptor, languageVersionSettings.supportsFeature(LanguageFeature.AdditionalBuiltInsMembers))
+            }
+        }
+
+        val moduleBindings = HashMap<TestModule, BindingContext>()
+
+        for (testModule in groupedByModule.keys) {
+            val ktFiles = ktFilesByModule[testModule]!!
+
+            val resolverForModule = resolverForProject.resolverForModule(testModule)
+            val moduleDescriptor = resolverForProject.descriptorForModule(testModule)
+            val container = resolverForModule.componentProvider
+            val trace = container.get<BindingTrace>()
+
+            beforeAnalysisStarted(trace, moduleDescriptor, ktFiles)
+
+            container.get<LazyTopDownAnalyzer>().analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, ktFiles)
+
+            onAnalysisCompleted(trace, moduleDescriptor, ktFiles)
+
+            moduleBindings[testModule] = trace.bindingContext
+            checkAllResolvedCallsAreCompleted(ktFiles, trace.bindingContext)
         }
 
         // We want to always create a test data file (txt) if it was missing,
@@ -163,10 +256,10 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             val isCommonModule = modules[module]!!.getMultiTargetPlatform() == MultiTargetPlatform.Common
             val implementingModules =
                     if (!isCommonModule) emptyList()
-                    else modules.entries.filter { (testModule) -> module in testModule?.getDependencies().orEmpty() }
+                    else modules.entries.filter { (testModule) -> module in testModule.dependencies() }
             val implementingModulesBindings = implementingModules.mapNotNull {
                 (testModule, moduleDescriptor) ->
-                val platform = moduleDescriptor.getCapability(MultiTargetPlatform.CAPABILITY)
+                val platform = moduleDescriptor.getMultiTargetPlatform()
                 if (platform is MultiTargetPlatform.Specific) platform to moduleBindings[testModule]!!
                 else null
             }
@@ -197,12 +290,31 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         performAdditionalChecksAfterDiagnostics(testDataFile, files, groupedByModule, modules, moduleBindings)
     }
 
+    object TestJvmBinaryModuleInfo : ModuleInfo {
+        override val name: Name
+            get() = Name.special("<JVM binary dependencies>")
+
+        override fun dependencies(): List<ModuleInfo> = listOf(this)
+
+        override val platform: TargetPlatform
+            get() = JvmPlatform
+    }
+
+    override fun getLibraryAndSdkDependency(): ModuleInfo =
+            TestJvmBinaryModuleInfo
+
+    protected open fun onAnalysisCompleted(trace: BindingTrace, module: ModuleDescriptor, files: List<KtFile>) {
+    }
+
+    protected open fun beforeAnalysisStarted(trace: BindingTrace, module: ModuleDescriptor, files: List<KtFile>) {
+    }
+
     protected open fun performAdditionalChecksAfterDiagnostics(
             testDataFile: File,
             testFiles: List<TestFile>,
-            moduleFiles: Map<TestModule?, List<TestFile>>,
-            moduleDescriptors: Map<TestModule?, ModuleDescriptorImpl>,
-            moduleBindings: Map<TestModule?, BindingContext>
+            moduleFiles: Map<TestModule, List<TestFile>>,
+            moduleDescriptors: Map<TestModule, ModuleDescriptor>,
+            moduleBindings: Map<TestModule, BindingContext>
     ) {
         // To be overridden by diagnostic-like tests.
     }
@@ -246,7 +358,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         }
     }
 
-    protected open fun shouldSkipJvmSignatureDiagnostics(groupedByModule: Map<TestModule?, List<TestFile>>): Boolean =
+    protected open fun shouldSkipJvmSignatureDiagnostics(groupedByModule: Map<TestModule, List<TestFile>>): Boolean =
             groupedByModule.size > 1
 
     private fun checkLazyResolveLog(lazyOperationsLog: LazyOperationsLog, testDataFile: File): Throwable? =
@@ -262,105 +374,10 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
     private fun getLazyLogFile(testDataFile: File): File =
             File(FileUtil.getNameWithoutExtension(testDataFile.absolutePath) + ".lazy.log")
 
-    protected open fun analyzeModuleContents(
-            moduleContext: ModuleContext,
-            files: List<KtFile>,
-            moduleTrace: BindingTrace,
-            languageVersionSettings: LanguageVersionSettings,
-            separateModules: Boolean
-    ): AnalysisResult {
-        @Suppress("NAME_SHADOWING")
-        var files = files
-
-        // New JavaDescriptorResolver is created for each module, which is good because it emulates different Java libraries for each module,
-        // albeit with same class names
-        // See TopDownAnalyzerFacadeForJVM#analyzeFilesWithJavaIntegration
-
-        // Temporary solution: only use separate module mode in single-module tests because analyzeFilesWithJavaIntegration
-        // only supports creating two modules, whereas there can be more than two in multi-module diagnostic tests
-        // TODO: always use separate module mode, once analyzeFilesWithJavaIntegration can create multiple modules
-        if (separateModules) {
-            return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
-                    moduleContext.project,
-                    files,
-                    moduleTrace,
-                    environment.configuration.copy().apply { this.languageVersionSettings = languageVersionSettings },
-                    environment::createPackagePartProvider
-            )
-        }
-
-        val moduleDescriptor = moduleContext.module as ModuleDescriptorImpl
-
-        val platform = moduleDescriptor.getMultiTargetPlatform()
-        if (platform == MultiTargetPlatform.Common) {
-            return CommonAnalyzerFacade.analyzeFiles(
-                    files, moduleDescriptor.name, true, languageVersionSettings,
-                    mapOf(
-                            MultiTargetPlatform.CAPABILITY to MultiTargetPlatform.Common,
-                            MODULE_FILES to files
-                    )
-            ) { _, _ ->
-                // TODO
-                PackagePartProvider.Empty
-            }
-        }
-        else if (platform != null) {
-            // TODO: analyze with the correct platform, not always JVM
-            files += getCommonCodeFilesForPlatformSpecificModule(moduleDescriptor)
-        }
-
-        val moduleContentScope = GlobalSearchScope.allScope(moduleContext.project)
-        val moduleClassResolver = SingleModuleClassResolver()
-
-        val container = createContainerForTopDownAnalyzerForJvm(
-                moduleContext,
-                moduleTrace,
-                FileBasedDeclarationProviderFactory(moduleContext.storageManager, files),
-                moduleContentScope,
-                LookupTracker.DO_NOTHING,
-                environment.createPackagePartProvider(moduleContentScope),
-                moduleClassResolver,
-                JvmTarget.JVM_1_6,
-                languageVersionSettings
-        )
-
-        container.initJvmBuiltInsForTopDownAnalysis()
-        moduleClassResolver.resolver = container.get<JavaDescriptorResolver>()
-
-        moduleDescriptor.initialize(CompositePackageFragmentProvider(listOf(
-                container.get<KotlinCodeAnalyzer>().packageFragmentProvider,
-                container.get<JavaDescriptorResolver>().packageFragmentProvider
-        )))
-
-        container.get<LazyTopDownAnalyzer>().analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, files)
-
-        return AnalysisResult.success(moduleTrace.bindingContext, moduleDescriptor)
-    }
-
-    private fun getCommonCodeFilesForPlatformSpecificModule(moduleDescriptor: ModuleDescriptorImpl): List<KtFile> {
-        // We assume that a platform-specific module _implements_ all declarations from common modules which are immediate dependencies.
-        // So we collect all sources from such modules to analyze in the platform-specific module as well
-        @Suppress("DEPRECATION")
-        val dependencies = moduleDescriptor.testOnly_AllDependentModules
-
-        // TODO: diagnostics on common code reported during the platform module analysis should be distinguished somehow
-        // E.g. "<!JVM:ACTUAL_WITHOUT_EXPECT!>...<!>
-        val result = ArrayList<KtFile>(0)
-        for (dependency in dependencies) {
-            if (dependency.getCapability(MultiTargetPlatform.CAPABILITY) == MultiTargetPlatform.Common) {
-                val files = dependency.getCapability(MODULE_FILES)
-                            ?: error("MODULE_FILES should have been set for the common module: $dependency")
-                result.addAll(files)
-            }
-        }
-
-        return result
-    }
-
     private fun validateAndCompareDescriptorWithFile(
             expectedFile: File,
             testFiles: List<TestFile>,
-            modules: Map<TestModule?, ModuleDescriptorImpl>
+            modules: Map<TestModule, ModuleDescriptor>
     ) {
         if (skipDescriptorsValidation()) return
         if (testFiles.any { file -> InTextDirectivesUtils.isDirectiveDefined(file.expectedText, "// SKIP_TXT") }) {
@@ -381,15 +398,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
 
         val textByPackage = packages.keysToMap { StringBuilder() }
 
-        val sortedModules = modules.keys.sortedWith(Comparator { x, y ->
-            when {
-                x == null && y == null -> 0
-                x == null && y != null -> -1
-                x != null && y == null -> 1
-                x != null && y != null -> x.compareTo(y)
-                else -> error("Unreachable")
-            }
-        })
+        val sortedModules = modules.keys.sorted()
 
         for ((packageName, packageText) in textByPackage.entries) {
             val module = sortedModules.iterator()
@@ -473,55 +482,6 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                 file.packageFqName.pathSegments().firstOrNull() ?: SpecialNames.ROOT_PACKAGE
             }
 
-    private fun createModules(
-            groupedByModule: Map<TestModule?, List<TestFile>>,
-            storageManager: StorageManager
-    ): MutableMap<TestModule?, ModuleDescriptorImpl> {
-        val modules = HashMap<TestModule?, ModuleDescriptorImpl>()
-
-        for (testModule in groupedByModule.keys) {
-            val module = if (testModule == null)
-                createSealedModule(storageManager)
-            else
-                createModule(testModule.name, storageManager)
-
-            modules.put(testModule, module)
-        }
-
-        for (testModule in groupedByModule.keys) {
-            if (testModule == null) continue
-
-            val module = modules[testModule]!!
-            val dependencies = ArrayList<ModuleDescriptorImpl>()
-            dependencies.add(module)
-            for (dependency in testModule.getDependencies()) {
-                dependencies.add(modules[dependency]!!)
-            }
-
-            dependencies.add(module.builtIns.builtInsModule)
-            dependencies.addAll(getAdditionalDependencies(module))
-            module.setDependencies(dependencies)
-        }
-
-        return modules
-    }
-
-    protected open fun getAdditionalDependencies(module: ModuleDescriptorImpl): List<ModuleDescriptorImpl> =
-            emptyList()
-
-    protected open fun createModule(moduleName: String, storageManager: StorageManager): ModuleDescriptorImpl {
-        val nameSuffix = moduleName.substringAfterLast("-", "")
-        val platform =
-                if (nameSuffix.isEmpty()) null
-                else if (nameSuffix == "common") MultiTargetPlatform.Common else MultiTargetPlatform.Specific(nameSuffix.toUpperCase())
-        return ModuleDescriptorImpl(Name.special("<$moduleName>"), storageManager, JvmBuiltIns(storageManager), platform)
-    }
-
-    protected open fun createSealedModule(storageManager: StorageManager): ModuleDescriptorImpl =
-            createModule("test-module", storageManager).apply {
-                setDependencies(this, builtIns.builtInsModule)
-            }
-
     private fun checkAllResolvedCallsAreCompleted(ktFiles: List<KtFile>, bindingContext: BindingContext) {
         if (ktFiles.any { file -> AnalyzingUtils.getSyntaxErrorRanges(file).isNotEmpty() }) return
 
@@ -572,7 +532,5 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
 
     companion object {
         private val HASH_SANITIZER = fun(s: String): String = s.replace("@(\\d)+".toRegex(), "")
-
-        private val MODULE_FILES = ModuleDescriptor.Capability<List<KtFile>>("")
     }
 }

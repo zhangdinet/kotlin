@@ -82,7 +82,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
         private val modulesContent: (M) -> ModuleContent,
         private val platformParameters: PlatformAnalysisParameters,
         private val targetEnvironment: TargetEnvironment = CompilerEnvironment,
-        private val builtIns: KotlinBuiltIns = DefaultBuiltIns.Instance,
+        private val builtIns: (M) -> KotlinBuiltIns = { DefaultBuiltIns.Instance },
         private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
         private val packagePartProviderFactory: (M, ModuleContent) -> PackagePartProvider = { _, _ -> PackagePartProvider.Empty },
         private val firstDependency: M? = null,
@@ -194,7 +194,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     }
 
     private fun createModuleDescriptor(module: M): ModuleData {
-        val moduleDescriptor = ModuleDescriptorImpl(module.name, projectContext.storageManager, builtIns,
+        val moduleDescriptor = ModuleDescriptorImpl(module.name, projectContext.storageManager, builtIns(module),
                                                     module.platform?.multiTargetPlatform, module.capabilities)
         moduleInfoByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)

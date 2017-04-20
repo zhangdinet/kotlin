@@ -23,6 +23,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.asJava.getJvmSignatureDiagnostics
 import org.jetbrains.kotlin.checkers.BaseDiagnosticsTest.TestFile
 import org.jetbrains.kotlin.checkers.BaseDiagnosticsTest.TestModule
@@ -31,11 +32,15 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.*
+import org.jetbrains.kotlin.js.resolve.JsPlatform
 import org.jetbrains.kotlin.load.java.InternalFlexibleTypeTransformer
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.MultiTargetPlatform
+import org.jetbrains.kotlin.resolve.TargetPlatform
+import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.junit.Assert
@@ -55,11 +60,13 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
         super.tearDown()
     }
 
+    private val defaultModule: TestModule by lazy { TestModule(KotlinTestUtils.TEST_MODULE_NAME, getLibraryAndSdkDependency()) }
+
     override fun createTestModule(name: String): TestModule =
-            TestModule(name)
+            TestModule(name, getLibraryAndSdkDependency())
 
     override fun createTestFile(module: TestModule?, fileName: String, text: String, directives: Map<String, String>): TestFile =
-            TestFile(module, fileName, text, directives)
+            TestFile(module ?: defaultModule, fileName, text, directives)
 
     override fun doMultiFileTest(
             file: File,
@@ -67,8 +74,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
             testFiles: List<TestFile>
     ) {
         for (moduleAndDependencies in modules.values) {
-            moduleAndDependencies.module.getDependencies().addAll(moduleAndDependencies.dependencies.map { name ->
-                modules[name]?.module ?: error("Dependency not found: $name for module ${moduleAndDependencies.module.name}")
+            moduleAndDependencies.module.dependencies.addAll(moduleAndDependencies.dependencies.map { name ->
+                modules[name]?.module ?: error("Dependency not found: $name for module ${moduleAndDependencies.module.simpleName}")
             })
         }
 
@@ -76,6 +83,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
         analyzeAndCheck(file, testFiles)
     }
+
+    protected abstract fun getLibraryAndSdkDependency(): ModuleInfo
 
     protected abstract fun analyzeAndCheck(testDataFile: File, files: List<TestFile>)
 
@@ -101,14 +110,27 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
         return ktFiles
     }
 
-    class TestModule(val name: String) : Comparable<TestModule> {
-        private val dependencies = ArrayList<TestModule>()
+    class TestModule(val simpleName: String, private val libraryAndSdk: ModuleInfo) : ModuleInfo, Comparable<TestModule> {
+        override val name: Name
+            get() = Name.special("<$simpleName>")
 
-        fun getDependencies(): MutableList<TestModule> = dependencies
+        val dependencies = arrayListOf<ModuleInfo>(this, libraryAndSdk)
 
-        override fun compareTo(other: TestModule): Int = name.compareTo(other.name)
+        override fun dependencies(): List<ModuleInfo> = dependencies
 
-        override fun toString(): String = name
+        override val platform: TargetPlatform
+            get() = when {
+                simpleName.endsWith("-jvm") -> JvmPlatform
+                simpleName.endsWith("-js") -> JsPlatform
+                simpleName.endsWith("-common") -> TargetPlatform.Common
+                else -> libraryAndSdk.platform!!
+            }
+
+        override fun compareTo(other: TestModule): Int = simpleName.compareTo(other.simpleName)
+
+        override fun equals(other: Any?): Boolean = other is TestModule && simpleName == other.simpleName
+        override fun hashCode(): Int = simpleName.hashCode()
+        override fun toString(): String = simpleName
     }
 
     data class DiagnosticTestLanguageVersionSettings(
@@ -125,8 +147,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
     }
 
     inner class TestFile(
-            val module: TestModule?,
-            fileName: String,
+            val module: TestModule,
+            val fileName: String,
             textWithMarkers: String,
             directives: Map<String, String>
     ) {

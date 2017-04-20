@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.ir
 
 import org.jetbrains.kotlin.checkers.AbstractDiagnosticsTest
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -27,9 +27,9 @@ abstract class AbstractPsi2IrDiagnosticsTest : AbstractDiagnosticsTest() {
     override fun performAdditionalChecksAfterDiagnostics(
             testDataFile: File,
             testFiles: List<TestFile>,
-            moduleFiles: Map<TestModule?, List<TestFile>>,
-            moduleDescriptors: Map<TestModule?, ModuleDescriptorImpl>,
-            moduleBindings: Map<TestModule?, BindingContext>
+            moduleFiles: Map<TestModule, List<TestFile>>,
+            moduleDescriptors: Map<TestModule, ModuleDescriptor>,
+            moduleBindings: Map<TestModule, BindingContext>
     ) {
         val actualIrDump = StringBuilder()
         for (module in moduleFiles.keys) {
