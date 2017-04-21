@@ -190,10 +190,6 @@ object TopDownAnalyzerFacadeForJVM {
             else IncrementalPackagePartProvider(fragment, targetIds.map(incrementalComponents::getIncrementalCache), storageManager)
         }
 
-        // Note that it's necessary to create container for sources _after_ creation of container for dependencies because
-        // CliLightClassGenerationSupport#initialize is invoked when container is created, so only the last module descriptor is going
-        // to be stored in CliLightClassGenerationSupport, and it better be the source one (otherwise light classes would not be found)
-        // TODO: get rid of duplicate invocation of CodeAnalyzerInitializer#initialize, or refactor CliLightClassGenerationSupport
         val container = createContainerForTopDownAnalyzerForJvm(
                 moduleContext, trace, declarationProviderFactory(storageManager, files), sourceScope, lookupTracker,
                 partProvider, moduleClassResolver, jvmTarget, languageVersionSettings, configureJavaClassFinder

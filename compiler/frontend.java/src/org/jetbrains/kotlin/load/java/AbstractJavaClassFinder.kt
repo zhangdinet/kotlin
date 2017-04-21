@@ -44,7 +44,7 @@ abstract class AbstractJavaClassFinder : JavaClassFinder {
     @PostConstruct
     open fun initialize(trace: BindingTrace, codeAnalyzer: KotlinCodeAnalyzer) {
         javaSearchScope = FilterOutKotlinSourceFilesScope(baseScope)
-        CodeAnalyzerInitializer.getInstance(project).initialize(trace, codeAnalyzer.moduleDescriptor, codeAnalyzer)
+        CodeAnalyzerInitializer.getInstance(project).initialize(trace, codeAnalyzer.moduleDescriptor, baseScope, codeAnalyzer)
     }
 
     inner class FilterOutKotlinSourceFilesScope(baseScope: GlobalSearchScope) : DelegatingGlobalSearchScope(baseScope) {

@@ -18,16 +18,19 @@ package org.jetbrains.kotlin.cli.jvm.compiler
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiSearchScopeUtil
-import com.intellij.util.Function
 import com.intellij.util.SmartList
-import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.LightClassBuilder
 import org.jetbrains.kotlin.asJava.LightClassGenerationSupport
-import org.jetbrains.kotlin.asJava.builder.*
+import org.jetbrains.kotlin.asJava.builder.InvalidLightClassDataHolder
+import org.jetbrains.kotlin.asJava.builder.LightClassConstructionContext
+import org.jetbrains.kotlin.asJava.builder.LightClassDataHolder
+import org.jetbrains.kotlin.asJava.builder.LightClassDataHolderImpl
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForFacade
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForScript
@@ -44,9 +47,9 @@ import org.jetbrains.kotlin.resolve.lazy.KotlinCodeAnalyzer
 import org.jetbrains.kotlin.resolve.lazy.ResolveSessionUtils
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import org.jetbrains.kotlin.util.slicedMap.WritableSlice
-import kotlin.properties.Delegates
 
 /**
  * This class solves the problem of interdependency between analyzing Kotlin code and generating JetLightClasses
@@ -61,64 +64,78 @@ import kotlin.properties.Delegates
  * To mitigate this, CliLightClassGenerationSupport hold a trace that is shared between the analyzer and JetLightClasses
  */
 class CliLightClassGenerationSupport(project: Project) : LightClassGenerationSupport(), CodeAnalyzerInitializer {
+    private data class ModuleData(val descriptor: ModuleDescriptor, val bindingContext: BindingContext, val scope: GlobalSearchScope)
+
     private val psiManager = PsiManager.getInstance(project)
-    private var bindingContext: BindingContext by Delegates.notNull()
-    private var module: ModuleDescriptor by Delegates.notNull()
+    private val modules = mutableMapOf<ModuleDescriptor, ModuleData>()
 
+    private val moduleByFile = LockBasedStorageManager.NO_LOCKS.createMemoizedFunction { file: PsiFile ->
+        modules.values.singleOrNull { (_, _, scope) ->
+            PsiSearchScopeUtil.isInScope(scope, file)
+        }?.descriptor ?: throw AssertionError("No single module found containing $file\nModules: $modules")
+    }
+
+    private val PsiElement.module: ModuleDescriptor
+        get() = moduleByFile(containingFile)
     
-    override fun initialize(trace: BindingTrace, module: ModuleDescriptor, codeAnalyzer: KotlinCodeAnalyzer) {
-        this.bindingContext = trace.bindingContext
-        this.module = module
-
+    override fun initialize(trace: BindingTrace, module: ModuleDescriptor, scope: GlobalSearchScope, codeAnalyzer: KotlinCodeAnalyzer) {
         if (trace !is CliBindingTrace) {
             throw IllegalArgumentException("Shared trace is expected to be subclass of ${CliBindingTrace::class.java.simpleName} class")
         }
 
         trace.setKotlinCodeAnalyzer(codeAnalyzer)
+
+        modules[module] = ModuleData(module, trace.bindingContext, scope)
     }
 
     override fun createDataHolderForClass(
             classOrObject: KtClassOrObject, builder: LightClassBuilder
     ): LightClassDataHolder.ForClass {
-        //force resolve companion for light class generation
-        bindingContext.get(BindingContext.CLASS, classOrObject)?.companionObjectDescriptor
+        val context = classOrObject.getLightClassConstructionContext()
 
-        val (stub, bindingContext, diagnostics) = builder(getContext())
+        //force resolve companion for light class generation
+        context.bindingContext.get(BindingContext.CLASS, classOrObject)?.companionObjectDescriptor
+
+        val (stub, bindingContext, diagnostics) = builder(context)
 
         bindingContext.get(BindingContext.CLASS, classOrObject) ?: return InvalidLightClassDataHolder
 
-        return LightClassDataHolderImpl(
-                stub,
-                diagnostics
-        )
+        return LightClassDataHolderImpl(stub, diagnostics)
+    }
+
+    private fun KtElement.getLightClassConstructionContext(): LightClassConstructionContext {
+        val module = module
+        return LightClassConstructionContext(modules[module]!!.bindingContext, module)
     }
 
     override fun createDataHolderForFacade(files: Collection<KtFile>, builder: LightClassBuilder): LightClassDataHolder.ForFacade {
-        val (stub, _, diagnostics) = builder(getContext())
+        val (stub, _, diagnostics) = builder(files.first().getLightClassConstructionContext())
         return LightClassDataHolderImpl(stub, diagnostics)
     }
 
     override fun createDataHolderForScript(script: KtScript, builder: LightClassBuilder): LightClassDataHolder.ForScript {
-        val (stub, _, diagnostics) = builder(getContext())
+        val (stub, _, diagnostics) = builder(script.getLightClassConstructionContext())
         return LightClassDataHolderImpl(stub, diagnostics)
     }
 
-    private fun getContext(): LightClassConstructionContext = LightClassConstructionContext(bindingContext, module)
-
     override fun findClassOrObjectDeclarations(fqName: FqName, searchScope: GlobalSearchScope): Collection<KtClassOrObject> {
-        return ResolveSessionUtils.getClassDescriptorsByFqName(module, fqName).mapNotNull {
-            val element = DescriptorToSourceUtils.getSourceFromDescriptor(it)
-            if (element is KtClassOrObject && PsiSearchScopeUtil.isInScope(searchScope, element)) {
-                element
+        return modules.keys.flatMap { module ->
+            ResolveSessionUtils.getClassDescriptorsByFqName(module, fqName).mapNotNull {
+                val element = DescriptorToSourceUtils.getSourceFromDescriptor(it)
+                if (element is KtClassOrObject && PsiSearchScopeUtil.isInScope(searchScope, element)) {
+                    element
+                }
+                else null
             }
-            else null
         }
     }
 
     override fun findFilesForPackage(fqName: FqName, searchScope: GlobalSearchScope): Collection<KtFile> {
-        return bindingContext.get(BindingContext.PACKAGE_TO_FILES, fqName)?.filter {
-            PsiSearchScopeUtil.isInScope(searchScope, it)
-        } ?: emptyList()
+        return modules.values.flatMap { (_, bindingContext) ->
+            bindingContext.get(BindingContext.PACKAGE_TO_FILES, fqName)?.filter {
+                PsiSearchScopeUtil.isInScope(searchScope, it)
+            }.orEmpty()
+        }
     }
 
     override fun findClassOrObjectDeclarationsInPackage(
@@ -136,20 +153,15 @@ class CliLightClassGenerationSupport(project: Project) : LightClassGenerationSup
     }
 
     override fun packageExists(fqName: FqName, scope: GlobalSearchScope): Boolean {
-        return !module.getPackage(fqName).isEmpty()
+        return modules.keys.any { module -> !module.getPackage(fqName).isEmpty() }
     }
 
     override fun getSubPackages(fqn: FqName, scope: GlobalSearchScope): Collection<FqName> {
-        val packageView = module.getPackage(fqn)
-        val members = packageView.memberScope.getContributedDescriptors(DescriptorKindFilter.PACKAGES, MemberScope.ALL_NAME_FILTER)
-        return ContainerUtil.mapNotNull(members, object : Function<DeclarationDescriptor, FqName> {
-            override fun `fun`(member: DeclarationDescriptor): FqName? {
-                if (member is PackageViewDescriptor) {
-                    return member.fqName
-                }
-                return null
-            }
-        })
+        return modules.keys.flatMap { module ->
+            module.getPackage(fqn).memberScope
+                    .getContributedDescriptors(DescriptorKindFilter.PACKAGES, MemberScope.ALL_NAME_FILTER)
+                    .mapNotNull { member -> (member as? PackageViewDescriptor)?.fqName }
+        }
     }
 
     override fun getLightClass(classOrObject: KtClassOrObject): KtLightClass? = KtLightClassForSourceDeclaration.create(classOrObject)
@@ -157,12 +169,12 @@ class CliLightClassGenerationSupport(project: Project) : LightClassGenerationSup
     override fun getLightClassForScript(script: KtScript): KtLightClassForScript? = KtLightClassForScript.create(script)
 
     override fun resolveToDescriptor(declaration: KtDeclaration): DeclarationDescriptor? {
-        return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, declaration)
+        return modules[declaration.module]!!.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, declaration)
     }
 
-    override fun analyze(element: KtElement) = bindingContext
+    override fun analyze(element: KtElement) = modules[element.module]!!.bindingContext
 
-    override fun analyzeFully(element: KtElement) = bindingContext
+    override fun analyzeFully(element: KtElement) = analyze(element)
 
     override fun getFacadeClasses(facadeFqName: FqName, scope: GlobalSearchScope): Collection<PsiClass> {
         val filesForFacade = findFilesForFacade(facadeFqName, scope)
