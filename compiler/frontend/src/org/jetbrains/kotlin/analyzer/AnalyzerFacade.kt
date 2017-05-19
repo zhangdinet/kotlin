@@ -251,6 +251,12 @@ interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
 }
 
+interface LibraryModuleInfo : ModuleInfo {
+    override val platform: TargetPlatform
+
+    fun getLibraryRoots(): Collection<String>
+}
+
 abstract class AnalyzerFacade {
     abstract fun <M : ModuleInfo> createResolverForModule(
             moduleInfo: M,
