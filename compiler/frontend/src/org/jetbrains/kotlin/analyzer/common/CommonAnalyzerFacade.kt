@@ -84,8 +84,7 @@ object CommonAnalyzerFacade : AnalyzerFacade() {
                     override fun getLanguageVersionSettings(moduleInfo: ModuleInfo, project: Project) = multiplatformLanguageSettings
                     override fun getTargetPlatform(moduleInfo: ModuleInfo) = TargetPlatformVersion.NoVersion
                 },
-                packagePartProviderFactory = packagePartProviderFactory,
-                modulePlatforms = { MultiTargetPlatform.Common }
+                packagePartProviderFactory = packagePartProviderFactory
         )
 
         val moduleDescriptor = resolver.descriptorForModule(moduleInfo)

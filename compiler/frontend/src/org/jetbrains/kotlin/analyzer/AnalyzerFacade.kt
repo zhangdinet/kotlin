@@ -86,7 +86,6 @@ class ResolverForProjectImpl<M : ModuleInfo>(
         private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
         private val packagePartProviderFactory: (M, ModuleContent) -> PackagePartProvider = { _, _ -> PackagePartProvider.Empty },
         private val firstDependency: M? = null,
-        private val modulePlatforms: (M) -> MultiTargetPlatform?,
         private val packageOracleFactory: PackageOracleFactory = PackageOracleFactory.OptimisticFactory,
         private val languageSettingsProvider: LanguageSettingsProvider = LanguageSettingsProvider.Default,
         private val invalidateOnOOCB: Boolean = true
@@ -115,17 +114,12 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     }
 
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
-        moduleDescriptor.setDependencies(LazyModuleDependencies(
-                projectContext.storageManager,
-                module,
-                modulePlatforms,
-                firstDependency,
-                this))
+        moduleDescriptor.setDependencies(LazyModuleDependencies(projectContext.storageManager, module, firstDependency, this))
 
         val content = modulesContent(module)
         moduleDescriptor.initialize(
-                DelegatingPackageFragmentProvider(this, moduleDescriptor, content,
-                                                  packageOracleFactory.createOracle(module)))
+                DelegatingPackageFragmentProvider(this, moduleDescriptor, content, packageOracleFactory.createOracle(module))
+        )
     }
 
     private val resolverByModuleDescriptor = mutableMapOf<ModuleDescriptor, ResolverForModule>()
@@ -200,8 +194,8 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     }
 
     private fun createModuleDescriptor(module: M): ModuleData {
-        val moduleDescriptor = ModuleDescriptorImpl(module.name,
-                                                    projectContext.storageManager, builtIns, modulePlatforms(module), module.capabilities)
+        val moduleDescriptor = ModuleDescriptorImpl(module.name, projectContext.storageManager, builtIns,
+                                                    module.platform?.multiTargetPlatform, module.capabilities)
         moduleInfoByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker = (module as? TrackableModuleInfo)?.createModificationTracker() ?:
@@ -276,7 +270,6 @@ abstract class AnalyzerFacade {
 class LazyModuleDependencies<M: ModuleInfo>(
         storageManager: StorageManager,
         private val module: M,
-        modulePlatforms: (M) -> MultiTargetPlatform?,
         firstDependency: M? = null,
         private val resolverForProject: ResolverForProjectImpl<M>
 ) : ModuleDependencies {
@@ -299,11 +292,11 @@ class LazyModuleDependencies<M: ModuleInfo>(
     }
 
     private val implementingModules = storageManager.createLazyValue {
-        if (modulePlatforms(module) != MultiTargetPlatform.Common) emptySet<M>()
-        else resolverForProject.modules
-                .filterTo(mutableSetOf()) {
-                    modulePlatforms(it) != MultiTargetPlatform.Common && module in it.dependencies()
-                }
+        val platform = module.platform?.multiTargetPlatform
+        if (platform != MultiTargetPlatform.Common) emptySet<M>()
+        else resolverForProject.modules.filterTo(mutableSetOf()) {
+            platform != MultiTargetPlatform.Common && module in it.dependencies()
+        }
     }
 
     override val allDependencies: List<ModuleDescriptorImpl> get() = dependencies()

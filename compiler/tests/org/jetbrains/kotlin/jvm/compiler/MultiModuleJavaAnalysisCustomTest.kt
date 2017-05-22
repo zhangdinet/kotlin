@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.JvmBuiltIns
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.MultiTargetPlatform
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -76,8 +75,7 @@ class MultiModuleJavaAnalysisCustomTest : KtUsefulTestCase() {
                     val moduleName = javaClass.name.asString().toLowerCase().first().toString()
                     modules.first { it._name == moduleName }
                 },
-                builtIns = builtIns,
-                modulePlatforms = { MultiTargetPlatform.Specific("JVM") }
+                builtIns = builtIns
         )
 
         builtIns.initialize(
