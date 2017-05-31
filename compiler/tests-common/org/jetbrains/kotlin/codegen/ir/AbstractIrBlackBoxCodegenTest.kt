@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
+ * Copyright 2010-2016 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,16 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.test.ConfigurationKind
 
-abstract class AbstractIrBlackBoxInlineCodegenTest: AbstractBlackBoxCodegenTest() {
-    override fun updateConfiguration(configuration: CompilerConfiguration) = configuration.put(JVMConfigurationKeys.IR, true)
+abstract class AbstractIrBlackBoxCodegenTest : AbstractBlackBoxCodegenTest() {
+    override fun updateConfiguration(configuration: CompilerConfiguration) {
+        configuration.put(JVMConfigurationKeys.IR, true)
+    }
 
+    //symbols are constructed with stdlib descriptors so stdlib should be presented
+    // TODO rewrite symbols building
     override fun extractConfigurationKind(files: MutableList<TestFile>): ConfigurationKind {
+        val kind = super.extractConfigurationKind(files)
+        //if (kind == ConfigurationKind.ALL) return ConfigurationKind.ALL
         return ConfigurationKind.ALL
     }
 }
