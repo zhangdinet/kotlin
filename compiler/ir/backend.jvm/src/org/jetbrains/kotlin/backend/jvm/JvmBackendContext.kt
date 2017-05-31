@@ -16,19 +16,80 @@
 
 package org.jetbrains.kotlin.backend.jvm
 
-import org.jetbrains.kotlin.backend.common.BackendContext
+import org.jetbrains.kotlin.backend.common.CommonBackendContext
+
+import org.jetbrains.kotlin.backend.common.ReflectionTypes
+import org.jetbrains.kotlin.backend.common.ir.Ir
+import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.backend.jvm.descriptors.JvmSharedVariablesManager
 import org.jetbrains.kotlin.backend.jvm.descriptors.SpecialDescriptorsFactory
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.util.SymbolTable
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.PsiSourceManager
+import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.KotlinType
 
 class JvmBackendContext(
         val state: GenerationState,
-        val psiSourceManager: PsiSourceManager,
-        override val irBuiltIns: IrBuiltIns
-) : BackendContext {
+        psiSourceManager: PsiSourceManager,
+        override val irBuiltIns: IrBuiltIns,
+        irModuleFragment: IrModuleFragment, symbolTable: SymbolTable
+) : CommonBackendContext {
     override val builtIns = state.module.builtIns
     val specialDescriptorsFactory = SpecialDescriptorsFactory(psiSourceManager, builtIns)
     override val sharedVariablesManager = JvmSharedVariablesManager(builtIns)
+
+    override val reflectionTypes: ReflectionTypes by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        ReflectionTypes(state.module, FqName("kotlin.reflect.jvm.internal"))
+    }
+
+    override val ir: Ir<CommonBackendContext> = object : Ir<CommonBackendContext>(this, irModuleFragment) {
+        override val symbols: Symbols<CommonBackendContext> = Symbols<CommonBackendContext>(this@JvmBackendContext, symbolTable)
+
+        override fun shouldGenerateHandlerParameterForDefaultBodyFun() = true
+    }
+
+    private fun find(memberScope: MemberScope, className: String): ClassDescriptor {
+        return find(memberScope, Name.identifier(className))
+    }
+
+    private fun find(memberScope: MemberScope, name: Name): ClassDescriptor {
+        return memberScope.getContributedClassifier(name, NoLookupLocation.FROM_BACKEND) as ClassDescriptor
+    }
+
+    override fun getInternalClass(name: String): ClassDescriptor {
+        return find(state.module.getPackage(FqName("kotlin.jvm.internal")).memberScope, name)
+    }
+
+    override fun getClass(fqName: FqName): ClassDescriptor {
+        return find(state.module.getPackage(fqName.parent()).memberScope, fqName.shortName())
+    }
+
+    override fun getInternalFunctions(name: String): List<FunctionDescriptor> {
+        return when (name) {
+            "ThrowUninitializedPropertyAccessException" ->
+                getInternalClass("Intrinsics").staticScope.
+                        getContributedFunctions(Name.identifier("throwUninitializedPropertyAccessException"), NoLookupLocation.FROM_BACKEND).toList()
+            else -> TODO(name)
+        }
+    }
+
+    override fun isValueType(type: KotlinType) = KotlinBuiltIns.isPrimitiveType(type)
+
+    override fun log(message: () -> String) {
+        print(message())
+    }
+
+    override val messageCollector: MessageCollector
+        get() = state.configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
 }
