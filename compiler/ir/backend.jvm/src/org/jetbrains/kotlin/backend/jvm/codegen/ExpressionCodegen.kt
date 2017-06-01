@@ -605,8 +605,12 @@ class ExpressionCodegen(
         val continueLabel = markNewLabel()
         val endLabel = Label()
         val condition = loop.condition
-        gen(condition, data)
-        BranchedValue.condJump(StackValue.onStack(condition.asmType), endLabel, true, mv)
+        //avoid true condition generation for tailrec
+        //TODO write elimination lower
+        if (!(condition is IrConst<*> && condition.value == true)) {
+            gen(condition, data)
+            BranchedValue.condJump(StackValue.onStack(condition.asmType), endLabel, true, mv)
+        }
 
         with(LoopInfo(loop, continueLabel, endLabel)) {
             data.addInfo(this)
