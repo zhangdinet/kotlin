@@ -213,7 +213,7 @@ fun computeInternalName(
         klass: ClassDescriptor,
         typeMappingConfiguration: TypeMappingConfiguration<*> = TypeMappingConfigurationImpl
 ): String {
-    val container = klass.containingDeclaration
+    val container = getContainer(klass.containingDeclaration)
 
     val name = SpecialNames.safeIdentifier(klass.name).identifier
     if (container is PackageFragmentDescriptor) {
@@ -229,6 +229,10 @@ fun computeInternalName(
             computeInternalName(containerClass, typeMappingConfiguration)
     return containerInternalName + "$" + name
 }
+
+private fun getContainer(container: DeclarationDescriptor?): DeclarationDescriptor? =
+        container as? ClassDescriptor ?: container as? PackageFragmentDescriptor ?:
+        container?.let { getContainer(it.containingDeclaration) }
 
 private fun getRepresentativeUpperBound(descriptor: TypeParameterDescriptor): KotlinType {
     val upperBounds = descriptor.upperBounds
