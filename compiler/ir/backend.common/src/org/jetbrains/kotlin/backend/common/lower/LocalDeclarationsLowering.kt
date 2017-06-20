@@ -560,7 +560,7 @@ class LocalDeclarationsLowering(val context: BackendContext) : DeclarationContai
 
             newDescriptor.initialize(
                     newValueParameters,
-                    Visibilities.PRIVATE,
+                    Visibilities.PUBLIC,
                     newTypeParameters
             )
             newDescriptor.returnType = oldDescriptor.returnType

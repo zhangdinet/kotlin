@@ -50,8 +50,8 @@ class IrInlineCodegen(
 
     override fun genValueAndPut(valueParameterDescriptor: ValueParameterDescriptor?, argumentExpression: IrExpression, parameterType: Type, parameterIndex: Int, codegen: ExpressionCodegen, blockInfo: BlockInfo) {
         //if (isInliningParameter(argumentExpression, valueParameterDescriptor)) {
-        if (argumentExpression is IrBlock && argumentExpression.origin == IrStatementOrigin.LAMBDA) {
-            val irReference: IrFunctionReference = argumentExpression.statements.filterIsInstance<IrFunctionReference>().single()
+        if (isInlineIrExpression(argumentExpression)) {
+            val irReference: IrFunctionReference = (argumentExpression as IrBlock).statements.filterIsInstance<IrFunctionReference>().single()
             rememberClosure(irReference, parameterType, valueParameterDescriptor!!) as IrExpressionLambda
         }
         else {
@@ -127,3 +127,6 @@ class IrExpressionLambda(
     override val hasDispatchReceiver: Boolean
         get() = false
 }
+
+fun isInlineIrExpression(argumentExpression: IrExpression) =
+        argumentExpression is IrBlock && argumentExpression.origin == IrStatementOrigin.LAMBDA
