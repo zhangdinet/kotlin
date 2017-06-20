@@ -47,7 +47,7 @@ class JvmLower(val context: JvmBackendContext) {
         LocalFunctionsLowering(context).runOnFilePostfix(irFile)
         EnumClassLowering(context).runOnFilePostfix(irFile)
         ObjectClassLowering(context).runOnFilePostfix(irFile)
-        InitializersLowering(context).runOnFilePostfix(irFile)
+        org.jetbrains.kotlin.backend.jvm.lower.InitializersLowering(context).runOnFilePostfix(irFile)
         SingletonReferencesLowering(context).runOnFilePostfix(irFile)
         SyntheticAccessorLowering(context.state).lower(irFile)
         BridgeLowering(context.state).runOnFilePostfix(irFile)
