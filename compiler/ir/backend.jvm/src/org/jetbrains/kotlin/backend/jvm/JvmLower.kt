@@ -44,7 +44,7 @@ class JvmLower(val context: JvmBackendContext) {
         SharedVariablesLowering(context).runOnFilePostfix(irFile)
         InnerClassesLowering(context).runOnFilePostfix(irFile)
         InnerClassConstructorCallsLowering(context).runOnFilePostfix(irFile)
-        LocalFunctionsLowering(context).runOnFilePostfix(irFile)
+        LocalDeclarationsLowering(context).runOnFilePostfix(irFile)
         EnumClassLowering(context).runOnFilePostfix(irFile)
         ObjectClassLowering(context).runOnFilePostfix(irFile)
         org.jetbrains.kotlin.backend.jvm.lower.InitializersLowering(context).runOnFilePostfix(irFile)
