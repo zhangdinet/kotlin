@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedCallableMemberDescriptor
+import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.DoubleColonLHS
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionLiteral
 import org.jetbrains.kotlin.types.expressions.LabelResolver
@@ -152,18 +153,13 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
     }
 
     fun performInline(
-            resolvedCall: ResolvedCall<*>?,
+            typeArguments: Map<TypeParameterDescriptor, KotlinType>?,
             callDefault: Boolean,
             codegen: BaseExpressionCodegen
     ) {
-        if (!state.inlineCycleReporter.enterIntoInlining(resolvedCall)) {
-            generateStub(resolvedCall, codegen)
-            return
-        }
-
         var nodeAndSmap: SMAPAndMethodNode? = null
         try {
-            nodeAndSmap = createInlineMethodNode(functionDescriptor, jvmSignature, codegen, callDefault, resolvedCall, state, sourceCompiler)
+            nodeAndSmap = createInlineMethodNode(functionDescriptor, jvmSignature, codegen, callDefault, typeArguments, state, sourceCompiler)
             endCall(inlineCall(nodeAndSmap, callDefault))
         }
         catch (e: CompilationException) {
@@ -174,9 +170,6 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
         }
         catch (e: Exception) {
             throw throwCompilationException(nodeAndSmap, e, true)
-        }
-        finally {
-            state.inlineCycleReporter.exitFromInliningOf(resolvedCall)
         }
     }
 
@@ -395,17 +388,16 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
                 jvmSignature: JvmMethodSignature,
                 codegen: BaseExpressionCodegen,
                 callDefault: Boolean,
-                resolvedCall: ResolvedCall<*>?,
+                typeArguments: Map<TypeParameterDescriptor, KotlinType>?,
                 state: GenerationState,
                 sourceCompilerForInline: SourceCompilerForInline
         ): SMAPAndMethodNode {
             if (isSpecialEnumMethod(functionDescriptor)) {
-                val arguments = resolvedCall!!.typeArguments
 
                 val node = createSpecialEnumMethodBody(
                         codegen,
                         functionDescriptor.name.asString(),
-                        arguments.keys.single().defaultType,
+                        typeArguments!!.keys.single().defaultType,
                         state.typeMapper
                 )
                 return SMAPAndMethodNode(node, SMAPParser.parseOrCreateDefault(null, null, "fake", -1, -1))
@@ -594,7 +586,15 @@ class PsiInlineCodegen(
             callDefault: Boolean,
             codegen: ExpressionCodegen
     ) {
-       performInline(resolvedCall, callDefault, codegen)
+        if (!state.inlineCycleReporter.enterIntoInlining(resolvedCall)) {
+            generateStub(resolvedCall, codegen)
+            return
+        }
+        try {
+            performInline(resolvedCall?.typeArguments, callDefault, codegen)
+        } finally {
+            state.inlineCycleReporter.exitFromInliningOf(resolvedCall)
+        }
     }
 
     override fun processAndPutHiddenParameters(justProcess: Boolean) {
