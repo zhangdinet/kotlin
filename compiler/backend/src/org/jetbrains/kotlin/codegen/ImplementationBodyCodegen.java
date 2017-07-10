@@ -840,7 +840,8 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
         StackValue.Field field = StackValue.singleton(companionObjectDescriptor, typeMapper);
         v.newField(JvmDeclarationOriginKt.OtherOrigin(companionObject == null ? myClass.getPsiOrParent() : companionObject),
-                   ACC_PUBLIC | ACC_STATIC | ACC_FINAL, field.name, field.type.getDescriptor(), null, null);
+                   getVisibilityAccessFlag(companionObjectDescriptor) | ACC_STATIC | ACC_FINAL,
+                   field.name, field.type.getDescriptor(), null, null);
     }
 
     private void generateCompanionObjectBackingFieldCopies() {

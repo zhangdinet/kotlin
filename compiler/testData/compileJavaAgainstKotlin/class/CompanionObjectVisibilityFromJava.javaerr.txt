@@ -1,0 +1,1 @@
+CompanionObjectVisibilityFromJava.java:6:36:compiler.err.report.access

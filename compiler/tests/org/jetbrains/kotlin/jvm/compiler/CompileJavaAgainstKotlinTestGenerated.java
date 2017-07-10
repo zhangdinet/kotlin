@@ -67,6 +67,12 @@ public class CompileJavaAgainstKotlinTestGenerated extends AbstractCompileJavaAg
                 doTestWithoutJavac(fileName);
             }
 
+            @TestMetadata("CompanionObjectVisibilityFromJava.kt")
+            public void testCompanionObjectVisibilityFromJava() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileJavaAgainstKotlin/class/CompanionObjectVisibilityFromJava.kt");
+                doTestWithoutJavac(fileName);
+            }
+
             @TestMetadata("DefaultConstructor.kt")
             public void testDefaultConstructor() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileJavaAgainstKotlin/class/DefaultConstructor.kt");
@@ -700,6 +706,12 @@ public class CompileJavaAgainstKotlinTestGenerated extends AbstractCompileJavaAg
             @TestMetadata("ClassObject.kt")
             public void testClassObject() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileJavaAgainstKotlin/class/ClassObject.kt");
+                doTestWithJavac(fileName);
+            }
+
+            @TestMetadata("CompanionObjectVisibilityFromJava.kt")
+            public void testCompanionObjectVisibilityFromJava() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileJavaAgainstKotlin/class/CompanionObjectVisibilityFromJava.kt");
                 doTestWithJavac(fileName);
             }
 
