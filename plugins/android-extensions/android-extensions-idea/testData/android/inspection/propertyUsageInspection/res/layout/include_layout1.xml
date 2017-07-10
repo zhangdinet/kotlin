@@ -1,0 +1,5 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <Button android:id="@+id/include_login1" />
+    <include layout="@layout/include_layout2" />
+    <include layout="@layout/layout1" />
+</merge>

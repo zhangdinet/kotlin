@@ -16,6 +16,12 @@
                          enabledByDefault="true"
                          level="ERROR"/>
 
+        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.AndroidExtensionsPropertyUsageInspection"
+                         displayName="Android Extensions Usage"
+                         groupName="Kotlin"
+                         enabledByDefault="true"
+                         level="WARNING"/>
+
         <editorNotificationProvider implementation="org.jetbrains.kotlin.android.actions.KotlinNewActivityNotification"/>
 
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>

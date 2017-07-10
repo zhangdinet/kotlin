@@ -98,7 +98,7 @@ internal fun JavaPropertyDescriptor.getResourceReferenceType(): AndroidPsiUtils.
 internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression: KtSimpleNameExpression, localOnly: Boolean)
         = getReferredResourceOrManifestField(facet, expression, null, localOnly)
 
-internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression: KtSimpleNameExpression,
+fun getReferredResourceOrManifestField(facet: AndroidFacet, expression: KtSimpleNameExpression,
                                        className: String?, localOnly: Boolean): AndroidResourceUtil.MyReferredResourceFieldInfo? {
     val resFieldName = expression.getReferencedName()
     val resClassReference = expression.getPreviousInQualifiedChain() as? KtSimpleNameExpression ?: return null
