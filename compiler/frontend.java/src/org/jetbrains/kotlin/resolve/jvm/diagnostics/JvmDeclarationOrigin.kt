@@ -86,7 +86,7 @@ fun Delegation(element: PsiElement?, descriptor: FunctionDescriptor): JvmDeclara
 
 fun SamDelegation(descriptor: FunctionDescriptor): JvmDeclarationOrigin = JvmDeclarationOrigin(SAM_DELEGATION, null, descriptor)
 
-fun Synthetic(element: PsiElement?, descriptor: CallableMemberDescriptor): JvmDeclarationOrigin = JvmDeclarationOrigin(SYNTHETIC, element, descriptor)
+fun Synthetic(element: PsiElement?, descriptor: MemberDescriptor): JvmDeclarationOrigin = JvmDeclarationOrigin(SYNTHETIC, element, descriptor)
 
 val CollectionStub = JvmDeclarationOrigin(COLLECTION_STUB, null, null)
 

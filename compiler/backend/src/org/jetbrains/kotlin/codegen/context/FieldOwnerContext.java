@@ -48,7 +48,7 @@ public abstract class FieldOwnerContext<T extends DeclarationDescriptor> extends
     @NotNull
     public String getFieldName(@NotNull PropertyDescriptor possiblySubstitutedDescriptor, boolean isDelegated) {
         if (possiblySubstitutedDescriptor instanceof AccessorForPropertyDescriptor) {
-            possiblySubstitutedDescriptor = ((AccessorForPropertyDescriptor) possiblySubstitutedDescriptor).getCalleeDescriptor();
+            possiblySubstitutedDescriptor = ((AccessorForPropertyDescriptor) possiblySubstitutedDescriptor).getAccessedDescriptor();
         }
 
         PropertyDescriptor descriptor = possiblySubstitutedDescriptor.getOriginal();

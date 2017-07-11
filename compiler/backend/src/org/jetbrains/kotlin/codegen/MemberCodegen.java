@@ -707,15 +707,32 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
     }
 
     protected void generateSyntheticAccessors() {
-        for (AccessorForCallableDescriptor<?> accessor : ((CodegenContext<?>) context).getAccessors()) {
+        for (AccessorForMemberDescriptor<?> accessor : ((CodegenContext<?>) context).getAccessors()) {
             generateSyntheticAccessor(accessor);
         }
     }
 
-    private void generateSyntheticAccessor(@NotNull AccessorForCallableDescriptor<?> accessorForCallableDescriptor) {
-        if (accessorForCallableDescriptor instanceof FunctionDescriptor) {
-            FunctionDescriptor accessor = (FunctionDescriptor) accessorForCallableDescriptor;
-            FunctionDescriptor original = (FunctionDescriptor) accessorForCallableDescriptor.getCalleeDescriptor();
+    private void generateSyntheticAccessor(@NotNull AccessorForMemberDescriptor<?> accessorDescriptor) {
+        if (accessorDescriptor instanceof AccessorForCompanionObjectDescriptor) {
+            AccessorForCompanionObjectDescriptor accessor = (AccessorForCompanionObjectDescriptor) accessorDescriptor;
+            ClassDescriptor companionObjectDescriptor = accessor.getCompanionObjectDescriptor();
+            functionCodegen.generateMethod(
+                    Synthetic(null, companionObjectDescriptor),
+                    accessor,
+                    new FunctionGenerationStrategy.CodegenBased(state) {
+                        @Override
+                        public void doGenerateBody(@NotNull ExpressionCodegen codegen, @NotNull JvmMethodSignature signature) {
+                            markLineNumberForElement(element.getPsiOrParent(), codegen.v);
+                            StackValue.Field singleton = StackValue.singleton(companionObjectDescriptor, typeMapper);
+                            singleton.put(singleton.type, codegen.v);
+                            codegen.v.areturn(signature.getReturnType());
+                        }
+                    }
+            );
+        }
+        else if (accessorDescriptor instanceof FunctionDescriptor) {
+            FunctionDescriptor accessor = (FunctionDescriptor) accessorDescriptor;
+            FunctionDescriptor original = (FunctionDescriptor) accessorDescriptor.getAccessedDescriptor();
             functionCodegen.generateMethod(
                     Synthetic(null, original), accessor,
                     new FunctionGenerationStrategy.CodegenBased(state) {
@@ -730,9 +747,9 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
                     }
             );
         }
-        else if (accessorForCallableDescriptor instanceof AccessorForPropertyDescriptor) {
-            AccessorForPropertyDescriptor accessor = (AccessorForPropertyDescriptor) accessorForCallableDescriptor;
-            PropertyDescriptor original = accessor.getCalleeDescriptor();
+        else if (accessorDescriptor instanceof AccessorForPropertyDescriptor) {
+            AccessorForPropertyDescriptor accessor = (AccessorForPropertyDescriptor) accessorDescriptor;
+            PropertyDescriptor original = accessor.getAccessedDescriptor();
 
             class PropertyAccessorStrategy extends FunctionGenerationStrategy.CodegenBased {
                 private final PropertyAccessorDescriptor callableDescriptor;
@@ -793,7 +810,7 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
             }
         }
         else {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Unexpected accessor descriptor: " + accessorDescriptor);
         }
     }
 
@@ -804,8 +821,8 @@ public abstract class MemberCodegen<T extends KtPureElement/* TODO: & KtDeclarat
     ) {
         CallableMethod callableMethod = typeMapper.mapToCallableMethod(
                 functionDescriptor,
-                accessorDescriptor instanceof AccessorForCallableDescriptor &&
-                ((AccessorForCallableDescriptor) accessorDescriptor).getSuperCallTarget() != null
+                accessorDescriptor instanceof AccessorForMemberDescriptor &&
+                ((AccessorForMemberDescriptor) accessorDescriptor).getSuperCallTarget() != null
         );
 
         boolean hasDispatchReceiver = !isStaticDeclaration(functionDescriptor) && !isNonDefaultInterfaceMember(functionDescriptor, state);

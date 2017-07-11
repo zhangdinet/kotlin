@@ -287,6 +287,30 @@ public class IncrementalJpsTestGenerated extends AbstractIncrementalJpsTest {
             doTest(fileName);
         }
 
+        @TestMetadata("companionObjectPrivateToPublic")
+        public void testCompanionObjectPrivateToPublic() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/pureKotlin/companionObjectPrivateToPublic/");
+            doTest(fileName);
+        }
+
+        @TestMetadata("companionObjectProtectedToPublic")
+        public void testCompanionObjectProtectedToPublic() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/pureKotlin/companionObjectProtectedToPublic/");
+            doTest(fileName);
+        }
+
+        @TestMetadata("companionObjectPublicToPrivate")
+        public void testCompanionObjectPublicToPrivate() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/pureKotlin/companionObjectPublicToPrivate/");
+            doTest(fileName);
+        }
+
+        @TestMetadata("companionObjectPublicToProtected")
+        public void testCompanionObjectPublicToProtected() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/pureKotlin/companionObjectPublicToProtected/");
+            doTest(fileName);
+        }
+
         @TestMetadata("compilationErrorThenFixedOtherPackage")
         public void testCompilationErrorThenFixedOtherPackage() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/pureKotlin/compilationErrorThenFixedOtherPackage/");

@@ -27,7 +27,8 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils;
 
 import java.util.LinkedHashMap;
 
-public class AccessorForFunctionDescriptor extends AbstractAccessorForFunctionDescriptor implements AccessorForCallableDescriptor<FunctionDescriptor> {
+public class AccessorForFunctionDescriptor extends AbstractAccessorForFunctionDescriptor implements
+                                                                                         AccessorForMemberDescriptor<FunctionDescriptor> {
     private final FunctionDescriptor calleeDescriptor;
     private final ClassDescriptor superCallTarget;
     private final String nameSuffix;
@@ -79,7 +80,7 @@ public class AccessorForFunctionDescriptor extends AbstractAccessorForFunctionDe
 
     @NotNull
     @Override
-    public FunctionDescriptor getCalleeDescriptor() {
+    public FunctionDescriptor getAccessedDescriptor() {
         return calleeDescriptor;
     }
 

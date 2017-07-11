@@ -369,6 +369,36 @@ public class WriteFlagsTestGenerated extends AbstractWriteFlagsTest {
         }
     }
 
+    @TestMetadata("compiler/testData/writeFlags/companionObject")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class CompanionObject extends AbstractWriteFlagsTest {
+        public void testAllFilesPresentInCompanionObject() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/writeFlags/companionObject"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("compiler/testData/writeFlags/companionObject/visibility")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Visibility extends AbstractWriteFlagsTest {
+            public void testAllFilesPresentInVisibility() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/writeFlags/companionObject/visibility"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("privateCompanionObject.kt")
+            public void testPrivateCompanionObject() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/writeFlags/companionObject/visibility/privateCompanionObject.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("protectedCompanionObject.kt")
+            public void testProtectedCompanionObject() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/writeFlags/companionObject/visibility/protectedCompanionObject.kt");
+                doTest(fileName);
+            }
+        }
+    }
+
     @TestMetadata("compiler/testData/writeFlags/delegatedProperty")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

@@ -208,9 +208,15 @@ public class KotlinTypeMapper {
 
     @NotNull
     private String internalNameForPackageMemberOwner(@NotNull CallableMemberDescriptor descriptor, boolean publicFacade) {
-        boolean isAccessor = descriptor instanceof AccessorForCallableDescriptor;
+        boolean isAccessor = descriptor instanceof AccessorForMemberDescriptor;
         if (isAccessor) {
-            descriptor = ((AccessorForCallableDescriptor) descriptor).getCalleeDescriptor();
+            MemberDescriptor accessedDescriptor = ((AccessorForMemberDescriptor) descriptor).getAccessedDescriptor();
+            if (accessedDescriptor instanceof CallableMemberDescriptor) {
+                descriptor = (CallableMemberDescriptor) accessedDescriptor;
+            }
+            else {
+                throw new AssertionError("Unexpected accessor descriptor: " + descriptor);
+            }
         }
         KtFile file = DescriptorToSourceUtils.getContainingFile(descriptor);
         if (file != null) {
@@ -851,7 +857,7 @@ public class KotlinTypeMapper {
     }
 
     public static boolean isAccessor(@NotNull CallableMemberDescriptor descriptor) {
-        return descriptor instanceof AccessorForCallableDescriptor<?>;
+        return descriptor instanceof AccessorForMemberDescriptor<?>;
     }
 
     public static boolean isStaticAccessor(@NotNull CallableMemberDescriptor descriptor) {
@@ -943,7 +949,7 @@ public class KotlinTypeMapper {
     public static String mapDefaultFieldName(@NotNull PropertyDescriptor propertyDescriptor, boolean isDelegated) {
         String name;
         if (propertyDescriptor instanceof AccessorForPropertyDescriptor) {
-            name = ((AccessorForPropertyDescriptor) propertyDescriptor).getCalleeDescriptor().getName().asString();
+            name = ((AccessorForPropertyDescriptor) propertyDescriptor).getAccessedDescriptor().getName().asString();
         }
         else {
             name = propertyDescriptor.getName().asString();
@@ -1086,7 +1092,7 @@ public class KotlinTypeMapper {
     ) {
         checkOwnerCompatibility(f);
 
-        JvmSignatureWriter sw = skipGenericSignature || f instanceof AccessorForCallableDescriptor
+        JvmSignatureWriter sw = skipGenericSignature || f instanceof AccessorForMemberDescriptor
                                  ? new JvmSignatureWriter()
                                  : new BothSignatureWriter(BothSignatureWriter.Mode.METHOD);
 

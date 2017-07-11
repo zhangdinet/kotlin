@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.types.KotlinType;
 
 import java.util.Collections;
 
-public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implements AccessorForCallableDescriptor<PropertyDescriptor> {
+public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implements AccessorForMemberDescriptor<PropertyDescriptor> {
     private final PropertyDescriptor calleeDescriptor;
     private final ClassDescriptor superCallTarget;
     private final String nameSuffix;
@@ -94,7 +94,7 @@ public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implem
         initialize(getterDescriptor, setterDescriptor);
     }
 
-    public static class Getter extends PropertyGetterDescriptorImpl implements AccessorForCallableDescriptor<PropertyGetterDescriptor> {
+    public static class Getter extends PropertyGetterDescriptorImpl implements AccessorForMemberDescriptor<PropertyGetterDescriptor> {
         public Getter(AccessorForPropertyDescriptor property) {
             super(property, Annotations.Companion.getEMPTY(), Modality.FINAL, Visibilities.LOCAL,
                   /* isDefault = */ false, /* isExternal = */ false, /* isInline = */false, Kind.DECLARATION, null, SourceElement.NO_SOURCE);
@@ -103,9 +103,9 @@ public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implem
 
         @NotNull
         @Override
-        public PropertyGetterDescriptor getCalleeDescriptor() {
+        public PropertyGetterDescriptor getAccessedDescriptor() {
             //noinspection ConstantConditions
-            return ((AccessorForPropertyDescriptor) getCorrespondingProperty()).getCalleeDescriptor().getGetter();
+            return ((AccessorForPropertyDescriptor) getCorrespondingProperty()).getAccessedDescriptor().getGetter();
         }
 
         @Override
@@ -116,7 +116,7 @@ public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implem
 
     }
 
-    public static class Setter extends PropertySetterDescriptorImpl implements AccessorForCallableDescriptor<PropertySetterDescriptor>{
+    public static class Setter extends PropertySetterDescriptorImpl implements AccessorForMemberDescriptor<PropertySetterDescriptor> {
         public Setter(AccessorForPropertyDescriptor property) {
             super(property, Annotations.Companion.getEMPTY(), Modality.FINAL, Visibilities.LOCAL,
                   /* isDefault = */ false, /* isExternal = */ false, /* isInline = */ false, Kind.DECLARATION, null, SourceElement.NO_SOURCE);
@@ -125,9 +125,9 @@ public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implem
 
         @NotNull
         @Override
-        public PropertySetterDescriptor getCalleeDescriptor() {
+        public PropertySetterDescriptor getAccessedDescriptor() {
             //noinspection ConstantConditions
-            return ((AccessorForPropertyDescriptor) getCorrespondingProperty()).getCalleeDescriptor().getSetter();
+            return ((AccessorForPropertyDescriptor) getCorrespondingProperty()).getAccessedDescriptor().getSetter();
         }
 
         @Override
@@ -139,7 +139,7 @@ public class AccessorForPropertyDescriptor extends PropertyDescriptorImpl implem
 
     @NotNull
     @Override
-    public PropertyDescriptor getCalleeDescriptor() {
+    public PropertyDescriptor getAccessedDescriptor() {
         return calleeDescriptor;
     }
 

@@ -2431,7 +2431,24 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
                     return StackValue.LOCAL_0;
                 }
                 else {
-                    return StackValue.singleton(receiverDescriptor, typeMapper);
+                    SimpleFunctionDescriptor accessorForCompanionObject =
+                            context.getAccessorForCompanionObjectOrNull(receiverDescriptor);
+                    if (accessorForCompanionObject == null) {
+                        return StackValue.singleton(receiverDescriptor, typeMapper);
+                    }
+                    else {
+                        Type resultType = typeMapper.mapType(receiverDescriptor.getDefaultType());
+                        return StackValue.functionCall(resultType, v -> {
+                            Type ownerType = typeMapper.mapOwner(accessorForCompanionObject);
+                            v.invokestatic(
+                                    ownerType.getInternalName(),
+                                    accessorForCompanionObject.getName().asString(),
+                                    Type.getMethodDescriptor(resultType),
+                                    false
+                            );
+                            return null;
+                        });
+                    }
                 }
             }
             else if (receiverDescriptor instanceof ScriptDescriptor) {

@@ -28,8 +28,8 @@ class AccessorForConstructorDescriptor(
         private val superCallTarget: ClassDescriptor?
 ) : AbstractAccessorForFunctionDescriptor(containingDeclaration, Name.special("<init>")),
         ClassConstructorDescriptor,
-        AccessorForCallableDescriptor<ConstructorDescriptor> {
-    override fun getCalleeDescriptor(): ConstructorDescriptor = calleeDescriptor
+        AccessorForMemberDescriptor<ConstructorDescriptor> {
+    override fun getAccessedDescriptor(): ConstructorDescriptor = calleeDescriptor
 
     override fun getContainingDeclaration(): ClassDescriptor = calleeDescriptor.containingDeclaration
 

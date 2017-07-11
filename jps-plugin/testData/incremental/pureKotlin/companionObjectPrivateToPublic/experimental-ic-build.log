@@ -1,0 +1,12 @@
+================ Step #1 =================
+
+Cleaning output files:
+  out/production/module/test/C$Companion.class
+  out/production/module/test/C$lambda$1.class
+  out/production/module/test/C.class
+End of files
+Compiling files:
+  src/class.kt
+End of files
+Exit code: OK
+------------------------------------------

@@ -20,10 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor;
 import org.jetbrains.kotlin.descriptors.ClassDescriptor;
+import org.jetbrains.kotlin.descriptors.MemberDescriptor;
 
-public interface AccessorForCallableDescriptor<T extends CallableMemberDescriptor> {
+public interface AccessorForMemberDescriptor<T extends MemberDescriptor> {
     @NotNull
-    T getCalleeDescriptor();
+    T getAccessedDescriptor();
 
     @Nullable
     ClassDescriptor getSuperCallTarget();

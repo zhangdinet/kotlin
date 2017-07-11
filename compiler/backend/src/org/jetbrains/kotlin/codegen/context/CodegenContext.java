@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.storage.LockBasedStorageManager;
 import org.jetbrains.kotlin.storage.NullableLazyValue;
 import org.jetbrains.kotlin.types.KotlinType;
+import org.jetbrains.org.objectweb.asm.Opcodes;
 import org.jetbrains.org.objectweb.asm.Type;
 
 import java.util.*;
@@ -51,8 +52,9 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
     private final NullableLazyValue<StackValue.Field> outerExpression;
 
     private Map<DeclarationDescriptor, CodegenContext> childContexts;
-    private Map<AccessorKey, AccessorForCallableDescriptor<?>> accessors;
+    private Map<AccessorKey, AccessorForMemberDescriptor> accessors;
     private Map<AccessorKey, AccessorForPropertyDescriptorFactory> propertyAccessorFactories;
+    private AccessorForCompanionObjectDescriptor companionObjectAccessor = null;
 
     private static class AccessorKey {
         public final DeclarationDescriptor descriptor;
@@ -439,7 +441,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         if (propertyAccessorFactory != null) {
             return (D) propertyAccessorFactory.getOrCreateAccessorIfNeeded(getterAccessorRequired, setterAccessorRequired);
         }
-        AccessorForCallableDescriptor<?> accessor = accessors.get(key);
+        AccessorForMemberDescriptor<?> accessor = accessors.get(key);
         if (accessor != null) {
             assert accessorKind == FieldAccessorKind.NORMAL ||
                    accessor instanceof AccessorForPropertyBackingField : "There is already exists accessor with isForBackingField = false in this context";
@@ -533,8 +535,8 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
 
     @NotNull
     @ReadOnly
-    public Collection<? extends AccessorForCallableDescriptor<?>> getAccessors() {
-        return accessors == null ? Collections.<AccessorForCallableDescriptor<CallableMemberDescriptor>>emptySet() : accessors.values();
+    public Collection<? extends AccessorForMemberDescriptor> getAccessors() {
+        return accessors == null ? Collections.<AccessorForMemberDescriptor<CallableMemberDescriptor>>emptySet() : accessors.values();
     }
 
     @SuppressWarnings("unchecked")
@@ -544,15 +546,70 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @Nullable ClassDescriptor superCallTarget
     ) {
         CodegenContext properContext = getFirstCrossInlineOrNonInlineContext();
-        DeclarationDescriptor enclosing = descriptor.getContainingDeclaration();
-        boolean isInliningContext = properContext.isInlineMethodContext();
-        if (!isInliningContext && (
-                !properContext.hasThisDescriptor() ||
-                enclosing == properContext.getThisDescriptor() ||
-                enclosing == properContext.getClassOrPackageParentContext().getContextDescriptor())) {
+        if (shouldUseOriginalDescriptorInPossiblyInlineContext(descriptor, properContext)) {
             return descriptor;
         }
+
+        boolean isInliningContext = properContext.isInlineMethodContext();
         return (D) properContext.accessibleDescriptorIfNeeded(descriptor, superCallTarget, isInliningContext);
+    }
+
+    private static boolean shouldUseOriginalDescriptorInPossiblyInlineContext(
+            @NotNull MemberDescriptor descriptor,
+            @NotNull CodegenContext properContext
+    ) {
+        boolean isInliningContext = properContext.isInlineMethodContext();
+
+        DeclarationDescriptor enclosing = descriptor.getContainingDeclaration();
+        return !isInliningContext && (
+                !properContext.hasThisDescriptor() ||
+                enclosing == properContext.getThisDescriptor() ||
+                enclosing == properContext.getClassOrPackageParentContext().getContextDescriptor());
+    }
+
+    @Nullable
+    public SimpleFunctionDescriptor getAccessorForCompanionObjectOrNull(@NotNull ClassDescriptor companionObjectDescriptor) {
+        assert DescriptorUtils.isCompanionObject(companionObjectDescriptor) : "Companion object expected: " + companionObjectDescriptor;
+
+        CodegenContext properContext = getFirstCrossInlineOrNonInlineContext();
+        if (shouldUseOriginalDescriptorInPossiblyInlineContext(companionObjectDescriptor, properContext)) {
+            return null;
+        }
+
+        DeclarationDescriptor containingClassDescriptor = companionObjectDescriptor.getContainingDeclaration();
+        assert containingClassDescriptor instanceof ClassDescriptor :
+                "Companion object is not in a class: " + companionObjectDescriptor + "; " + containingClassDescriptor;
+
+        CodegenContext classContextForAccessor = null;
+        int visibilityAccessFlag = getVisibilityAccessFlag(companionObjectDescriptor);
+        if ((visibilityAccessFlag & Opcodes.ACC_PRIVATE) != 0) {
+            classContextForAccessor = findParentContextWithDescriptor(containingClassDescriptor);
+        }
+        else if ((visibilityAccessFlag & Opcodes.ACC_PROTECTED) != 0) {
+            classContextForAccessor = ExpressionCodegen.getParentContextSubclassOf((ClassDescriptor) containingClassDescriptor, this);
+        }
+        else {
+            return null;
+        }
+
+        assert classContextForAccessor != null :
+                "Companion object " + companionObjectDescriptor + " is accessed outside of its containing class context " + this;
+        return classContextForAccessor.getOrCreateAccessorForCompanionObject(companionObjectDescriptor);
+    }
+
+    @NotNull
+    private SimpleFunctionDescriptor getOrCreateAccessorForCompanionObject(@NotNull ClassDescriptor companionObjectDescriptor) {
+        assert contextDescriptor instanceof ClassDescriptor :
+                "Wrong context for companion object accessor host: " + this + "; " + companionObjectDescriptor;
+
+        if (companionObjectAccessor == null) {
+            companionObjectAccessor = new AccessorForCompanionObjectDescriptor(contextDescriptor, companionObjectDescriptor);
+            if (accessors == null) {
+                accessors = new LinkedHashMap<>();
+            }
+            accessors.put(new AccessorKey(companionObjectDescriptor, null), companionObjectAccessor);
+        }
+        return companionObjectAccessor;
     }
 
     @SuppressWarnings("unchecked")

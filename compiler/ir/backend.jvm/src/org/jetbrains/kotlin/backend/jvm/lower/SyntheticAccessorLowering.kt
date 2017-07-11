@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.backend.jvm.lower
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.intrinsics.receiverAndArgs
-import org.jetbrains.kotlin.codegen.AccessorForCallableDescriptor
+import org.jetbrains.kotlin.codegen.AccessorForMemberDescriptor
 import org.jetbrains.kotlin.codegen.AccessorForPropertyDescriptor
 import org.jetbrains.kotlin.codegen.JvmCodegenUtil
 import org.jetbrains.kotlin.codegen.OwnerKind
@@ -130,7 +130,7 @@ class SyntheticAccessorLowering(val state: GenerationState) : FileLoweringPass, 
                         accessors.filterIsInstance<AccessorForPropertyDescriptor>().flatMap {
                             listOf(if (it.isWithSyntheticGetterAccessor) it.getter else null, if (it.isWithSyntheticSetterAccessor) it.setter else null).filterNotNull()
                         }
-                ).filterIsInstance<AccessorForCallableDescriptor<*>>()
+                ).filterIsInstance<AccessorForMemberDescriptor<*>>()
         allAccessors.forEach { accessor ->
             val accessorOwner = (accessor as FunctionDescriptor).containingDeclaration as ClassOrPackageFragmentDescriptor
             val body = IrBlockBodyImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
@@ -139,7 +139,7 @@ class SyntheticAccessorLowering(val state: GenerationState) : FileLoweringPass, 
                     UNDEFINED_OFFSET, UNDEFINED_OFFSET, JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR,
                     accessorDescriptor, body
             )
-            val calleeDescriptor = accessor.calleeDescriptor as FunctionDescriptor
+            val calleeDescriptor = accessor.accessedDescriptor as FunctionDescriptor
             val returnExpr = IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, calleeDescriptor)
             copyAllArgsToValueParams(returnExpr, accessorDescriptor)
             body.statements.add(IrReturnImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, accessor, returnExpr))
@@ -155,7 +155,7 @@ class SyntheticAccessorLowering(val state: GenerationState) : FileLoweringPass, 
             val directAccessor = data!!.codegenContext.accessibleDescriptor(JvmCodegenUtil.getDirectMember(descriptor), (expression as? IrCall)?.superQualifier)
             val accessor = actualAccessor(descriptor, directAccessor)
 
-            if (accessor is AccessorForCallableDescriptor<*> && descriptor !is AccessorForCallableDescriptor<*>) {
+            if (accessor is AccessorForMemberDescriptor<*> && descriptor !is AccessorForMemberDescriptor<*>) {
                 val accessorOwner = accessor.containingDeclaration as ClassOrPackageFragmentDescriptor
                 val staticAccessor = descriptor.toStatic(accessorOwner, Name.identifier(state.typeMapper.mapAsmMethod(accessor as FunctionDescriptor).name)) //TODO change call
                 val call = IrCallImpl(expression.startOffset, expression.endOffset, staticAccessor, emptyMap(), expression.origin/*TODO super*/)
