@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2015 JetBrains s.r.o.
+ * Copyright 2010-2017 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.resolve.calls.KotlinResolutionConfigurationKt;
 import org.jetbrains.kotlin.test.InTextDirectivesUtils;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.TargetBackend;
@@ -29,8 +30,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jetbrains.kotlin.test.InTextDirectivesUtils.isIgnoredTarget;
-import static org.jetbrains.kotlin.test.InTextDirectivesUtils.isIgnoredTargetWithoutCheck;
+import static org.jetbrains.kotlin.test.InTextDirectivesUtils.*;
 
 public class SimpleTestMethodModel implements TestMethodModel {
 
@@ -79,22 +79,48 @@ public class SimpleTestMethodModel implements TestMethodModel {
         String filePath = KotlinTestUtils.getFilePath(file) + (file.isDirectory() ? "/" : "");
         p.println("String fileName = KotlinTestUtils.navigationMetadata(\"", filePath, "\");");
 
-        if (isIgnoredTarget(targetBackend, file)) {
+
+        boolean ignoredTarget = isIgnoredTarget(targetBackend, file);
+        boolean ignoredForNewInference = isIgnoredIfNewInference(file);
+        boolean shouldBeMuted = ignoredTarget || ignoredForNewInference;
+        if (shouldBeMuted) {
             p.println("try {");
             p.pushIndent();
         }
 
         p.println(doTestMethodName, "(fileName);");
 
-        if (isIgnoredTarget(targetBackend, file)) {
+        if (shouldBeMuted) {
             p.popIndent();
             p.println("}");
             p.println("catch (Throwable ignore) {");
             p.pushIndent();
+
+            if (ignoredForNewInference) {
+                p.println("if (!" + KotlinResolutionConfigurationKt.class.getCanonicalName() + ".getUSE_NEW_INFERENCE()) {");
+                p.pushIndent();
+                p.println("throw ignore;");
+                p.popIndent();
+                p.println("}");
+            }
+
             p.println("return;");
             p.popIndent();
             p.println("}");
-            p.println("throw new AssertionError(\"Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.\");");
+
+            String directive = ignoredTarget ? "IGNORE_BACKEND" : "IGNORE_IF_NEW_INFERENCE_ENABLED";
+            String throwIfPassed = "throw new AssertionError(\"Looks like this test can be unmuted. Remove " + directive + " directive for that.\");";
+
+            if (ignoredForNewInference) {
+                p.println("if (" + KotlinResolutionConfigurationKt.class.getCanonicalName() + ".getUSE_NEW_INFERENCE()) {");
+                p.pushIndent();
+                p.println(throwIfPassed);
+                p.popIndent();
+                p.println("}");
+            }
+            else {
+                p.println(throwIfPassed);
+            }
         }
     }
 
