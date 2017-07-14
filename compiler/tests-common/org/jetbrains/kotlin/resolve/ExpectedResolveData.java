@@ -23,12 +23,14 @@ import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.builtins.DefaultBuiltIns;
+import org.jetbrains.kotlin.analyzer.AnalysisResult;
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.diagnostics.Diagnostic;
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils;
 import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.name.ClassId;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.psi.*;
@@ -38,7 +40,6 @@ import org.jetbrains.kotlin.types.ErrorUtils;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.TypeConstructor;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +52,7 @@ import static org.junit.Assert.*;
 
 public abstract class ExpectedResolveData {
 
-    protected static final String STANDARD_PREFIX = "kotlin::";
+    private static final String STANDARD_PREFIX = "kotlin::";
 
     private static class Position {
         private final PsiElement element;
@@ -131,16 +132,19 @@ public abstract class ExpectedResolveData {
 
     protected abstract KtFile createKtFile(String fileName, String text);
 
-    protected static BindingContext analyze(List<KtFile> files, KotlinCoreEnvironment environment) {
+    @NotNull
+    protected static AnalysisResult analyze(@NotNull List<KtFile> files, @NotNull KotlinCoreEnvironment environment) {
         if (files.isEmpty()) {
-            System.err.println("Suspicious: no files");
-            return BindingContext.EMPTY;
+            throw new IllegalArgumentException("No files");
         }
 
-        return JvmResolveUtil.analyze(files, environment).getBindingContext();
+        return JvmResolveUtil.analyze(files, environment);
     }
 
-    public final void checkResult(BindingContext bindingContext) {
+    public final void checkResult(@NotNull AnalysisResult analysisResult) {
+        ModuleDescriptor moduleDescriptor = analysisResult.getModuleDescriptor();
+        BindingContext bindingContext = analysisResult.getBindingContext();
+
         Set<PsiElement> unresolvedReferences = Sets.newHashSet();
         for (Diagnostic diagnostic : bindingContext.getDiagnostics()) {
             if (Errors.UNRESOLVED_REFERENCE_DIAGNOSTICS.contains(diagnostic.getFactory())) {
@@ -241,8 +245,8 @@ public abstract class ExpectedResolveData {
 
                 KotlinType actualType = bindingContext.get(BindingContext.TYPE, typeReference);
                 assertNotNull("Type " + name + " not resolved for reference " + name, actualType);
-                ClassifierDescriptor expectedClass = getBuiltinClass(name.substring(STANDARD_PREFIX.length()));
-                assertTypeConstructorEquals("Type resolution mismatch: ", expectedClass.getTypeConstructor(), actualType.getConstructor());
+                ClassDescriptor expectedClass = findClass(moduleDescriptor, name.substring(STANDARD_PREFIX.length()));
+                assertEquals("Type resolution mismatch: ", expectedClass.getTypeConstructor(), actualType.getConstructor());
                 continue;
             }
             assert expected != null : "No declaration for " + name;
@@ -296,9 +300,8 @@ public abstract class ExpectedResolveData {
             KotlinType expressionType = bindingContext.getType(expression);
             TypeConstructor expectedTypeConstructor;
             if (typeName.startsWith(STANDARD_PREFIX)) {
-                String name = typeName.substring(STANDARD_PREFIX.length());
-                ClassifierDescriptor expectedClass = getBuiltinClass(name);
-                expectedTypeConstructor = expectedClass.getTypeConstructor();
+                expectedTypeConstructor =
+                        findClass(moduleDescriptor, typeName.substring(STANDARD_PREFIX.length())).getTypeConstructor();
             }
             else {
                 Position declarationPosition = declarationToPosition.get(typeName);
@@ -309,10 +312,13 @@ public abstract class ExpectedResolveData {
                 assertNotNull(declaration);
                 if (declaration instanceof KtClass) {
                     ClassDescriptor classDescriptor = bindingContext.get(BindingContext.CLASS, declaration);
+                    assert classDescriptor != null : "No class found: " + ((KtClass) declaration).getFqName();
                     expectedTypeConstructor = classDescriptor.getTypeConstructor();
                 }
                 else if (declaration instanceof KtTypeParameter) {
-                    TypeParameterDescriptor typeParameterDescriptor = bindingContext.get(BindingContext.TYPE_PARAMETER, (KtTypeParameter) declaration);
+                    TypeParameterDescriptor typeParameterDescriptor =
+                            bindingContext.get(BindingContext.TYPE_PARAMETER, (KtTypeParameter) declaration);
+                    assert typeParameterDescriptor != null : "No type parameter found: " + declaration.getName();
                     expectedTypeConstructor = typeParameterDescriptor.getTypeConstructor();
                 }
                 else {
@@ -322,39 +328,26 @@ public abstract class ExpectedResolveData {
             }
 
             assertNotNull(expression.getText() + " type is null", expressionType);
-            assertTypeConstructorEquals("At " + position + ": ", expectedTypeConstructor, expressionType.getConstructor());
+            assertEquals("At " + position + ": ", expectedTypeConstructor, expressionType.getConstructor());
         }
-    }
-
-    private static void assertTypeConstructorEquals(String message, TypeConstructor expected, TypeConstructor actual) {
-        assertDescriptorsEqual(message, expected.getDeclarationDescriptor(), actual.getDeclarationDescriptor());
     }
 
     private static void assertDescriptorsEqual(String message, DeclarationDescriptor expected, DeclarationDescriptor actual) {
-        if (DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(expected, actual)) {
-            return;
-        }
-        String formatted = "";
-        if (message != null) {
-            formatted = message + " ";
-        }
-
-        fail(formatted + "expected same:<" + expected + "> was not:<" + actual
-             + ">");
+        assertTrue(
+                (message != null ? message + " " : "") + "expected same:<" + expected + "> was not:<" + actual + ">",
+                DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(expected, actual)
+        );
     }
 
     @NotNull
-    public static ClassifierDescriptor getBuiltinClass(String nameOrFqName) {
-        ClassifierDescriptor expectedClass;
+    private static ClassDescriptor findClass(@NotNull ModuleDescriptor module, @NotNull String nameOrFqName) {
+        FqName fqName =
+                nameOrFqName.contains(".")
+                ? new FqName(nameOrFqName)
+                : KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME.child(Name.identifier(nameOrFqName));
 
-        if (nameOrFqName.indexOf('.') >= 0) {
-            expectedClass = DefaultBuiltIns.getInstance().getBuiltInClassByFqNameNullable(FqName.fromSegments(Arrays.asList(nameOrFqName.split("\\."))));
-        }
-        else {
-            expectedClass = DefaultBuiltIns.getInstance().getBuiltInClassByNameNullable(Name.identifier(nameOrFqName));
-        }
-        assertNotNull("Expected class not found: " + nameOrFqName, expectedClass);
-
+        ClassDescriptor expectedClass = FindClassInModuleKt.findClassAcrossModuleDependencies(module, ClassId.topLevel(fqName));
+        assertNotNull("Expected class not found: " + nameOrFqName + " (" + fqName + ")", expectedClass);
         return expectedClass;
     }
 
@@ -367,8 +360,6 @@ public abstract class ExpectedResolveData {
             statement = (KtExpression) parent;
         }
         KtDeclaration declaration = PsiTreeUtil.getParentOfType(referenceExpression, KtDeclaration.class);
-
-
 
         return referenceExpression.getText() + " at " + DiagnosticUtils.atLocation(referenceExpression) +
                                     " in " + statement.getText() + (declaration == null ? "" : " in " + declaration.getText());

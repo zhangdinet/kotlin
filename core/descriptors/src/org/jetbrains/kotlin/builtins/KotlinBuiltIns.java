@@ -272,14 +272,8 @@ public abstract class KotlinBuiltIns {
 
         public final FqNameUnsafe _enum = fqNameUnsafe("Enum");
 
-
-
         public final FqName throwable = fqName("Throwable");
         public final FqName comparable = fqName("Comparable");
-
-        public final FqNameUnsafe charRange = rangesFqName("CharRange");
-        public final FqNameUnsafe intRange = rangesFqName("IntRange");
-        public final FqNameUnsafe longRange = rangesFqName("LongRange");
 
         public final FqName deprecated = fqName("Deprecated");
         public final FqName deprecationLevel = fqName("DeprecationLevel");
@@ -351,11 +345,6 @@ public abstract class KotlinBuiltIns {
         }
 
         @NotNull
-        private static FqNameUnsafe rangesFqName(@NotNull String simpleName) {
-            return RANGES_PACKAGE_FQ_NAME.child(Name.identifier(simpleName)).toUnsafe();
-        }
-
-        @NotNull
         private static FqNameUnsafe reflect(@NotNull String simpleName) {
             return ReflectionTypesKt.getKOTLIN_REFLECT_FQ_NAME().child(Name.identifier(simpleName)).toUnsafe();
         }
@@ -416,49 +405,26 @@ public abstract class KotlinBuiltIns {
 
     @NotNull
     private static ClassDescriptor getBuiltInClassByName(@NotNull Name simpleName, @NotNull PackageFragmentDescriptor packageFragment) {
-        ClassDescriptor classDescriptor = getBuiltInClassByNameNullable(simpleName, packageFragment);
-        if (classDescriptor == null) {
-            throw new AssertionError("Built-in class " + packageFragment.getFqName().child(simpleName).asString() + " is not found");
+        ClassifierDescriptor classifier =
+                packageFragment.getMemberScope().getContributedClassifier(simpleName, NoLookupLocation.FROM_BUILTINS);
+        if (classifier == null) {
+            throw new AssertionError("Built-in class " + packageFragment.getFqName().child(simpleName) + " is not found");
         }
-        return classDescriptor;
-    }
-
-    @Nullable
-    public ClassDescriptor getBuiltInClassByNameNullable(@NotNull Name simpleName) {
-        return getBuiltInClassByNameNullable(simpleName, getBuiltInsPackageFragment());
-    }
-
-    @Nullable
-    public ClassDescriptor getBuiltInClassByFqNameNullable(@NotNull FqName fqName) {
-        return DescriptorUtilKt.resolveClassByFqName(builtInsModule, fqName, NoLookupLocation.FROM_BUILTINS);
+        return (ClassDescriptor) classifier;
     }
 
     @NotNull
     public ClassDescriptor getBuiltInClassByFqName(@NotNull FqName fqName) {
-        ClassDescriptor descriptor = getBuiltInClassByFqNameNullable(fqName);
-        assert descriptor != null : "Can't find built-in class " + fqName;
+        ClassDescriptor descriptor = DescriptorUtilKt.resolveClassByFqName(builtInsModule, fqName, NoLookupLocation.FROM_BUILTINS);
+        if (descriptor == null) {
+            throw new AssertionError("Can't find built-in class " + fqName);
+        }
         return descriptor;
-    }
-
-    @Nullable
-    private static ClassDescriptor getBuiltInClassByNameNullable(@NotNull Name simpleName, @NotNull PackageFragmentDescriptor packageFragment) {
-        ClassifierDescriptor classifier = packageFragment.getMemberScope().getContributedClassifier(
-                simpleName,
-                NoLookupLocation.FROM_BUILTINS);
-
-        assert classifier == null ||
-               classifier instanceof ClassDescriptor : "Must be a class descriptor " + simpleName + ", but was " + classifier;
-        return (ClassDescriptor) classifier;
     }
 
     @NotNull
     private ClassDescriptor getBuiltInClassByName(@NotNull String simpleName) {
         return getBuiltInClassByName(Name.identifier(simpleName));
-    }
-
-    @NotNull
-    private static ClassDescriptor getBuiltInClassByName(@NotNull String simpleName, PackageFragmentDescriptor packageFragment) {
-        return getBuiltInClassByName(Name.identifier(simpleName), packageFragment);
     }
 
     @NotNull
@@ -637,7 +603,7 @@ public abstract class KotlinBuiltIns {
 
     @NotNull
     private ClassDescriptor getCollectionClassByName(@NotNull String simpleName) {
-        return getBuiltInClassByName(simpleName, packageFragments.invoke().collectionsPackageFragment);
+        return getBuiltInClassByName(Name.identifier(simpleName), packageFragments.invoke().collectionsPackageFragment);
     }
 
     @NotNull
@@ -917,11 +883,13 @@ public abstract class KotlinBuiltIns {
         return getPrimitiveType(descriptor) != null;
     }
 
+    @SuppressWarnings("WeakerAccess") // Used in serialization plugin
     public static boolean isConstructedFromGivenClass(@NotNull KotlinType type, @NotNull FqNameUnsafe fqName) {
         ClassifierDescriptor descriptor = type.getConstructor().getDeclarationDescriptor();
         return descriptor instanceof ClassDescriptor && classFqNameEquals(descriptor, fqName);
     }
 
+    @SuppressWarnings("WeakerAccess") // Used in serialization plugin
     public static boolean isConstructedFromGivenClass(@NotNull KotlinType type, @NotNull FqName fqName) {
         return isConstructedFromGivenClass(type, fqName.toUnsafe());
     }
