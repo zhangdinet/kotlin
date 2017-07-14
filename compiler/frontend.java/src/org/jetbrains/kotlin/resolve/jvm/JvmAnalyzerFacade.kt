@@ -97,8 +97,7 @@ object JvmAnalyzerFacade : AnalyzerFacade<JvmPlatformParameters>() {
                 LookupTracker.DO_NOTHING,
                 packagePartProvider,
                 jvmTarget,
-                languageVersionSettings,
-                true
+                languageVersionSettings
         )
 
         StorageComponentContainerContributor.getInstances(project).forEach { it.onContainerComposed(container, moduleInfo) }
