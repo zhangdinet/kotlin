@@ -30,7 +30,8 @@ interface BuiltInsLoader {
             builtInsModule: ModuleDescriptor,
             classDescriptorFactories: Iterable<ClassDescriptorFactory>,
             platformDependentDeclarationFilter: PlatformDependentDeclarationFilter,
-            additionalClassPartsProvider: AdditionalClassPartsProvider
+            additionalClassPartsProvider: AdditionalClassPartsProvider,
+            isFallback: Boolean
     ): PackageFragmentProvider
 
     companion object {

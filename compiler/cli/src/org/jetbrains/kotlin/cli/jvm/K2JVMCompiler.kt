@@ -305,6 +305,7 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
 
     override fun configureAnalysisFlags(settings: LanguageVersionSettingsImpl, arguments: K2JVMCompilerArguments) {
         settings.switchFlag(AnalysisFlags.loadJsr305Annotations, arguments.loadJsr305annotations)
+        settings.switchFlag(AnalysisFlags.suppressMissingBuiltinsError, arguments.suppressMissingBuiltinsError)
     }
 
     override fun createArguments(): K2JVMCompilerArguments = K2JVMCompilerArguments().apply {
@@ -370,8 +371,6 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
             configuration.put(CLIConfigurationKeys.ALLOW_KOTLIN_PACKAGE, arguments.allowKotlinPackage)
             configuration.put(CLIConfigurationKeys.REPORT_PERF, arguments.reportPerf)
             configuration.put(JVMConfigurationKeys.USE_SINGLE_MODULE, arguments.singleModule)
-            configuration.put(JVMConfigurationKeys.ADD_BUILT_INS_FROM_COMPILER_TO_DEPENDENCIES, arguments.addCompilerBuiltIns)
-            configuration.put(JVMConfigurationKeys.CREATE_BUILT_INS_FROM_MODULE_DEPENDENCIES, arguments.loadBuiltInsFromDependencies)
 
             arguments.declarationsOutputPath?.let { configuration.put(JVMConfigurationKeys.DECLARATIONS_JSON_PATH, it) }
         }

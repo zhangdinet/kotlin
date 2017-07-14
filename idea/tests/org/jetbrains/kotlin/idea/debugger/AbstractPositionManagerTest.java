@@ -42,8 +42,7 @@ import org.jetbrains.kotlin.backend.common.output.OutputFileCollection;
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories;
 import org.jetbrains.kotlin.codegen.GenerationUtils;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
-import org.jetbrains.kotlin.config.CompilerConfiguration;
-import org.jetbrains.kotlin.config.JVMConfigurationKeys;
+import org.jetbrains.kotlin.config.*;
 import org.jetbrains.kotlin.descriptors.PackagePartProvider;
 import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches;
 import org.jetbrains.kotlin.idea.project.PluginJetFilesProvider;
@@ -143,8 +142,11 @@ public abstract class AbstractPositionManagerTest extends KotlinLightCodeInsight
         }
 
         CompilerConfiguration configuration = KotlinTestUtils.newConfiguration(ConfigurationKind.JDK_ONLY, TestJdkKind.MOCK_JDK);
+        LanguageVersionSettingsImpl languageVersionSettings =
+                new LanguageVersionSettingsImpl(LanguageVersion.LATEST_STABLE, ApiVersion.LATEST_STABLE);
         // TODO: delete this once IDEVirtualFileFinder supports loading .kotlin_builtins files
-        configuration.put(JVMConfigurationKeys.ADD_BUILT_INS_FROM_COMPILER_TO_DEPENDENCIES, true);
+        languageVersionSettings.switchFlag(AnalysisFlags.getSuppressMissingBuiltinsError(), true);
+        CommonConfigurationKeysKt.setLanguageVersionSettings(configuration, languageVersionSettings);
 
         GenerationState state =
                 GenerationUtils.compileFiles(files, configuration, ClassBuilderFactories.TEST, scope -> PackagePartProvider.Empty.INSTANCE);

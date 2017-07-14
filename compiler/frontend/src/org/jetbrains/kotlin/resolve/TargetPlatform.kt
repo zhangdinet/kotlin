@@ -97,12 +97,12 @@ private val DEFAULT_CALL_CHECKERS = listOf(
         DeprecatedCallChecker, CallReturnsArrayOfNothingChecker(), InfixCallChecker(), OperatorCallChecker(),
         ConstructorHeaderCallChecker, ProtectedConstructorCallChecker, ApiVersionCallChecker,
         CoroutineSuspendCallChecker, BuilderFunctionsCallChecker, DslScopeViolationCallChecker, MissingDependencyClassChecker,
-        CallableReferenceCompatibilityChecker(),
-        UnderscoreUsageChecker
+        MissingBuiltInDeclarationChecker, CallableReferenceCompatibilityChecker(), UnderscoreUsageChecker
 )
 private val DEFAULT_TYPE_CHECKERS = emptyList<AdditionalTypeChecker>()
 private val DEFAULT_CLASSIFIER_USAGE_CHECKERS = listOf(
-        DeprecatedClassifierUsageChecker(), ApiVersionClassifierUsageChecker, MissingDependencyClassChecker.ClassifierUsage
+        DeprecatedClassifierUsageChecker(), ApiVersionClassifierUsageChecker, MissingDependencyClassChecker.ClassifierUsage,
+        MissingBuiltInDeclarationChecker.ClassifierUsage
 )
 
 

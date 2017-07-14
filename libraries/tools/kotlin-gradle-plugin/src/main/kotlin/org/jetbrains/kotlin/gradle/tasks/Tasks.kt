@@ -230,13 +230,6 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         val kaptPluginOptions = getKaptPluginOptions()
         args.pluginOptions = (pluginOptions.arguments + kaptPluginOptions.arguments).toTypedArray()
 
-        args.addCompilerBuiltIns = true
-
-        val gradleVersion = getGradleVersion()
-        if (gradleVersion == null || gradleVersion >= ParsedGradleVersion(3, 2)) {
-            args.loadBuiltInsFromDependencies = true
-        }
-
         args.moduleName = friendTask?.moduleName ?: moduleName
         logger.kotlinDebug { "args.moduleName = ${args.moduleName}" }
 
@@ -414,15 +407,6 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
         val exitCode = compilerRunner.runJsCompiler(sourceRoots.kotlinSourceFiles, args, environment)
         throwGradleExceptionIfError(exitCode)
     }
-}
-
-private fun Task.getGradleVersion(): ParsedGradleVersion? {
-    val gradleVersion = project.gradle.gradleVersion
-    val result = ParsedGradleVersion.parse(gradleVersion)
-    if (result == null) {
-        project.logger.kotlinDebug("Could not parse gradle version: $gradleVersion")
-    }
-    return result
 }
 
 internal class GradleMessageCollector(val logger: Logger) : MessageCollector {

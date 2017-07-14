@@ -45,6 +45,7 @@ dependencies {
     builtinsCompile group: 'org.jetbrains', name: 'annotations', version:'13.0'
     compile group: 'org.jetbrains', name: 'annotations', version:'13.0'
     compile sourceSets.builtins.output
+    compile files("${rootDir}/../dist/builtins")
     
     testCompile project(':kotlin-test:kotlin-test-junit')
 }

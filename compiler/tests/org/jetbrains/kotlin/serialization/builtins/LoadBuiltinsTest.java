@@ -111,6 +111,7 @@ public class LoadBuiltinsTest extends KotlinTestWithEnvironment {
                 Collections.singletonList(new BuiltInFictitiousFunctionClassFactory(storageManager, builtInsModule)),
                 PlatformDependentDeclarationFilter.All.INSTANCE,
                 AdditionalClassPartsProvider.None.INSTANCE,
+                false,
                 ForTestCompileRuntime.runtimeJarClassLoader()::getResourceAsStream
         );
 

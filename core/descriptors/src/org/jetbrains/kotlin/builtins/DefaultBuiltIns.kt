@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 
 class DefaultBuiltIns private constructor() : KotlinBuiltIns(LockBasedStorageManager()) {
     init {
-        createBuiltInsModule()
+        createBuiltInsModule(false)
     }
 
     companion object {

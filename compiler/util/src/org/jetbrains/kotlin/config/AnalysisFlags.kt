@@ -45,4 +45,7 @@ object AnalysisFlags {
 
     @JvmStatic
     val loadJsr305Annotations by AnalysisFlag
+
+    @JvmStatic
+    val suppressMissingBuiltinsError by AnalysisFlag
 }

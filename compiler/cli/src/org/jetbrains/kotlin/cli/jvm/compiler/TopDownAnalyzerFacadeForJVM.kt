@@ -123,8 +123,7 @@ object TopDownAnalyzerFacadeForJVM {
             targetEnvironment: TargetEnvironment = CompilerEnvironment,
             sourceModuleSearchScope: GlobalSearchScope = newModuleSearchScope(project, files)
     ): ComponentProvider {
-        val createBuiltInsFromModule = configuration.getBoolean(JVMConfigurationKeys.CREATE_BUILT_INS_FROM_MODULE_DEPENDENCIES)
-        val moduleContext = createModuleContext(project, configuration, createBuiltInsFromModule)
+        val moduleContext = createModuleContext(project, configuration)
 
         val storageManager = moduleContext.storageManager
         val module = moduleContext.module
@@ -141,13 +140,8 @@ object TopDownAnalyzerFacadeForJVM {
         val jvmTarget = configuration.get(JVMConfigurationKeys.JVM_TARGET) ?: JvmTarget.JVM_1_6
         val languageVersionSettings = configuration.languageVersionSettings
 
-        val optionalBuiltInsModule =
-                if (configuration.getBoolean(JVMConfigurationKeys.ADD_BUILT_INS_FROM_COMPILER_TO_DEPENDENCIES)) {
-                    if (createBuiltInsFromModule)
-                        JvmBuiltIns(storageManager).apply { initialize(module, languageVersionSettings) }.builtInsModule
-                    else module.builtIns.builtInsModule
-                }
-                else null
+        val fallbackBuiltIns =
+                JvmBuiltIns(storageManager, true, true).apply { initialize(builtInsModule, languageVersionSettings) }.builtInsModule
 
         fun StorageComponentContainer.useJavac() {
             useImpl<JavacBasedClassFinder>()
@@ -178,7 +172,7 @@ object TopDownAnalyzerFacadeForJVM {
 
             moduleClassResolver.compiledCodeResolver = dependenciesContainer.get<JavaDescriptorResolver>()
 
-            dependenciesContext.setDependencies(listOfNotNull(dependenciesContext.module, optionalBuiltInsModule))
+            dependenciesContext.setDependencies(listOf(dependenciesContext.module, fallbackBuiltIns))
             dependenciesContext.initializeModuleContents(CompositePackageFragmentProvider(listOf(
                     moduleClassResolver.compiledCodeResolver.packageFragmentProvider,
                     dependenciesContainer.get<JvmBuiltInsPackageFragmentProvider>()
@@ -227,7 +221,7 @@ object TopDownAnalyzerFacadeForJVM {
 
         // TODO: remove dependencyModule from friends
         module.setDependencies(ModuleDependenciesImpl(
-                listOfNotNull(module, dependencyModule, optionalBuiltInsModule),
+                listOfNotNull(module, dependencyModule, fallbackBuiltIns),
                 if (dependencyModule != null) setOf(dependencyModule) else emptySet()
         ))
         module.initialize(CompositePackageFragmentProvider(
@@ -268,19 +262,13 @@ object TopDownAnalyzerFacadeForJVM {
         }
     }
 
-    private fun createModuleContext(
-            project: Project,
-            configuration: CompilerConfiguration,
-            createBuiltInsFromModule: Boolean
-    ): MutableModuleContext {
+    private fun createModuleContext(project: Project, configuration: CompilerConfiguration): MutableModuleContext {
         val projectContext = ProjectContext(project)
-        val builtIns = JvmBuiltIns(projectContext.storageManager, !createBuiltInsFromModule)
+        val builtIns = JvmBuiltIns(projectContext.storageManager, false)
         return ContextForNewModule(
                 projectContext, Name.special("<${configuration.getNotNull(CommonConfigurationKeys.MODULE_NAME)}>"), builtIns, null
         ).apply {
-            if (createBuiltInsFromModule) {
-                builtIns.builtInsModule = module
-            }
+            builtIns.builtInsModule = module
         }
     }
 }

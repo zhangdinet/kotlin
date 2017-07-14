@@ -27,7 +27,8 @@ class BuiltInsPackageFragmentImpl(
         fqName: FqName,
         storageManager: StorageManager,
         module: ModuleDescriptor,
-        inputStream: InputStream
+        inputStream: InputStream,
+        override val isFallback: Boolean
 ) : BuiltInsPackageFragment, DeserializedPackageFragmentImpl(fqName, storageManager, module, inputStream.use { stream ->
     val version = BuiltInsBinaryVersion.readFrom(stream)
 

@@ -134,11 +134,8 @@ public class K2JVMCompilerArguments extends CommonCompilerArguments {
     @Argument(value = "-Xsingle-module", description = "Combine modules for source files and binary dependencies into a single module")
     public boolean singleModule;
 
-    @Argument(value = "-Xadd-compiler-builtins", description = "Add definitions of built-in declarations to the compilation classpath (useful with -no-stdlib)")
-    public boolean addCompilerBuiltIns;
-
-    @Argument(value = "-Xload-builtins-from-dependencies", description = "Load definitions of built-in declarations from module dependencies, instead of from the compiler")
-    public boolean loadBuiltInsFromDependencies;
+    @Argument(value = "-Xsuppress-missing-builtins-error", description = "Suppress the \"cannot access built-in declaration\" error (useful with -no-stdlib)")
+    public boolean suppressMissingBuiltinsError;
 
     @Argument(
             value = "-Xscript-resolver-environment",

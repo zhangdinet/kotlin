@@ -480,7 +480,7 @@ open class JvmBuiltInsSettings(
 
 private class FallbackBuiltIns private constructor() : KotlinBuiltIns(LockBasedStorageManager()) {
     init {
-        createBuiltInsModule()
+        createBuiltInsModule(true)
     }
 
     companion object {
