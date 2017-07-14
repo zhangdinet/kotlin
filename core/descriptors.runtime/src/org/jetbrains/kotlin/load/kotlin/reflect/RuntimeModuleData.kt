@@ -16,10 +16,12 @@
 
 package org.jetbrains.kotlin.load.kotlin.reflect
 
+import org.jetbrains.kotlin.builtins.JvmBuiltInsPackageFragmentProvider
 import org.jetbrains.kotlin.builtins.ReflectionTypes
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.NotFoundClasses
 import org.jetbrains.kotlin.descriptors.SupertypeLoopChecker
+import org.jetbrains.kotlin.descriptors.impl.CompositePackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.load.java.AnnotationTypeQualifierResolver
@@ -49,8 +51,9 @@ class RuntimeModuleData private constructor(
     companion object {
         fun create(classLoader: ClassLoader): RuntimeModuleData {
             val storageManager = LockBasedStorageManager()
-            val builtIns = JvmBuiltIns(storageManager)
+            val builtIns = JvmBuiltIns(storageManager, false)
             val module = ModuleDescriptorImpl(Name.special("<runtime module for $classLoader>"), storageManager, builtIns)
+            builtIns.builtInsModule = module
 
             val reflectKotlinClassFinder = ReflectKotlinClassFinder(classLoader)
             val deserializedDescriptorResolver = DeserializedDescriptorResolver()
@@ -83,12 +86,16 @@ class RuntimeModuleData private constructor(
                     binaryClassAnnotationAndConstantLoader, lazyJavaPackageFragmentProvider, notFoundClasses,
                     RuntimeErrorReporter, LookupTracker.DO_NOTHING
             )
+            val builtinsProvider = JvmBuiltInsPackageFragmentProvider(
+                    storageManager, reflectKotlinClassFinder, module, notFoundClasses, builtIns.settings, builtIns.settings,
+                    DeserializationConfiguration.Default
+            )
 
             singleModuleClassResolver.resolver = javaDescriptorResolver
             deserializedDescriptorResolver.setComponents(deserializationComponentsForJava)
 
-            module.setDependencies(module, builtIns.builtInsModule)
-            module.initialize(javaDescriptorResolver.packageFragmentProvider)
+            module.setDependencies(module)
+            module.initialize(CompositePackageFragmentProvider(listOf(javaDescriptorResolver.packageFragmentProvider, builtinsProvider)))
 
             return RuntimeModuleData(deserializationComponentsForJava.components, runtimePackagePartProvider)
         }
