@@ -22,6 +22,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.*
 import com.intellij.util.io.IOUtil
 import com.intellij.util.io.KeyDescriptor
+import org.jetbrains.kotlin.builtins.JvmBuiltInsPackageFragmentProvider
 import org.jetbrains.kotlin.idea.caches.IDEKotlinBinaryClassCache
 import org.jetbrains.kotlin.idea.decompiler.builtIns.BuiltInDefinitionFile
 import org.jetbrains.kotlin.idea.decompiler.builtIns.KotlinBuiltInFileType
@@ -112,6 +113,24 @@ object KotlinJavaScriptMetaFileIndex : KotlinFileIndexBase<KotlinJavaScriptMetaF
             FqName(JsProtoBuf.Header.parseDelimitedFrom(stream).packageFqName)
         }
         else null
+    }
+}
+
+object KotlinBuiltInsMetadataIndex : KotlinFileIndexBase<KotlinBuiltInsMetadataIndex>(KotlinBuiltInsMetadataIndex::class.java) {
+    override fun getIndexer() = INDEXER
+
+    override fun getInputFilter() = FileBasedIndex.InputFilter { file -> file.fileType == KotlinBuiltInFileType }
+
+    override fun getVersion() = VERSION
+
+    private val VERSION = 1
+
+    private val INDEXER = indexer { fileContent ->
+        if (fileContent.fileType == KotlinBuiltInFileType &&
+            fileContent.fileName.endsWith(JvmBuiltInsPackageFragmentProvider.DOT_BUILTINS_METADATA_FILE_EXTENSION)) {
+            val builtins = BuiltInDefinitionFile.read(fileContent.content, fileContent.file.parent)
+            (builtins as? BuiltInDefinitionFile)?.packageFqName
+        } else null
     }
 }
 

@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.resolve.jvm
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.analyzer.*
+import org.jetbrains.kotlin.builtins.JvmBuiltInsPackageFragmentProvider
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.context.ModuleContext
@@ -97,17 +98,16 @@ object JvmAnalyzerFacade : AnalyzerFacade<JvmPlatformParameters>() {
                 packagePartProvider,
                 jvmTarget,
                 languageVersionSettings,
-                useBuiltInsProvider = false // TODO: load built-ins from module dependencies in IDE
+                true
         )
 
         StorageComponentContainerContributor.getInstances(project).forEach { it.onContainerComposed(container, moduleInfo) }
 
-        val resolveSession = container.get<ResolveSession>()
-        val javaDescriptorResolver = container.get<JavaDescriptorResolver>()
-
         val providersForModule = arrayListOf(
-                resolveSession.packageFragmentProvider,
-                javaDescriptorResolver.packageFragmentProvider)
+                container.get<ResolveSession>().packageFragmentProvider,
+                container.get<JavaDescriptorResolver>().packageFragmentProvider,
+                container.get<JvmBuiltInsPackageFragmentProvider>()
+        )
 
         providersForModule += PackageFragmentProviderExtension.getInstances(project)
                 .mapNotNull { it.getPackageFragmentProvider(project, moduleDescriptor, moduleContext.storageManager, trace, moduleInfo) }

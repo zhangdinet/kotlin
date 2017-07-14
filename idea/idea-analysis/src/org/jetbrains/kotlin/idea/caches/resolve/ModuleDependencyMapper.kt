@@ -126,7 +126,7 @@ fun collectAllModuleInfosFromIdeaModel(project: Project): List<IdeaModuleInfo> {
 
 private fun createBuiltIns(settings: PlatformAnalysisSettings, sdkContext: GlobalContextImpl): KotlinBuiltIns = when {
     settings.platform is JsPlatform -> JsPlatform.builtIns
-    settings.platform is JvmPlatform && settings.sdk != null -> JvmBuiltIns(sdkContext.storageManager)
+    settings.platform is JvmPlatform && settings.sdk != null -> JvmBuiltIns(sdkContext.storageManager, true, true)
     else -> DefaultBuiltIns.Instance
 
 }

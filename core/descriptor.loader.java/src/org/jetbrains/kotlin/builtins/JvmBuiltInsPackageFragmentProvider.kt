@@ -59,4 +59,8 @@ class JvmBuiltInsPackageFragmentProvider(
             finder.findBuiltInsData(fqName)?.let { inputStream ->
                 BuiltInsPackageFragmentImpl(fqName, storageManager, moduleDescriptor, inputStream, isFallback = false)
             }
+
+    companion object {
+        const val DOT_BUILTINS_METADATA_FILE_EXTENSION = ".kotlin_builtins"
+    }
 }
