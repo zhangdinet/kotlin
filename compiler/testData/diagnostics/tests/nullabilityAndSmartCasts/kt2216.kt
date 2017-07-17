@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 // !DIAGNOSTICS: -DEBUG_INFO_SMARTCAST
 //KT-2216 Nullability of a value determined in function parameter computation doesn't pass to code following
 package kt2216

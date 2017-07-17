@@ -1,4 +1,5 @@
 // JET-81 Assertion fails when processing self-referring anonymous objects
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 class Test {
   private val y = object {

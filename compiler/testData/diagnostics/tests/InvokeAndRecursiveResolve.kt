@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 fun test() = 3
 
 fun <T> proxy(t: T) = t

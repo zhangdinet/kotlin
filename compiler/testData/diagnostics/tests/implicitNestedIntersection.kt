@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 interface In<in E>
 open class A : In<A>

@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 // FILE: a.kt
 package boundsWithSubstitutors
     open class A<T>

@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 // !CHECK_TYPE
 
 package a

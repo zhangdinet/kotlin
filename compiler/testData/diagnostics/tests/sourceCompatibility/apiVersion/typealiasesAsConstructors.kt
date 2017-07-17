@@ -1,4 +1,5 @@
 // !API_VERSION: 1.0
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 @SinceKotlin("1.1")
 open class C1

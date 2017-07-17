@@ -1,4 +1,5 @@
 // See also KT-10735
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 fun test() {
     var a: Int?
     try {

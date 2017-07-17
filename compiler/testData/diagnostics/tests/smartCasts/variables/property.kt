@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 class MyClass(var p: String?)
 
 fun bar(s: String): Int {

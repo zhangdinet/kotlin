@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 class Outer {
     fun function() = 42
     val property = ""

@@ -1,4 +1,5 @@
 // !CHECK_TYPE
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 open class BaseOuter {
     protected fun foo() = 1
     protected fun bar() { }

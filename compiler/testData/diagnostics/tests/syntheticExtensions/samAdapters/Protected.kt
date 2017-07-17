@@ -1,4 +1,5 @@
 // FILE: KotlinFile.kt
+
 package k
 
 import JavaClass

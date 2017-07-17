@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 fun trans(n: Int, f: () -> Boolean) = if (f()) n else null
 
 fun foo() {

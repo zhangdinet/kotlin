@@ -1,4 +1,5 @@
 // Ambiguity between fun and callable property
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 open class BaseWithCallableProp {
     val fn = { "fn.invoke()" }

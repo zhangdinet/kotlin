@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 fun foo(x : String?, y : String?) {
     if (y != null && x == y) {
         // Both not null

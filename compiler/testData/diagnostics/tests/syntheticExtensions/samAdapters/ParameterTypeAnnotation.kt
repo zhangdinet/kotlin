@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 // FILE: KotlinFile.kt
 fun foo(javaInterface: JavaInterface) {
     javaInterface.doIt(<!NULL_FOR_NONNULL_TYPE!>null<!>) { }

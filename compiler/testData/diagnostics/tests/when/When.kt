@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 fun Int.foo() : Boolean = true
 
 fun foo() : Int {

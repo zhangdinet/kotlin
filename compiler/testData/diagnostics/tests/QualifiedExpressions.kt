@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 package qualified_expressions
 
 fun test(s: IntRange?) {

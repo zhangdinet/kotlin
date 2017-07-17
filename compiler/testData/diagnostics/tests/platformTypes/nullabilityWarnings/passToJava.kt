@@ -1,4 +1,5 @@
 // FILE: J.java
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 import org.jetbrains.annotations.*;
 

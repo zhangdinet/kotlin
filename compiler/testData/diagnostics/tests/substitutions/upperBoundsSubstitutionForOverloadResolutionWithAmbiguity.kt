@@ -1,4 +1,5 @@
 // FILE: foo.kt
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 package foo
 
 fun <T> f(<!UNUSED_PARAMETER!>l<!>: List<T>) {}

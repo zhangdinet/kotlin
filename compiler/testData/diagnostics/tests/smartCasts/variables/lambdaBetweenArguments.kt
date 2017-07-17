@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 
 fun foo(x: Int, f: () -> Unit, y: Int) {}
 

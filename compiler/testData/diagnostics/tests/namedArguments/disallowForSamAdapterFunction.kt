@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 // FILE: test/J.java
 
 package test;

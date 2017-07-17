@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 //KT-1127 Wrong type computed for Arrays.asList()
 
 package d

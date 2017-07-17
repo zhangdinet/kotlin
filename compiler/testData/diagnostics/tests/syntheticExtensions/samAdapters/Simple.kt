@@ -1,3 +1,5 @@
+// !DIAGNOSTICS: -UNUSED_PARAMETER
+
 // FILE: KotlinFile.kt
 class KotlinClass {
     public fun doSomething(runnable: Runnable) { runnable.run() }
@@ -11,14 +13,6 @@ fun foo(javaClass: JavaClass, kotlinClass: KotlinClass) {
     javaClass.doSomething {
         bar()
     }
-
-    kotlinClass.doSomething <!TYPE_MISMATCH!>{
-        bar()
-    }<!>
-
-    javaClass.doSomething2 <!TYPE_MISMATCH!>{
-        bar()
-    }<!>
 }
 
 fun bar(){}

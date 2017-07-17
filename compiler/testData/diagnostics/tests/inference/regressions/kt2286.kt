@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 // KT-2286 Improve error message for nullability check failure for extension methods
 
 package n

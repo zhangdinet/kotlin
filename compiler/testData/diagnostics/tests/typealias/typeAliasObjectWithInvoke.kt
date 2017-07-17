@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 object ObjectWithInvoke {
     operator fun invoke() = this
 }

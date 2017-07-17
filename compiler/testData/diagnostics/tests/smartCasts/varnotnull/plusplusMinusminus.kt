@@ -1,3 +1,5 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
+
 fun foo(arg: Int?): Int {
     var i = arg
     if (i != null && <!DEBUG_INFO_SMARTCAST!>i<!>++ == 5) {

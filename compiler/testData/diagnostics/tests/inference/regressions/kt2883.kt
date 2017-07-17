@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 //KT-2883 Type inference fails due to non-Unit value returned
 package a
 

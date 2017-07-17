@@ -1,3 +1,4 @@
+// IGNORE_IF_NEW_INFERENCE_ENABLED
 // MODULE: m1
 // FILE: a.kt
 package p
