@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
+ * Copyright 2010-2017 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public interface TracingStrategy {
         @Override
         public void wrongReceiverType(
                 @NotNull BindingTrace trace,
-                @NotNull ReceiverParameterDescriptor receiverParameter,
+                @NotNull KotlinType receiverParameterType,
                 @NotNull ReceiverValue receiverArgument,
                 @NotNull ResolutionContext<?> c
         ) {}
@@ -120,7 +120,7 @@ public interface TracingStrategy {
 
     void wrongReceiverType(
             @NotNull BindingTrace trace,
-            @NotNull ReceiverParameterDescriptor receiverParameter,
+            @NotNull KotlinType receiverParameterType,
             @NotNull ReceiverValue receiverArgument,
             @NotNull ResolutionContext<?> c
     );

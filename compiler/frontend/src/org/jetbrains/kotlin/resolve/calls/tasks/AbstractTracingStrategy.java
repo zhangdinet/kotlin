@@ -83,7 +83,7 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
     @Override
     public void wrongReceiverType(
             @NotNull BindingTrace trace,
-            @NotNull ReceiverParameterDescriptor receiverParameter,
+            @NotNull KotlinType receiverParameterType,
             @NotNull ReceiverValue receiverArgument,
             @NotNull ResolutionContext<?> c
     ) {
@@ -92,8 +92,8 @@ public abstract class AbstractTracingStrategy implements TracingStrategy {
                                 : reference;
 
         if (!DiagnosticUtilsKt.reportTypeMismatchDueToTypeProjection(
-                c, reportOn, receiverParameter.getType(), receiverArgument.getType())) {
-            trace.report(TYPE_MISMATCH.on(reportOn, receiverParameter.getType(), receiverArgument.getType()));
+                c, reportOn, receiverParameterType, receiverArgument.getType())) {
+            trace.report(TYPE_MISMATCH.on(reportOn, receiverParameterType, receiverArgument.getType()));
         }
     }
 

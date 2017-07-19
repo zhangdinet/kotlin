@@ -157,6 +157,11 @@ class DiagnosticReporterByTrackingStrategy(
                 val argument = (position as? ArgumentConstraintPosition)?.argument
                                ?: (position as? ReceiverConstraintPosition)?.argument
                 argument?.let {
+                    if (constraintError.candidateApplicability == ResolutionCandidateApplicability.INAPPLICABLE_WRONG_RECEIVER) {
+                        val receiver = (argument as? ReceiverExpressionKotlinCallArgument)?.receiver?.receiverValue ?: return
+                        tracingStrategy.wrongReceiverType(trace, constraintError.upperType, receiver, context)
+                    }
+
                     // should be reported in TypeChecker
                     trace.markAsReported()
                 }

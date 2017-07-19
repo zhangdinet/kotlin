@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
+ * Copyright 2010-2017 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,7 @@ import org.jetbrains.kotlin.diagnostics.Errors.UNRESOLVED_REFERENCE
 import org.jetbrains.kotlin.diagnostics.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
-import org.jetbrains.kotlin.psi.KtLambdaArgument
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.resolve.BindingContext.CALL
-import org.jetbrains.kotlin.resolve.BindingContext.REFERENCE_TARGET
-import org.jetbrains.kotlin.resolve.BindingContext.RESOLVED_CALL
+import org.jetbrains.kotlin.resolve.BindingContext.*
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext
 import org.jetbrains.kotlin.resolve.calls.inference.InferenceErrorData
@@ -118,7 +114,7 @@ class TracingStrategyForImplicitConstructorDelegationCall(
         unexpectedError("missingReceiver")
     }
 
-    override fun wrongReceiverType(trace: BindingTrace, receiverParameter: ReceiverParameterDescriptor, receiverArgument: ReceiverValue, c: ResolutionContext<*>) {
+    override fun wrongReceiverType(trace: BindingTrace, receiverParameterType: KotlinType, receiverArgument: ReceiverValue, c: ResolutionContext<*>) {
         unexpectedError("wrongReceiverType")
     }
 

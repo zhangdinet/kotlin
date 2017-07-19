@@ -194,9 +194,7 @@ class PSICallResolver(
             1 -> {
                 val singleCandidate = result.single()
 
-                val reportToTrace = singleCandidate.currentStatus.resultingApplicability != ResolutionCandidateApplicability.INAPPLICABLE_WRONG_RECEIVER
-
-                val resolvedCall = kotlinToResolvedCallTransformer.transformAndReport<D>(singleCandidate, context, trace.takeIf { reportToTrace })
+                val resolvedCall = kotlinToResolvedCallTransformer.transformAndReport<D>(singleCandidate, context, trace)
                 return SingleOverloadResolutionResult(resolvedCall)
             }
             else -> {

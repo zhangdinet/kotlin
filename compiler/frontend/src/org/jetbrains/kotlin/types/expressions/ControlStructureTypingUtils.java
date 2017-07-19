@@ -543,7 +543,7 @@ public class ControlStructureTypingUtils {
         @Override
         public void wrongReceiverType(
                 @NotNull BindingTrace trace,
-                @NotNull ReceiverParameterDescriptor receiverParameter,
+                @NotNull KotlinType receiverParameterType,
                 @NotNull ReceiverValue receiverArgument,
                 @NotNull ResolutionContext<?> c
         ) {
