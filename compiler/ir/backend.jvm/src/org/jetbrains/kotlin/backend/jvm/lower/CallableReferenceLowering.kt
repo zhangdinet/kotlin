@@ -24,11 +24,11 @@ import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.codegen.isInlineCall
 import org.jetbrains.kotlin.backend.jvm.codegen.isInlineIrExpression
+import org.jetbrains.kotlin.codegen.FunctionCodegen
+import org.jetbrains.kotlin.codegen.PropertyReferenceCodegen
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
@@ -53,6 +53,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPass {
 
@@ -118,11 +120,11 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
     //private val getContinuationSymbol = context.ir.symbols.getContinuation
 
     private inner class FunctionReferenceBuilder(val containingDeclaration: DeclarationDescriptor,
-                                                 val functionReference: IrFunctionReference) {
+                                                 val irFunctionReference: IrFunctionReference) {
 
-        private val functionDescriptor = functionReference.descriptor
+        private val functionDescriptor = irFunctionReference.descriptor
         private val functionParameters = functionDescriptor.explicitParameters
-        private val boundFunctionParameters = functionReference.getArguments().map { it.first }
+        private val boundFunctionParameters = irFunctionReference.getArguments().map { it.first }
         private val unboundFunctionParameters = functionParameters - boundFunctionParameters
 
         private lateinit var functionReferenceClassDescriptor: ClassDescriptorImpl
@@ -130,15 +132,15 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
         private lateinit var functionReferenceThis: IrValueParameterSymbol
         private lateinit var argumentToPropertiesMap: Map<ParameterDescriptor, IrFieldSymbol>
 
-        private val kFunctionReference = context.ir.symbols.functionReference
+        private val functionReference = context.ir.symbols.functionReference
 
         fun build(): BuiltFunctionReference {
-            val startOffset = functionReference.startOffset
-            val endOffset = functionReference.endOffset
+            val startOffset = irFunctionReference.startOffset
+            val endOffset = irFunctionReference.endOffset
 
             val returnType = functionDescriptor.returnType!!
             val superTypes = mutableListOf(
-                    kFunctionReference.owner.defaultType/*.replace(listOf(returnType))*/
+                    functionReference.owner.defaultType
             )
 
             val numberOfParameters = unboundFunctionParameters.size
@@ -164,7 +166,7 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
                     /* modality              = */ Modality.FINAL,
                     /* kind                  = */ ClassKind.CLASS,
                     /* superTypes            = */ superTypes,
-                    /* source                = */ functionReference.symbol.descriptor.source,
+                    /* source                = */ irFunctionReference.symbol.descriptor.source,
                     /* isExternal            = */ false
             )
             functionReferenceClass = IrClassImpl(
@@ -178,23 +180,26 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
 
             functionReferenceThis = functionReferenceClass.thisReceiver!!.symbol
 
-            val constructorBuilder = createConstructorBuilder()
-
             val invokeFunctionDescriptor = functionClassDescriptor.getFunction("invoke", functionClassTypeParameters)
+
+            val constructorBuilder = createConstructorBuilder()
             val invokeMethodBuilder = createInvokeMethodBuilder(invokeFunctionDescriptor)
+            val getSignatureBuilder = createGetSignatureMethodBuilder(functionReference.owner.descriptor.getFunction("getSignature", emptyList()))
+            val getNameBuilder = createGetNameMethodBuilder(functionReference.owner.descriptor.getProperty("name", emptyList()))
+            val suspendInvokeMethodBuilder =
+                    if (suspendFunctionClassDescriptor != null) {
+                        val suspendInvokeFunctionDescriptor = suspendFunctionClassDescriptor.getFunction("invoke", suspendFunctionClassTypeParameters!!)
+                        createInvokeMethodBuilder(suspendInvokeFunctionDescriptor)
+                    }
+                    else null
 
-            var suspendInvokeMethodBuilder: SymbolWithIrBuilder<IrSimpleFunctionSymbol, IrSimpleFunction>? = null
-            if (suspendFunctionClassDescriptor != null) {
-                val suspendInvokeFunctionDescriptor = suspendFunctionClassDescriptor.getFunction("invoke", suspendFunctionClassTypeParameters!!)
-                suspendInvokeMethodBuilder = createInvokeMethodBuilder(suspendInvokeFunctionDescriptor)
-            }
-
-            val inheritedKFunctionImpl = kFunctionReference.descriptor.unsubstitutedMemberScope
+            val inheritedScope = functionReference.descriptor.unsubstitutedMemberScope
                     .getContributedDescriptors()
                     .map { it.createFakeOverrideDescriptor(functionReferenceClassDescriptor) }
-                    .filterNotNull()
+                    .filterNotNull().filterNot { it.name.asString() == "getSignature" || it.name.asString() == "name"}
             val contributedDescriptors = (
-                    inheritedKFunctionImpl + invokeMethodBuilder.symbol.descriptor + suspendInvokeMethodBuilder?.symbol?.descriptor
+                    inheritedScope + invokeMethodBuilder.symbol.descriptor +
+                    suspendInvokeMethodBuilder?.symbol?.descriptor + getSignatureBuilder.symbol.descriptor
                                          ).filterNotNull().toList()
             functionReferenceClassDescriptor.initialize(
                     SimpleMemberScope(contributedDescriptors), setOf(constructorBuilder.symbol.descriptor), null)
@@ -207,6 +212,12 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
             invokeMethodBuilder.initialize()
             functionReferenceClass.declarations.add(invokeMethodBuilder.ir)
 
+            getSignatureBuilder.initialize()
+            functionReferenceClass.declarations.add(getSignatureBuilder.ir)
+
+            getNameBuilder.initialize()
+            functionReferenceClass.declarations.add(getNameBuilder.ir)
+
             suspendInvokeMethodBuilder?.let {
                 it.initialize()
                 functionReferenceClass.declarations.add(it.ir)
@@ -218,7 +229,7 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
         private fun createConstructorBuilder()
                 = object : SymbolWithIrBuilder<IrConstructorSymbol, IrConstructor>() {
 
-            private val kFunctionRefConstructorSymbol = kFunctionReference.constructors.filter { it.descriptor.valueParameters.size == 2 }.single()
+            private val kFunctionRefConstructorSymbol = functionReference.constructors.filter { it.descriptor.valueParameters.size == 2 }.single()
 
             override fun buildSymbol() = IrConstructorSymbolImpl(
                     ClassConstructorDescriptorImpl.create(
@@ -243,8 +254,8 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
                     it to buildPropertyWithBackingField(it.name, it.type, false)
                 }
 
-                val startOffset = functionReference.startOffset
-                val endOffset = functionReference.endOffset
+                val startOffset = irFunctionReference.startOffset
+                val endOffset = irFunctionReference.endOffset
                 return IrConstructorImpl(
                         startOffset = startOffset,
                         endOffset   = endOffset,
@@ -323,8 +334,8 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
             }
 
             override fun buildIr(): IrSimpleFunction {
-                val startOffset = functionReference.startOffset
-                val endOffset = functionReference.endOffset
+                val startOffset = irFunctionReference.startOffset
+                val endOffset = irFunctionReference.endOffset
                 val ourSymbol = symbol
                 return IrFunctionImpl(
                         startOffset = startOffset,
@@ -339,7 +350,7 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
 
                     body = irBuilder.irBlockBody(startOffset, endOffset) {
                         +irReturn(
-                                irCall(functionReference.symbol).apply {
+                                irCall(irFunctionReference.symbol).apply {
                                     var unboundIndex = 0
                                     val unboundArgsSet = unboundFunctionParameters.toSet()
                                     functionParameters.forEach {
@@ -372,8 +383,8 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
 
         private fun buildPropertyWithBackingField(name: Name, type: KotlinType, isMutable: Boolean): IrFieldSymbol {
             val propertyBuilder = context.createPropertyWithBackingFieldBuilder(
-                    startOffset = functionReference.startOffset,
-                    endOffset   = functionReference.endOffset,
+                    startOffset = irFunctionReference.startOffset,
+                    endOffset   = irFunctionReference.endOffset,
                     origin      = DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
                     owner       = functionReferenceClassDescriptor,
                     name        = name,
@@ -386,5 +397,172 @@ class CallableReferenceLowering(val context: JvmBackendContext): FileLoweringPas
             return propertyBuilder.ir.backingField!!.symbol
         }
 
+        private fun createGetNameMethodBuilder(nameProperty: PropertyDescriptor)
+                = object : SymbolWithIrBuilder<IrSimpleFunctionSymbol, IrSimpleFunction>() {
+
+            override fun buildSymbol() = IrSimpleFunctionSymbolImpl(
+                    PropertyDescriptorImpl.create(
+                            /* containingDeclaration = */ functionReferenceClassDescriptor,
+                            /* annotations           = */ Annotations.EMPTY,
+                                                          nameProperty.modality,
+                                                          nameProperty.visibility,
+                            false,
+                            /* name                  = */ nameProperty.name,
+                            /* kind                  = */ CallableMemberDescriptor.Kind.DECLARATION,
+                            /* source                = */ SourceElement.NO_SOURCE,
+                                                          false, false, false, false, false, false
+                    ).let { property ->
+
+
+
+                        PropertyGetterDescriptorImpl(property,
+                                                     Annotations.EMPTY,
+                                                     Modality.OPEN,
+                                                     Visibilities.PUBLIC,
+                                                     false, false, false,
+                                                     CallableMemberDescriptor.Kind.DECLARATION,
+                                                     null,
+                                                     SourceElement.NO_SOURCE
+                        ).also {
+                            property.initialize(it, null)
+                            property.setType(
+                                    /* outType                   = */ nameProperty.type,
+                                    /* typeParameters            = */ nameProperty.typeParameters,
+                                    /* dispatchReceiverParameter = */ nameProperty.dispatchReceiverParameter,
+                                    /* receiverType              = */ nameProperty.extensionReceiverParameter?.type)
+                        }
+                    }
+            )
+
+            override fun doInitialize() {
+                val descriptor = symbol.descriptor as PropertyGetterDescriptorImpl
+                descriptor.initialize(nameProperty.type)
+            }
+
+            override fun buildIr(): IrSimpleFunction {
+                val startOffset = irFunctionReference.startOffset
+                val endOffset = irFunctionReference.endOffset
+                val ourSymbol = symbol
+                return IrFunctionImpl(
+                        startOffset = startOffset,
+                        endOffset   = endOffset,
+                        origin      = DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
+                        symbol      = ourSymbol).apply {
+
+                    val function = this
+                    val irBuilder = context.createIrBuilder(function.symbol, startOffset, endOffset)
+
+                    createParameterDeclarations()
+
+                    body = irBuilder.irBlockBody(startOffset, endOffset) {
+                        +irReturn(
+                                IrConstImpl.string(-1, -1, context.builtIns.stringType, functionDescriptor.name.asString())
+                        )
+                    }
+                }
+            }
+        }
+
+
+        private fun createGetSignatureMethodBuilder(superFunctionDescriptor: FunctionDescriptor)
+                = object : SymbolWithIrBuilder<IrSimpleFunctionSymbol, IrSimpleFunction>() {
+
+            override fun buildSymbol() = IrSimpleFunctionSymbolImpl(
+                    SimpleFunctionDescriptorImpl.create(
+                            /* containingDeclaration = */ functionReferenceClassDescriptor,
+                            /* annotations           = */ Annotations.EMPTY,
+                            /* name                  = */ Name.identifier("getSignature"),
+                            /* kind                  = */ CallableMemberDescriptor.Kind.DECLARATION,
+                            /* source                = */ SourceElement.NO_SOURCE
+                    )
+            )
+
+            override fun doInitialize() {
+                val descriptor = symbol.descriptor as SimpleFunctionDescriptorImpl
+                val valueParameters = superFunctionDescriptor.valueParameters
+                        .map { it.copyAsValueParameter(descriptor, it.index) }
+
+                descriptor.initialize(
+                        /* receiverParameterType        = */ null,
+                        /* dispatchReceiverParameter    = */ functionReferenceClassDescriptor.thisAsReceiverParameter,
+                        /* typeParameters               = */ emptyList(),
+                        /* unsubstitutedValueParameters = */ valueParameters,
+                        /* unsubstitutedReturnType      = */ superFunctionDescriptor.returnType,
+                        /* modality                     = */ Modality.FINAL,
+                        /* visibility                   = */ Visibilities.PUBLIC).apply {
+                    overriddenDescriptors              +=    superFunctionDescriptor
+                    isSuspend                           =    superFunctionDescriptor.isSuspend
+                }
+            }
+
+            override fun buildIr(): IrSimpleFunction {
+                val startOffset = irFunctionReference.startOffset
+                val endOffset = irFunctionReference.endOffset
+                val ourSymbol = symbol
+                return IrFunctionImpl(
+                        startOffset = startOffset,
+                        endOffset   = endOffset,
+                        origin      = DECLARATION_ORIGIN_FUNCTION_REFERENCE_IMPL,
+                        symbol      = ourSymbol).apply {
+
+                    val function = this
+                    val irBuilder = context.createIrBuilder(function.symbol, startOffset, endOffset)
+
+                    createParameterDeclarations()
+
+                    body = irBuilder.irBlockBody(startOffset, endOffset) {
+                        +irReturn(
+                                IrConstImpl.string(
+                                        -1, -1, context.builtIns.stringType,
+                                        PropertyReferenceCodegen.getSignatureString(
+                                                irFunctionReference.symbol.descriptor, this@CallableReferenceLowering.context.state
+                                        )
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
     }
+
+//    private fun generateFunctionReferenceMethods(descriptor: FunctionDescriptor) {
+//        val flags = ACC_PUBLIC or ACC_FINAL
+//        val generateBody = state.classBuilderMode.generateBodies
+//
+//        run {
+//            val mv = v.newMethod(NO_ORIGIN, flags, "getOwner", Type.getMethodDescriptor(K_DECLARATION_CONTAINER_TYPE), null, null)
+//            if (generateBody) {
+//                mv.visitCode()
+//                val iv = InstructionAdapter(mv)
+//                generateCallableReferenceDeclarationContainer(iv, descriptor, state)
+//                iv.areturn(K_DECLARATION_CONTAINER_TYPE)
+//                FunctionCodegen.endVisit(iv, "function reference getOwner", element)
+//            }
+//        }
+//
+//        run {
+//            val mv = v.newMethod(NO_ORIGIN, flags, "getName", Type.getMethodDescriptor(JAVA_STRING_TYPE), null, null)
+//            if (generateBody) {
+//                mv.visitCode()
+//                val iv = InstructionAdapter(mv)
+//                iv.aconst(descriptor.name.asString())
+//                iv.areturn(JAVA_STRING_TYPE)
+//                FunctionCodegen.endVisit(iv, "function reference getName", element)
+//            }
+//        }
+//
+//        run {
+//            val mv = v.newMethod(NO_ORIGIN, flags, "getSignature", Type.getMethodDescriptor(JAVA_STRING_TYPE), null, null)
+//            if (generateBody) {
+//                mv.visitCode()
+//                val iv = InstructionAdapter(mv)
+//                PropertyReferenceCodegen.generateCallableReferenceSignature(iv, descriptor, state)
+//                iv.areturn(JAVA_STRING_TYPE)
+//                FunctionCodegen.endVisit(iv, "function reference getSignature", element)
+//            }
+//        }
+//    }
+
+
 }
