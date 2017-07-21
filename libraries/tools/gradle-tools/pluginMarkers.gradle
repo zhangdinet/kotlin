@@ -1,0 +1,42 @@
+ext.pluginMarkerProject = { String pluginProjectId ->
+    evaluationDependsOn(":$pluginProjectId")
+
+    def pluginProject = findProject(":$pluginProjectId")
+
+    repositories.addAll(pluginProject.repositories.toList())
+
+    apply plugin: 'java'
+
+    dependencies {
+        compile pluginProject
+    }
+
+    configurations.archives.artifacts.clear()
+
+    configurePublishing(project)
+
+    if (!isSonatypePublish) {
+        task emptyJar(type: Jar)
+
+        for (pluginId in pluginProject.pluginBundle.plugins*.id) {
+            artifacts {
+                archives(emptyJar) {
+                    group = pluginId
+                    name = "${pluginId}.gradle.plugin"
+                }
+            }
+
+            def setUpSeparateArtifact = {
+                addFilter(pluginId) { artifact, file -> artifact.group == pluginId }
+                def pom = pom(pluginId)
+                pom.groupId = pluginId
+                pom.artifactId = "${pluginId}.gradle.plugin"
+            }
+
+            configure(uploadArchives.repositories.mavenDeployer, setUpSeparateArtifact)
+            configure(install.repositories.mavenInstaller, setUpSeparateArtifact)
+        }
+    }
+
+    publish.dependsOn uploadArchives
+}
