@@ -19,15 +19,18 @@ ext.pluginMarkerProject = { String pluginProjectId ->
         task emptyJar(type: Jar)
 
         for (pluginId in pluginProject.pluginBundle.plugins*.id) {
+            def artifactName = "${pluginId}.gradle.plugin"
+
             artifacts {
                 archives(emptyJar) {
                     group = pluginId
-                    name = "${pluginId}.gradle.plugin"
+                    name = artifactName
+                    version = findProperty('marker_version') ?: project.version
                 }
             }
 
             def setUpSeparateArtifact = {
-                addFilter(pluginId) { artifact, file -> artifact.group == pluginId }
+                addFilter(pluginId) { artifact, file -> artifact.name == artifactName }
                 def pom = pom(pluginId)
                 pom.groupId = pluginId
                 pom.artifactId = "${pluginId}.gradle.plugin"
