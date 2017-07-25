@@ -16,10 +16,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.descriptors
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.FqName
@@ -34,10 +31,15 @@ class PredefinedPackageFragmentDescriptor(
         module: ModuleDescriptor,
         storageManager: StorageManager,
         val subpackages: List<PackageFragmentDescriptor> = emptyList(),
-        private val functions: (PredefinedPackageFragmentDescriptor) -> Collection<SimpleFunctionDescriptor> = { emptyList() }
+        private val functions: (PredefinedPackageFragmentDescriptor) -> Collection<SimpleFunctionDescriptor> = { emptyList() },
+        private val classifiers: (PredefinedPackageFragmentDescriptor) -> Collection<ClassifierDescriptor> = { emptyList() }
 ) : PackageFragmentDescriptorImpl(module, FqName(fqName)) {
     private val calculatedFunctions = storageManager.createLazyValue {
         functions(this)
+    }
+
+    private val calculatedClassifiers = storageManager.createLazyValue {
+        classifiers(this)
     }
 
     private val scope = PredefinedScope()
@@ -49,11 +51,16 @@ class PredefinedPackageFragmentDescriptor(
 
         override fun getContributedFunctions(name: Name, location: LookupLocation) = calculatedFunctions().filter { it.name == name }
 
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+            return calculatedClassifiers().firstOrNull { name == it.name }
+        }
+
         override fun getContributedDescriptors(
                 kindFilter: DescriptorKindFilter,
                 nameFilter: (Name) -> Boolean
-        ): List<SimpleFunctionDescriptor> {
-            return calculatedFunctions().filter { nameFilter(it.name) && kindFilter.accepts(it) }
+        ): List<DeclarationDescriptorNonRoot> {
+            return calculatedFunctions().filter { nameFilter(it.name) && kindFilter.accepts(it) } +
+                   calculatedClassifiers().filter { nameFilter(it.name) && kindFilter.accepts(it) }
         }
 
         override fun printScopeStructure(p: Printer) {

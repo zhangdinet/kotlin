@@ -82,14 +82,16 @@ abstract class AndroidPackageFragmentProviderExtension : PackageFragmentProvider
 
         // Package with clearFindViewByIdCache()
         AndroidConst.SYNTHETIC_SUBPACKAGES.last().let { s ->
-            val packageDescriptor = PredefinedPackageFragmentDescriptor(s, module, storageManager, packagesToLookupInCompletion) { descriptor ->
+            val packageDescriptor = PredefinedPackageFragmentDescriptor(s, module, storageManager, packagesToLookupInCompletion, { descriptor ->
                 val widgetReceivers = lazyContext().getWidgetReceivers(forView = false, isExperimental = isExperimental) +
                                       lazyContext().getWidgetReceivers(forView = true, isExperimental = isExperimental)
 
                 widgetReceivers
                         .filter { it.mayHaveCache }
                         .map { genClearCacheFunction(descriptor, it.type) }
-            }
+            }, { descriptor ->
+                listOf(genSimpleClass(descriptor))
+            })
             packagesToLookupInCompletion += packageDescriptor
             allPackageDescriptors += packageDescriptor
         }

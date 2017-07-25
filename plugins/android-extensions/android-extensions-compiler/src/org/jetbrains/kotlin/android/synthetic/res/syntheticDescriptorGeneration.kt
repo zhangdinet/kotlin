@@ -22,19 +22,53 @@ import org.jetbrains.kotlin.android.synthetic.descriptors.AndroidSyntheticPackag
 import org.jetbrains.kotlin.android.synthetic.descriptors.SyntheticElementResolveContext
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.PropertyGetterDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.*
+import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.DescriptorFactory
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
+import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
+import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.KotlinTypeFactory
-import org.jetbrains.kotlin.types.SimpleType
-import org.jetbrains.kotlin.types.StarProjectionImpl
+import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.utils.Printer
 
 private class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
+
+internal fun genSimpleClass(packageFragmentDescriptor: PackageFragmentDescriptor): ClassDescriptor {
+    val classDescriptor = ClassDescriptorImpl(packageFragmentDescriptor, Name.identifier("Test"), Modality.FINAL, ClassKind.CLASS,
+            listOf(packageFragmentDescriptor.builtIns.anyType), SourceElement.NO_SOURCE, false)
+
+    val primaryConstructor = ClassConstructorDescriptorImpl.create(classDescriptor, Annotations.EMPTY, true, SourceElement.NO_SOURCE).apply {
+        initialize(emptyList(), Visibilities.PUBLIC)
+    }
+
+    val simpleFunction = SimpleFunctionDescriptorImpl.create(classDescriptor, Annotations.EMPTY, Name.identifier("foo"),
+            CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE)
+
+    simpleFunction.initialize(null, classDescriptor.thisAsReceiverParameter, emptyList(), emptyList(),
+                              packageFragmentDescriptor.builtIns.stringType, Modality.FINAL, Visibilities.PUBLIC)
+
+    val scope = object : MemberScopeImpl() {
+        override fun getContributedFunctions(name: Name, location: LookupLocation) = listOf(simpleFunction)
+        override fun printScopeStructure(p: Printer) { p.println(this::class.java.simpleName) }
+        override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
+            return when {
+                kindFilter.accepts(simpleFunction) && nameFilter(simpleFunction.name) -> listOf(simpleFunction)
+                kindFilter.accepts(primaryConstructor) && nameFilter(primaryConstructor.name) -> listOf(primaryConstructor)
+                else -> emptyList()
+            }
+        }
+    }
+
+    classDescriptor.initialize(scope, setOf(primaryConstructor), primaryConstructor)
+
+    primaryConstructor.returnType = KotlinTypeFactory.simpleNotNullType(Annotations.EMPTY, classDescriptor, emptyList())
+
+    return classDescriptor
+}
 
 internal fun genClearCacheFunction(packageFragmentDescriptor: PackageFragmentDescriptor, receiverType: KotlinType): SimpleFunctionDescriptor {
     val function = object : AndroidSyntheticFunction, SimpleFunctionDescriptorImpl(
