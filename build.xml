@@ -959,7 +959,7 @@
             depends="gradle-runtime,mock-runtime-for-test"/>
 
     <target name="other-artifacts"
-            depends="android-extensions-compiler,allopen-compiler-plugin,noarg-compiler-plugin,sam-with-receiver-compiler-plugin,source-sections-compiler-plugin,annotation-processing,daemon-client,compiler-client-embeddable,kotlin-build-common-test" />
+            depends="android-extensions-compiler,allopen-compiler-plugin,noarg-compiler-plugin,sam-with-receiver-compiler-plugin,source-sections-compiler-plugin,annotation-processing,daemon-client,compiler-client-embeddable,kotlin-build-common-test,kotlin-serialization"/>
 
     <target name="dist"
             depends="clean,init,prepare-dist,preloader,runner,serialize-builtins,compiler-fork,compiler-sources,ant-tools,runtime,other-artifacts"
@@ -1022,4 +1022,30 @@
     <target name="build-bootstrap-artifacts" depends="dist,zip-compiler"/>
 
     <target name="build-artifacts" depends="dist,zip-compiler,zip-test-data"/>
+
+    <target name="kotlin-serialization" depends="kotlin-serialization-compiler"/>
+
+    <target name="kotlin-serialization-compiler">
+        <cleandir dir="${output}/classes/kotlin-serialization/kotlin-serialization-compiler"/>
+        <javac2 destdir="${output}/classes/kotlin-serialization/kotlin-serialization-compiler" debug="true" debuglevel="lines,vars,source"
+                includeAntRuntime="false">
+            <withKotlin modulename="kotlin-serialization-compiler">
+                <compilerarg value="-version"/>
+            </withKotlin>
+            <skip pattern="kotlin/Metadata"/>
+            <src>
+                <pathelement path="plugins/kotlin-serialization/kotlin-serialization-compiler/src"/>
+            </src>
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement path="${kotlin-home}/lib/kotlin-compiler.jar"/>
+            </classpath>
+        </javac2>
+
+        <jar destfile="${kotlin-home}/lib/kotlin-serialization-compiler.jar">
+            <fileset dir="${output}/classes/kotlin-serialization/kotlin-serialization-compiler"/>
+            <zipfileset file="${kotlin-home}/build.txt" prefix="META-INF"/>
+            <fileset dir="${basedir}/plugins/kotlin-serialization/kotlin-serialization-compiler/src" includes="META-INF/services/**"/>
+        </jar>
+    </target>
 </project>

@@ -102,6 +102,8 @@
         <module>tools/kotlin-android-extensions-runtime</module>
         <module>tools/kotlin-maven-plugin-test</module>
 
+        <module>tools/kotlin-serialization</module>
+
         <module>examples/annotation-processor-example</module>
         <module>examples/kotlin-java-example</module>
         <module>examples/js-example</module>
