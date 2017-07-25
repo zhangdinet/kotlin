@@ -29,7 +29,7 @@ fun computeDistanceInMilesCommonMath(lat1: Double, lng1: Double, lat2: Double, l
     val dLng = lng2 - lng1
     val sindLat = sin(dLat / 2) // sin(dLat / 2)
     val sindLng = sin(dLng / 2)
-    val a = pow(sindLat, 2.0) + pow(sindLng, 2.0) * cos(lat1) * cos(lat2)
+    val a = sindLat.pow(2) + sindLng.pow(2) * cos(lat1) * cos(lat2)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
     val dist = earthRadius * c
 
@@ -37,7 +37,7 @@ fun computeDistanceInMilesCommonMath(lat1: Double, lng1: Double, lat2: Double, l
 }
 
 fun <E: Number> List<E>.sum() {
-    val r0 = pow(E, this.sumByDouble { it.toDouble() })
+    //val r0 = pow(E, this.sumByDouble { it.toDouble() })
     val r2 = E.pow(this.sumByDouble { it.toDouble() })
     val e2 = E.pow(2)
 //    val r1 = r0.adjustExponent(+2)
