@@ -62,7 +62,7 @@ class SerializableCodegenImpl(
             .filterIsInstance<KtProperty>()
             .associateBy { classCodegen.bindingContext[BindingContext.VARIABLE, it]!! }
 
-    private val paramsToProps: Map<PropertyDescriptor, KtParameter> = classCodegen.primaryConstructorParameters
+    private val paramsToProps: Map<PropertyDescriptor, KtParameter> = classCodegen.myClass.primaryConstructorParameters
             .asSequence()
             .filter { it.hasValOrVar() }
             .associateBy { classCodegen.bindingContext[BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, it]!! }
