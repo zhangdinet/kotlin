@@ -52,3 +52,34 @@ To run integration tests, run from `tools/gradle-tools`:
     gradlew :kotlin-gradle-plugin-integration-tests:test
     
 Android integration tests are disabled by default, add `-Pandroid` to include them as well.
+
+
+## Kotlin serialization Gradle Plugin
+
+To build it, first **build all the above** and then, `cd` to `tools/kotlin-serialization` 
+and run `mvn install`
+
+So, all build sequence will look like:
+
+```bash
+# Assuming you are in the kotlin/libraries folder
+./gradlew build install
+mvn install
+cd tools/gradle-tools
+./gradlew clean install
+cd ../kotlin-serialization
+mvn install
+```
+
+When it is installed in local maven repository, you can add it as a dependency in buildscript classpath and apply it:
+
+```
+dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.1-SNAPSHOT"
+    classpath "org.jetbrains.kotlinx:kotlinx-serialization:1.1-SNAPSHOT"
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'kotlin-serialization'
+
+```
