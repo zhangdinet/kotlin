@@ -334,6 +334,7 @@ open class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
 
     fun testSourcePackageLongPrefix() {
         initProject()
+        addKotlinStdlibDependency()
         val buildResult = buildAllModules()
         buildResult.assertSuccessful()
         val warnings = buildResult.getMessages(BuildMessage.Kind.WARNING)

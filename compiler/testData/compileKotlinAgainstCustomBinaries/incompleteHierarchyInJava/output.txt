@@ -1,7 +1,28 @@
-error: supertypes of the following classes cannot be resolved. Please make sure you have the required dependencies in the classpath:
-    class test.Sub, unresolved supertypes: test.Super
-
-compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:5:22: error: unresolved reference: foo
-fun bar() = SubSub().foo()
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:3:19: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+class BSubclass : B()
+                  ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:12:16: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    val b: B = getB()!!
+               ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:12:22: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    val b: B = getB()!!
                      ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:13:5: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    takeB(b)
+    ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:13:11: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    takeB(b)
+          ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:14:5: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    takeBWithOverload(b)
+    ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:14:23: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    takeBWithOverload(b)
+                      ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:16:5: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    b.bar()
+    ^
+compiler/testData/compileKotlinAgainstCustomBinaries/incompleteHierarchyInJava/source.kt:18:14: error: cannot access superclass 'a.A' of class 'b.B'. Check your module classpath for missing or conflicting dependencies
+    object : B() {}
+             ^
 COMPILATION_ERROR

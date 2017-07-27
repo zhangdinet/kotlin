@@ -166,6 +166,4 @@ abstract class AbstractQuickFixMultiModuleTest : AbstractMultiModuleTest() {
         doHighlighting()
         return LightQuickFixTestCase.getAvailableActions(editor, file)
     }
-
-    override fun getTestProjectJdk() = PluginTestCaseBase.mockJdk()
 }

@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedMemberDescriptor
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.newLinkedHashSetWithExpectedSize
 
 object MissingDependencyClassChecker : CallChecker {
@@ -43,9 +44,19 @@ object MissingDependencyClassChecker : CallChecker {
         incompatibilityDiagnosticFor(containerSource, reportOn)?.let(context.trace::report)
     }
 
-    private fun diagnosticFor(descriptor: ClassifierDescriptor, reportOn: PsiElement): Diagnostic? {
+    private fun diagnosticFor(descriptor: ClassifierDescriptor, reportOn: PsiElement, diagnoseMissingSuperclass: Boolean): Diagnostic? {
         if (descriptor is NotFoundClasses.MockClassDescriptor) {
             return MISSING_DEPENDENCY_CLASS.on(reportOn, descriptor.fqNameSafe)
+        }
+
+        if (diagnoseMissingSuperclass) {
+            val type = (descriptor as? TypeAliasDescriptor)?.expandedType ?: descriptor.defaultType
+            for (supertype in TypeUtils.getAllSupertypes(type)) {
+                val superclass = supertype.constructor.declarationDescriptor
+                if (superclass is NotFoundClasses.MockClassDescriptor) {
+                    return MISSING_DEPENDENCY_SUPERCLASS.on(reportOn, superclass.fqNameSafe, descriptor.fqNameSafe)
+                }
+            }
         }
 
         return incompatibilityDiagnosticFor(descriptor.source, reportOn)
@@ -69,7 +80,7 @@ object MissingDependencyClassChecker : CallChecker {
         val result: MutableSet<Diagnostic> = newLinkedHashSetWithExpectedSize(1)
 
         fun consider(classDescriptor: ClassDescriptor) {
-            val diagnostic = diagnosticFor(classDescriptor, reportOn)
+            val diagnostic = diagnosticFor(classDescriptor, reportOn, true)
             if (diagnostic != null) {
                 result.add(diagnostic)
                 return
@@ -79,6 +90,7 @@ object MissingDependencyClassChecker : CallChecker {
 
         fun consider(type: KotlinType) {
             if (!isComputingDeferredType(type)) {
+                // TODO: support type aliases
                 (type.constructor.declarationDescriptor as? ClassDescriptor)?.let(::consider)
             }
         }
@@ -97,7 +109,7 @@ object MissingDependencyClassChecker : CallChecker {
                 element: PsiElement,
                 languageVersionSettings: LanguageVersionSettings
         ) {
-            diagnosticFor(targetDescriptor, element)?.let(trace::report)
+            diagnosticFor(targetDescriptor, element, false)?.let(trace::report)
 
             val containerSource = (targetDescriptor as? DeserializedMemberDescriptor)?.containerSource
             incompatibilityDiagnosticFor(containerSource, element)?.let(trace::report)

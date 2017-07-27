@@ -201,11 +201,11 @@ class CompileKotlinAgainstCustomBinariesTest : AbstractKotlinCompilerIntegration
     }
 
     fun testIncompleteHierarchyInJava() {
-        doTestBrokenLibrary("library", "test/Super.class")
+        doTestBrokenLibrary("library", "a/A.class")
     }
 
     fun testIncompleteHierarchyInKotlin() {
-        doTestBrokenLibrary("library", "test/Super.class")
+        doTestBrokenLibrary("library", "a/A.class")
     }
 
     fun testMissingDependencySimple() {

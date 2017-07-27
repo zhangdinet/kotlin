@@ -115,6 +115,8 @@ abstract class AbstractMultiModuleTest : DaemonAnalyzerTestCase() {
         }
         Assert.assertTrue(atLeastOneFile)
     }
+
+    override fun getTestProjectJdk() = PluginTestCaseBase.mockJdk()
 }
 
 fun Module.createFacet(platformKind: TargetPlatformKind<*>? = null) {

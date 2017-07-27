@@ -129,6 +129,9 @@ abstract class KotlinLightCodeInsightFixtureTestCase : KotlinLightCodeInsightFix
                          InTextDirectivesUtils.isDirectiveDefined(fileText, "WITH_RUNTIME")) {
                     return KotlinWithJdkAndRuntimeLightProjectDescriptor.INSTANCE
                 }
+                else if (InTextDirectivesUtils.isDirectiveDefined(fileText, "WITH_SCRIPT_RUNTIME")) {
+                    return KotlinWithJdkAndRuntimeLightProjectDescriptor.INSTANCE_WITH_SCRIPT_RUNTIME
+                }
                 else if (InTextDirectivesUtils.isDirectiveDefined(fileText, "JS")) {
                     return KotlinStdJSProjectDescriptor
                 }

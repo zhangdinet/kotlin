@@ -1,4 +1,6 @@
 // !DIAGNOSTICS: -UNUSED_VARIABLE
+// FULL_JDK
+
 import java.util.*
 
 fun bar(): String? = null
