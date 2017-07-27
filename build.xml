@@ -3,7 +3,7 @@
     <property file="resources/kotlinManifest.properties"/>
 
     <!-- Set to false to disable proguard run on kotlin-compiler.jar. Speeds up the build -->
-    <property name="shrink" value="true"/>
+    <property name="shrink" value="false"/>
 
     <property name="max.heap.size.for.forked.jvm" value="1024m"/>
 
@@ -959,7 +959,7 @@
             depends="gradle-runtime,mock-runtime-for-test"/>
 
     <target name="other-artifacts"
-            depends="android-extensions-compiler,allopen-compiler-plugin,noarg-compiler-plugin,sam-with-receiver-compiler-plugin,source-sections-compiler-plugin,annotation-processing,daemon-client,compiler-client-embeddable,kotlin-build-common-test,kotlin-serialization"/>
+            depends="android-extensions-compiler,allopen-compiler-plugin,noarg-compiler-plugin,sam-with-receiver-compiler-plugin,source-sections-compiler-plugin,annotation-processing,daemon-client,compiler-client-embeddable,kotlin-build-common-test"/>
 
     <target name="dist"
             depends="clean,init,prepare-dist,preloader,runner,serialize-builtins,compiler-fork,compiler-sources,ant-tools,runtime,other-artifacts"
@@ -1045,7 +1045,7 @@
         <jar destfile="${kotlin-home}/lib/kotlin-serialization-compiler.jar">
             <fileset dir="${output}/classes/kotlin-serialization/kotlin-serialization-compiler"/>
             <zipfileset file="${kotlin-home}/build.txt" prefix="META-INF"/>
-            <fileset dir="${basedir}/plugins/kotlin-serialization/kotlin-serialization-compiler/src" includes="META-INF/services/**"/>
+            <fileset dir="${basedir}/plugins/kotlin-serialization/kotlin-serialization-compiler/src" includes="META-INF/**"/>
         </jar>
     </target>
 </project>
