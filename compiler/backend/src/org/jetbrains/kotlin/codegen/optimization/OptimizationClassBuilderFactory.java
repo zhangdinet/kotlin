@@ -21,19 +21,26 @@ import org.jetbrains.kotlin.codegen.ClassBuilder;
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory;
 import org.jetbrains.kotlin.codegen.ClassBuilderMode;
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilderFactory;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 
 public class OptimizationClassBuilderFactory extends DelegatingClassBuilderFactory {
     private final boolean disableOptimization;
+    private final LanguageVersionSettings languageVersionSettings;
 
-    public OptimizationClassBuilderFactory(ClassBuilderFactory delegate, boolean disableOptimization) {
+    public OptimizationClassBuilderFactory(
+            ClassBuilderFactory delegate,
+            boolean disableOptimization,
+            LanguageVersionSettings languageVersionSettings
+    ) {
         super(delegate);
         this.disableOptimization = disableOptimization;
+        this.languageVersionSettings = languageVersionSettings;
     }
 
     @NotNull
     @Override
     public OptimizationClassBuilder newClassBuilder(@NotNull JvmDeclarationOrigin origin) {
-        return new OptimizationClassBuilder(getDelegate().newClassBuilder(origin), disableOptimization);
+        return new OptimizationClassBuilder(getDelegate().newClassBuilder(origin), disableOptimization, languageVersionSettings);
     }
 }

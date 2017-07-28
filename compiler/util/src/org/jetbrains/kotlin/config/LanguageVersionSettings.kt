@@ -54,6 +54,7 @@ enum class LanguageFeature(
     InlineDefaultFunctionalParameters(KOTLIN_1_2),
     SoundSmartCastsAfterTry(KOTLIN_1_2),
     DeprecatedFieldForInvisibleCompanionObject(KOTLIN_1_2),
+    NoUninitializedObjectStores(KOTLIN_1_2),
 
     // Experimental features
 

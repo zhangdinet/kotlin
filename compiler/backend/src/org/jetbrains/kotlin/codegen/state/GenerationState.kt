@@ -174,15 +174,23 @@ class GenerationState @JvmOverloads constructor(
     init {
         this.interceptedBuilderFactory = builderFactory
                 .wrapWith(
-                    { OptimizationClassBuilderFactory(it, configuration.get(JVMConfigurationKeys.DISABLE_OPTIMIZATION, false)) },
-                    { BuilderFactoryForDuplicateSignatureDiagnostics(
-                            it, this.bindingContext, diagnostics,
-                            fileClassesProvider, this.moduleName,
-                            shouldGenerate = { !shouldOnlyCollectSignatures(it) }
-                    ).apply { duplicateSignatureFactory = this } },
-                    { BuilderFactoryForDuplicateClassNameDiagnostics(it, diagnostics) },
-                    { configuration.get(JVMConfigurationKeys.DECLARATIONS_JSON_PATH)
-                              ?.let { destination -> SignatureDumpingBuilderFactory(it, File(destination)) } ?: it }
+                        {
+                            val disableOptimization = configuration.get(JVMConfigurationKeys.DISABLE_OPTIMIZATION, false)
+                            OptimizationClassBuilderFactory(it, disableOptimization, languageVersionSettings)
+                        },
+                        {
+                            BuilderFactoryForDuplicateSignatureDiagnostics(
+                                    it, this.bindingContext, diagnostics,
+                                    fileClassesProvider, this.moduleName,
+                                    shouldGenerate = { !shouldOnlyCollectSignatures(it) }
+                            ).apply { duplicateSignatureFactory = this }
+                        },
+                        { BuilderFactoryForDuplicateClassNameDiagnostics(it, diagnostics) },
+                        {
+                            configuration.get(JVMConfigurationKeys.DECLARATIONS_JSON_PATH)?.let { destination ->
+                                SignatureDumpingBuilderFactory(it, File(destination))
+                            } ?: it
+                        }
                 )
                 .wrapWith(ClassBuilderInterceptorExtension.getInstances(project)) { builderFactory, extension ->
                     extension.interceptClassBuilderFactory(builderFactory, bindingContext, diagnostics)

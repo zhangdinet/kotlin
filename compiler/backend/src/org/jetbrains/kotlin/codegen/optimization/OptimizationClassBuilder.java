@@ -20,16 +20,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.codegen.ClassBuilder;
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilder;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
 public class OptimizationClassBuilder extends DelegatingClassBuilder {
     private final ClassBuilder delegate;
     private final boolean disableOptimization;
+    private final LanguageVersionSettings languageVersionSettings;
 
-    public OptimizationClassBuilder(@NotNull ClassBuilder delegate, boolean disableOptimization) {
+    public OptimizationClassBuilder(
+            @NotNull ClassBuilder delegate,
+            boolean disableOptimization,
+            LanguageVersionSettings languageVersionSettings
+    ) {
         this.delegate = delegate;
         this.disableOptimization = disableOptimization;
+        this.languageVersionSettings = languageVersionSettings;
     }
 
     @NotNull
@@ -50,7 +57,7 @@ public class OptimizationClassBuilder extends DelegatingClassBuilder {
     ) {
         return new OptimizationMethodVisitor(
                 super.newMethod(origin, access, name, desc, signature, exceptions),
-                disableOptimization,
+                disableOptimization, languageVersionSettings,
                 access, name, desc, signature, exceptions
         );
     }
