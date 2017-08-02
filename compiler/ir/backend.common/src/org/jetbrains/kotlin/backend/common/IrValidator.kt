@@ -37,7 +37,7 @@ fun validateIrModule(context: CommonBackendContext, irModule: IrModuleFragment) 
 
 private fun CommonBackendContext.reportIrValidationError(message: String, irFile: IrFile, irElement: IrElement) {
     try {
-        this.reportWarning("[IR VALIDATION] $message", irFile, irElement)
+        this.report("[IR VALIDATION] $message", irElement, irFile, false)
     } catch (e: Throwable) {
         println("an error trying to print a warning message: $e")
         e.printStackTrace()
