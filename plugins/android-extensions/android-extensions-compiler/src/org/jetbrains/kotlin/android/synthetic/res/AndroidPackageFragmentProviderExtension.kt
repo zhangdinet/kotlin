@@ -53,10 +53,9 @@ abstract class AndroidPackageFragmentProviderExtension : PackageFragmentProvider
 
         // Packages with synthetic properties
         for (variantData in moduleData.variants) {
-            for ((layoutName, layouts) in variantData.layouts) {
+            for ((layoutName, layoutGroupData) in variantData.layoutGroups) {
                 fun createPackageFragment(fqName: String, forView: Boolean, isDeprecated: Boolean = false) {
-                    val resources = layoutXmlFileManager.extractResources(AndroidLayoutGroupData(layoutName, layouts), module)
-                    val packageData = AndroidSyntheticPackageData(moduleData, forView, isDeprecated, resources)
+                    val packageData = AndroidSyntheticPackageData(moduleData, forView, isDeprecated, layoutGroupData.resources)
                     val packageDescriptor = AndroidSyntheticPackageFragmentDescriptor(
                             module, FqName(fqName), packageData, lazyContext, storageManager, isExperimental)
                     packagesToLookupInCompletion += packageDescriptor
@@ -76,8 +75,10 @@ abstract class AndroidPackageFragmentProviderExtension : PackageFragmentProvider
         }
 
         for (variantData in moduleData.variants) {
-            val fqName = AndroidConst.SYNTHETIC_PACKAGE + '.' + variantData.variant.name
-            allPackageDescriptors += PredefinedPackageFragmentDescriptor(fqName, module, storageManager)
+            allPackageDescriptors += PredefinedPackageFragmentDescriptor(
+                    fqName = AndroidConst.SYNTHETIC_PACKAGE + '.' + variantData.variant.name,
+                    module = module,
+                    storageManager = storageManager)
         }
 
         // Package with clearFindViewByIdCache()

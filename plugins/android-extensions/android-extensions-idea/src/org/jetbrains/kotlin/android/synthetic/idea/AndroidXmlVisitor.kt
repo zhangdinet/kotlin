@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.android.synthetic.androidIdToName
 import org.jetbrains.kotlin.android.synthetic.isWidgetTypeIgnored
 import org.jetbrains.kotlin.android.synthetic.res.ResourceIdentifier
 
-class AndroidXmlVisitor(val elementCallback: (ResourceIdentifier, String, XmlAttribute) -> Unit) : XmlElementVisitor() {
+abstract class AndroidXmlVisitor : XmlElementVisitor() {
 
     override fun visitElement(element: PsiElement) {
         element.acceptChildren(this)
@@ -38,6 +38,19 @@ class AndroidXmlVisitor(val elementCallback: (ResourceIdentifier, String, XmlAtt
 
     override fun visitXmlTag(tag: XmlTag?) {
         val localName = tag?.localName ?: ""
+
+        if (localName == "include") {
+            val layout = tag?.getAttribute("layout")?.value ?: return
+            val (resClassName, layoutName) =
+                    layout.removePrefix("@").split('/').takeIf { it.size == 2 } ?: return
+
+            if (resClassName == "layout") {
+                visitIncludeLayout(layoutName)
+            }
+
+            return
+        }
+
         if (isWidgetTypeIgnored(localName)) {
             tag?.acceptChildren(this)
             return
@@ -49,9 +62,13 @@ class AndroidXmlVisitor(val elementCallback: (ResourceIdentifier, String, XmlAtt
             if (idAttributeValue != null) {
                 val xmlType = tag.getAttribute(AndroidConst.CLASS_ATTRIBUTE_NO_NAMESPACE)?.value ?: localName
                 val name = androidIdToName(idAttributeValue)
-                if (name != null) elementCallback(name, xmlType, idAttribute)
+                if (name != null) visitResource(name, xmlType, idAttribute)
             }
         }
         tag?.acceptChildren(this)
     }
+
+    abstract fun visitResource(resourceId: ResourceIdentifier, widgetType: String, attribute: XmlAttribute)
+
+    abstract fun visitIncludeLayout(layoutId: String)
 }

@@ -56,14 +56,10 @@ class ResourceIdentifier(val name: String, val packageName: String?) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
+    override fun hashCode(): Int = name.hashCode()
 }
 
-class AndroidLayoutGroup(val name: String, val layouts: List<AndroidLayout>)
-
-class AndroidLayout(val resources: List<AndroidResource>)
+class AndroidLayout(val resources: List<AndroidResource>, val includedLayouts: List<String>)
 
 sealed class AndroidResource(val id: ResourceIdentifier, val sourceElement: PsiElement?, val partiallyDefined: Boolean) {
     open fun sameClass(other: AndroidResource): Boolean = false
@@ -89,9 +85,8 @@ sealed class AndroidResource(val id: ResourceIdentifier, val sourceElement: PsiE
     }
 }
 
-fun <T> cachedValue(project: Project, result: () -> CachedValueProvider.Result<T>): CachedValue<T> {
-    return CachedValuesManager.getManager(project).createCachedValue(result, false)
-}
+fun <T> cachedValue(project: Project, result: () -> CachedValueProvider.Result<T>): CachedValue<T> =
+        CachedValuesManager.getManager(project).createCachedValue(result, false)
 
 class ResolvedWidget(val widget: AndroidResource.Widget, val viewClassDescriptor: ClassDescriptor?) {
     val isErrorType: Boolean
@@ -116,9 +111,8 @@ fun AndroidResource.Widget.resolve(module: ModuleDescriptor): ResolvedWidget? {
     }
 
     for (packageName in AndroidConst.FQNAME_RESOLVE_PACKAGES) {
-        val classDescriptor = resolve("$packageName.$xmlType")
-        if (classDescriptor != null) {
-            return ResolvedWidget(this, classDescriptor)
+        resolve("$packageName.$xmlType")?.let {
+            return ResolvedWidget(widget = this, viewClassDescriptor = it)
         }
     }
 

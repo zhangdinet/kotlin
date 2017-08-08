@@ -25,11 +25,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.android.synthetic.AndroidConst
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import java.util.*
 
-class AndroidVariantData(val variant: AndroidVariant, val layouts: Map<String, List<PsiFile>>)
+class AndroidVariantData(val variant: AndroidVariant, val layoutGroups: Map<String, AndroidLayoutGroupData>)
 
 class AndroidModuleData(val module: AndroidModule, val variants: List<AndroidVariantData>) {
     companion object {
@@ -37,7 +36,12 @@ class AndroidModuleData(val module: AndroidModule, val variants: List<AndroidVar
     }
 }
 
-data class AndroidLayoutGroupData(val name: String, val layouts: List<PsiFile>)
+data class AndroidLayoutGroupData(
+        val name: String,
+        val layouts: List<PsiFile>,
+        val resources: List<AndroidResource>,
+        val includedLayouts: List<String>
+)
 
 abstract class AndroidLayoutXmlFileManager(val project: Project) {
     abstract val androidModule: AndroidModule?
@@ -79,38 +83,41 @@ abstract class AndroidLayoutXmlFileManager(val project: Project) {
             list
         }
 
-        val layoutNameToXmlFiles = allLayoutPsiFiles
+        val layoutNameToLayoutGroupData = allLayoutPsiFiles
                 .groupBy { it.name.substringBeforeLast('.') }
-                .mapValues { it.value.sortedBy { it.parent!!.name.length } }
+                .mapValues {
+                    val files = it.value.sortedBy { it.parent!!.name.length }
+                    val layouts = extractResources(files)
+                    AndroidLayoutGroupData(
+                            name = it.key,
+                            layouts = files,
+                            resources = filterDuplicates(layouts),
+                            includedLayouts = layouts.flatMap { it.includedLayouts }.distinct()
+                    )
+                }
 
-        return AndroidVariantData(variant, layoutNameToXmlFiles)
+        return AndroidVariantData(variant, layoutNameToLayoutGroupData)
     }
 
-    fun extractResources(layoutGroupFiles: AndroidLayoutGroupData, module: ModuleDescriptor): List<AndroidResource> {
-        return filterDuplicates(doExtractResources(layoutGroupFiles, module))
+    protected abstract fun extractResources(layoutFiles: List<PsiFile>): List<AndroidLayout>
+
+    protected fun parseAndroidResource(id: ResourceIdentifier, tag: String, sourceElement: PsiElement?): AndroidResource = when (tag) {
+        "fragment" -> AndroidResource.Fragment(id, sourceElement)
+        "include" -> AndroidResource.Widget(id, AndroidConst.VIEW_FQNAME, sourceElement)
+        else -> AndroidResource.Widget(id, tag, sourceElement)
     }
 
-    protected abstract fun doExtractResources(layoutGroup: AndroidLayoutGroupData, module: ModuleDescriptor): AndroidLayoutGroup
-
-    protected fun parseAndroidResource(id: ResourceIdentifier, tag: String, sourceElement: PsiElement?): AndroidResource {
-        return when (tag) {
-            "fragment" -> AndroidResource.Fragment(id, sourceElement)
-            "include" -> AndroidResource.Widget(id, AndroidConst.VIEW_FQNAME, sourceElement)
-            else -> AndroidResource.Widget(id, tag, sourceElement)
-        }
-    }
-
-    private fun filterDuplicates(layoutGroup: AndroidLayoutGroup): List<AndroidResource> {
+    private fun filterDuplicates(layouts: List<AndroidLayout>): List<AndroidResource> {
         val resourceMap = linkedMapOf<String, AndroidResource>()
         val resourcesToExclude = hashSetOf<String>()
 
-        val resourcesByName = layoutGroup.layouts.flatMap { it.resources }.groupBy {
+        val resourcesByName = layouts.flatMap { it.resources }.groupBy {
             val id = it.id
             if (id.packageName == null) id.name else id.packageName + "/" + id.name
         }
 
         for (resources in resourcesByName.values) {
-            val isPartiallyDefined = resources.size < layoutGroup.layouts.size
+            val isPartiallyDefined = resources.size < layouts.size
 
             for (res in resources) {
                 if (res.id.name in resourceMap) {

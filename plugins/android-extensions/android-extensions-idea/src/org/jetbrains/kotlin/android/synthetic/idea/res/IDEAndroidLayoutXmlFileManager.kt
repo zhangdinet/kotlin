@@ -21,16 +21,17 @@ import com.android.tools.idea.gradle.AndroidGradleModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.android.synthetic.AndroidConst.SYNTHETIC_PACKAGE_PATH_LENGTH
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidXmlVisitor
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental
 import org.jetbrains.kotlin.android.synthetic.res.*
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
@@ -58,20 +59,24 @@ class IDEAndroidLayoutXmlFileManager(val module: Module) : AndroidLayoutXmlFileM
         return _moduleData?.value ?: AndroidModuleData.EMPTY
     }
 
-    private fun getPsiTreeChangePreprocessor(): PsiTreeChangePreprocessor {
-        return project.getExtensions(PsiTreeChangePreprocessor.EP_NAME).firstIsInstance<AndroidPsiTreeChangePreprocessor>()
-    }
+    private fun getPsiTreeChangePreprocessor(): PsiTreeChangePreprocessor =
+            project.getExtensions(PsiTreeChangePreprocessor.EP_NAME).firstIsInstance<AndroidPsiTreeChangePreprocessor>()
 
-    override fun doExtractResources(layoutGroup: AndroidLayoutGroupData, module: ModuleDescriptor): AndroidLayoutGroup {
-        val layouts = layoutGroup.layouts.map { layout ->
+    override fun extractResources(layoutFiles: List<PsiFile>): List<AndroidLayout> {
+        return layoutFiles.map { layout ->
             val resources = arrayListOf<AndroidResource>()
-            layout.accept(AndroidXmlVisitor { id, widgetType, attribute ->
-                resources += parseAndroidResource(id, widgetType, attribute.valueElement)
-            })
-            AndroidLayout(resources)
-        }
+            val includedLayouts = arrayListOf<String>()
+            layout.accept(object: AndroidXmlVisitor() {
+                override fun visitIncludeLayout(layoutId: String) {
+                    includedLayouts += layoutId
+                }
 
-        return AndroidLayoutGroup(layoutGroup.name, layouts)
+                override fun visitResource(resourceId: ResourceIdentifier, widgetType: String, attribute: XmlAttribute) {
+                    resources += parseAndroidResource(resourceId, widgetType, attribute.valueElement)
+                }
+            })
+            AndroidLayout(resources, includedLayouts)
+        }
     }
 
     override fun propertyToXmlAttributes(propertyDescriptor: PropertyDescriptor): List<PsiElement> {
@@ -82,16 +87,18 @@ class IDEAndroidLayoutXmlFileManager(val module: Module) : AndroidLayoutXmlFileM
             val layoutNamePosition = SYNTHETIC_PACKAGE_PATH_LENGTH + (if (defaultVariant) 0 else 1)
             val layoutName = fqPath[layoutNamePosition].asString()
 
-            val layoutFiles = variantData.layouts[layoutName] ?: return null
+            val layoutFiles = variantData.layoutGroups[layoutName]?.layouts ?: return null
             if (layoutFiles.isEmpty()) return null
 
             val propertyName = propertyDescriptor.name.asString()
 
             val attributes = arrayListOf<PsiElement>()
-            val visitor = AndroidXmlVisitor { retId, _, valueElement ->
-                if (retId.name == propertyName) attributes.add(valueElement)
+            val visitor = object: AndroidXmlVisitor() {
+                override fun visitIncludeLayout(layoutId: String) = Unit
+                override fun visitResource(resourceId: ResourceIdentifier, widgetType: String, attribute: XmlAttribute) {
+                    if (resourceId.name == propertyName) attributes.add(attribute)
+                }
             }
-
             layoutFiles.forEach { it.accept(visitor) }
             return attributes
         }
