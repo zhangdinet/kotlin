@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.resolve.calls
 
 import org.jetbrains.kotlin.builtins.functions.FunctionInvokeDescriptor
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.diagnostics.Errors.BadNamedArgumentsTarget.INVOKE_ON_FUNCTION_TYPE
 import org.jetbrains.kotlin.diagnostics.Errors.BadNamedArgumentsTarget.NON_KOTLIN_FUNCTION
@@ -158,9 +157,8 @@ class DiagnosticReporterByTrackingStrategy(
                 val argument = (position as? ArgumentConstraintPosition)?.argument
                                ?: (position as? ReceiverConstraintPosition)?.argument
                 argument?.let {
-                    val expression = it.psiExpression ?: return
-                    if (reportConstantTypeMismatch(constraintError, expression)) return
-                    trace.report(Errors.TYPE_MISMATCH.on(expression, constraintError.upperType, constraintError.lowerType))
+                    // should be reported in TypeChecker
+                    trace.markAsReported()
                 }
                 (position as? ExplicitTypeParameterConstraintPosition)?.let {
                     val typeArgumentReference = (it.typeArgument as SimpleTypeArgumentImpl).typeReference
