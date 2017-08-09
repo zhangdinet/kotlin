@@ -16,28 +16,19 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea.res
 
-import com.android.tools.idea.gradle.parser.GradleBuildFile
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ANDROID_COMPILER_PLUGIN_ID
-import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.EXPERIMENTAL_OPTION
+import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsEnabled
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental
-import org.jetbrains.kotlin.android.synthetic.idea.isExperimental
 import org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager
 import org.jetbrains.kotlin.android.synthetic.res.AndroidPackageFragmentProviderExtension
 import org.jetbrains.kotlin.idea.caches.resolve.ModuleSourceInfo
-import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 
 class IDEAndroidPackageFragmentProviderExtension(val project: Project) : AndroidPackageFragmentProviderExtension() {
-    private val psiManager = PsiManager.getInstance(project)
-
     override fun isExperimental(moduleInfo: ModuleInfo?): Boolean {
         return moduleInfo?.androidExtensionsIsExperimental ?: false
     }
@@ -56,11 +47,7 @@ class IDEAndroidPackageFragmentProviderExtension(val project: Project) : Android
     private fun isAndroidExtensionsEnabled(module: Module): Boolean {
         // Android Extensions should be always enabled for Android/JPS
         if (isLegacyIdeaAndroidModule(module)) return true
-
-        val androidGradleFacet = GradleFacet.getInstance(module) ?: return false
-        val buildFile = androidGradleFacet.gradleModuleModel?.buildFile ?: return false
-        val buildGroovyFile = psiManager.findFile(buildFile) as? GroovyFile ?: return false
-        return GradleBuildFile.getPlugins(buildGroovyFile).contains("kotlin-android-extensions")
+        return module.androidExtensionsIsEnabled
     }
 
     private fun isLegacyIdeaAndroidModule(module: Module): Boolean {

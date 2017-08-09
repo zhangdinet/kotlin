@@ -423,9 +423,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
             return null;
         return new SyntheticClassOrObjectDescriptor(c,
                 /* parentClassOrObject= */ classOrObject,
-                                                    this, syntheticCompanionName, getSource(),
+                this, syntheticCompanionName, getSource(),
                 /* outerScope= */ getOuterScope(),
-                                                    Modality.FINAL, PUBLIC, PRIVATE, ClassKind.OBJECT, true);
+                Modality.FINAL, PUBLIC, PRIVATE, ClassKind.OBJECT, true);
     }
 
     @Nullable

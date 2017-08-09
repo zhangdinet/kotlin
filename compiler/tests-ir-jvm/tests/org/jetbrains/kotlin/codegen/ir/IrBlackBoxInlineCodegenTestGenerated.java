@@ -212,6 +212,18 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
             doTest(fileName);
         }
 
+        @TestMetadata("kt19434.kt")
+        public void testKt19434() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/anonymousObject/kt19434.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt19434_2.kt")
+        public void testKt19434_2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/anonymousObject/kt19434_2.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("kt6552.kt")
         public void testKt6552() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/anonymousObject/kt6552.kt");
@@ -2753,6 +2765,12 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
         public static class Anonymous extends AbstractIrBlackBoxInlineCodegenTest {
             public void testAllFilesPresentInAnonymous() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/boxInline/smap/anonymous"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("kt19175.kt")
+            public void testKt19175() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/smap/anonymous/kt19175.kt");
+                doTest(fileName);
             }
 
             @TestMetadata("lambda.kt")

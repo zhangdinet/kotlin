@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinitionProvider
 import org.jetbrains.kotlin.script.ScriptDependenciesProvider
 import org.jetbrains.kotlin.script.makeScriptDefsFromTemplatesProviderExtensions
 import java.io.File
-import kotlin.script.dependencies.ScriptDependencies
+import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
 // NOTE: this service exists exclusively because ScriptDependencyManager
@@ -89,9 +89,8 @@ class ScriptDependenciesManager internal constructor(
         fun updateScriptDependenciesSynchronously(virtualFile: VirtualFile, project: Project) {
             with(getInstance(project)) {
                 val scriptDefinition = KotlinScriptDefinitionProvider.getInstance(project)!!.findScriptDefinition(virtualFile)!!
-                val updated = cacheUpdater.updateSync(virtualFile, scriptDefinition)
-                assert(updated)
-                cacheUpdater.onChange()
+                cacheUpdater.updateSync(virtualFile, scriptDefinition)
+                cacheUpdater.notifyRootsChanged()
             }
         }
 

@@ -177,7 +177,7 @@ abstract class AbstractConfigureKotlinTest : PlatformTestCase() {
 
         private val pathToNonexistentRuntimeJar: String
             get() {
-                val pathToTempKotlinRuntimeJar = FileUtil.getTempDirectory() + "/" + PathUtil.KOTLIN_JAVA_RUNTIME_JAR
+                val pathToTempKotlinRuntimeJar = FileUtil.getTempDirectory() + "/kotlin-runtime.jar"
                 PlatformTestCase.myFilesToDelete.add(File(pathToTempKotlinRuntimeJar))
                 return pathToTempKotlinRuntimeJar
             }
@@ -190,10 +190,10 @@ abstract class AbstractConfigureKotlinTest : PlatformTestCase() {
             }
 
         private val pathToExistentRuntimeJar: String
-            get() = PathUtil.getKotlinPathsForDistDirectory().stdlibPath.parent
+            get() = PathUtil.kotlinPathsForDistDirectory.stdlibPath.parent
 
         private val pathToExistentJsJar: String
-            get() = PathUtil.getKotlinPathsForDistDirectory().jsStdLibJarPath.parent
+            get() = PathUtil.kotlinPathsForDistDirectory.jsStdLibJarPath.parent
 
         protected fun assertNotConfigured(module: Module, configurator: KotlinWithLibraryConfigurator) {
             TestCase.assertFalse(

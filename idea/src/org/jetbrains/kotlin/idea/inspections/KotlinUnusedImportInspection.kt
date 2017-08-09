@@ -37,18 +37,23 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiUtilBase
 import com.intellij.util.DocumentUtil
 import org.jetbrains.kotlin.idea.core.targetDescriptors
+import org.jetbrains.kotlin.idea.editor.fixers.end
 import org.jetbrains.kotlin.idea.imports.KotlinImportOptimizer
 import org.jetbrains.kotlin.idea.imports.OptimizedImportsBuilder
 import org.jetbrains.kotlin.idea.imports.importableFqName
+import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.psiUtil.siblings
 import org.jetbrains.kotlin.resolve.ImportPath
 import java.util.*
 
@@ -61,7 +66,7 @@ class KotlinUnusedImportInspection : AbstractKotlinInspection() {
     companion object {
         fun analyzeImports(file: KtFile): ImportData? {
             if (file is KtCodeFragment) return null
-            if (!file.manager.isInProject(file)) return null
+            if (!ProjectRootsUtil.isInProjectSource(file)) return null
             if (file.importDirectives.isEmpty()) return null
 
             val optimizerData = KotlinImportOptimizer.collectDescriptorsToImport(file)
@@ -178,7 +183,12 @@ class KotlinUnusedImportInspection : AbstractKotlinInspection() {
         if (undoManager.isUndoInProgress || undoManager.isRedoInProgress) return false
 
         // if we stand inside import statements, do not optimize
-        val importsRange = file.importList?.textRange ?: return false
+        val importList = file.importList ?: return false
+        val leftSpace = importList.siblings(forward = false, withItself = false).firstOrNull() as? PsiWhiteSpace
+        val rightSpace = importList.siblings(forward = true, withItself = false).firstOrNull() as? PsiWhiteSpace
+        val left = leftSpace ?: importList
+        val right = rightSpace ?: importList
+        val importsRange = TextRange(left.textRange.startOffset, right.textRange.endOffset)
         if (importsRange.containsOffset(editor.caretModel.offset)) return false
 
         val codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(project)

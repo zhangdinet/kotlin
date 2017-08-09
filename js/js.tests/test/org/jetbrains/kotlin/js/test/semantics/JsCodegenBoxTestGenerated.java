@@ -3274,6 +3274,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/checkcastOptimization/kt19128.kt");
             doTest(fileName);
         }
+
+        @TestMetadata("kt19246.kt")
+        public void testKt19246() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/checkcastOptimization/kt19246.kt");
+            doTest(fileName);
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/classLiteral")
@@ -3530,6 +3536,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("classObjectsWithParentClasses.kt")
         public void testClassObjectsWithParentClasses() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/classes/classObjectsWithParentClasses.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("comanionObjectFieldVsClassField.kt")
+        public void testComanionObjectFieldVsClassField() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/classes/comanionObjectFieldVsClassField.kt");
             doTest(fileName);
         }
 
@@ -5312,6 +5324,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("longRange.kt")
         public void testLongRange() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/controlStructures/longRange.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("parameterWithNameForFunctionType.kt")
+        public void testParameterWithNameForFunctionType() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/controlStructures/parameterWithNameForFunctionType.kt");
             doTest(fileName);
         }
 
@@ -12953,6 +12971,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
         }
 
+        @TestMetadata("kt18982.kt")
+        public void testKt18982() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/objects/kt18982.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("kt2398.kt")
         public void testKt2398() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/objects/kt2398.kt");
@@ -13999,6 +14023,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("whenNullableBoxed.kt")
+            public void testWhenNullableBoxed() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/primitiveTypes/equalityWithObject/whenNullableBoxed.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("compiler/testData/codegen/box/primitiveTypes/equalityWithObject/generated")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
@@ -14939,6 +14969,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("forByteProgressionWithIntIncrement.kt")
         public void testForByteProgressionWithIntIncrement() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/ranges/forByteProgressionWithIntIncrement.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("forInRangeToConstWithOverflow.kt")
+        public void testForInRangeToConstWithOverflow() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/ranges/forInRangeToConstWithOverflow.kt");
             doTest(fileName);
         }
 
@@ -20198,6 +20234,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             doTest(fileName);
         }
 
+        @TestMetadata("intersectionOfEqualTypes.kt")
+        public void testIntersectionOfEqualTypes() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/regressions/intersectionOfEqualTypes.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("kt10143.kt")
         public void testKt10143() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/regressions/kt10143.kt");
@@ -20666,6 +20708,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
         }
 
+        @TestMetadata("nullabilityForCommonCapturedSupertypes.kt")
+        public void testNullabilityForCommonCapturedSupertypes() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/regressions/nullabilityForCommonCapturedSupertypes.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("objectCaptureOuterConstructorProperty.kt")
         public void testObjectCaptureOuterConstructorProperty() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/regressions/objectCaptureOuterConstructorProperty.kt");
@@ -20682,6 +20730,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 return;
             }
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
+        }
+
+        @TestMetadata("supertypeDepth.kt")
+        public void testSupertypeDepth() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/regressions/supertypeDepth.kt");
+            doTest(fileName);
         }
 
         @TestMetadata("typeCastException.kt")
@@ -22237,6 +22291,27 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/super/unqualifiedSuperWithMethodsOfAny.kt");
             doTest(fileName);
         }
+
+        @TestMetadata("compiler/testData/codegen/box/super/superConstructor")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class SuperConstructor extends AbstractJsCodegenBoxTest {
+            public void testAllFilesPresentInSuperConstructor() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/super/superConstructor"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JS, true);
+            }
+
+            @TestMetadata("kt17464_arrayOf.kt")
+            public void testKt17464_arrayOf() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/super/superConstructor/kt17464_arrayOf.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("kt17464_linkedMapOf.kt")
+            public void testKt17464_linkedMapOf() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/super/superConstructor/kt17464_linkedMapOf.kt");
+                doTest(fileName);
+            }
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/synchronized")
@@ -23465,6 +23540,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("whenArgumentIsEvaluatedOnlyOnce.kt")
         public void testWhenArgumentIsEvaluatedOnlyOnce() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/when/whenArgumentIsEvaluatedOnlyOnce.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("whenSafeCallSubjectEvaluatedOnce.kt")
+        public void testWhenSafeCallSubjectEvaluatedOnce() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/when/whenSafeCallSubjectEvaluatedOnce.kt");
             doTest(fileName);
         }
 
