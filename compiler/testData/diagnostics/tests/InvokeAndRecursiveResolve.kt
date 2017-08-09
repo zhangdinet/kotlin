@@ -14,5 +14,5 @@ class B {
 
 class C {
     val bar = <!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!><!UNINITIALIZED_VARIABLE!>test<!>()<!>
-    val test = <!FUNCTION_EXPECTED!>bar<!>()
+    val test = <!TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM!><!DEBUG_INFO_MISSING_UNRESOLVED!>bar<!>()<!>
 }

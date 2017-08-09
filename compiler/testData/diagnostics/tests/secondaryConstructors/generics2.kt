@@ -7,9 +7,9 @@ class A0<T1, T2> {
 
     constructor(x: T1, y: T2, z: T2): this(x, 1) // ok, delegates to constructor(x: T1, y: Int)
 
-    constructor(x: T1, y: Int): this(x, <!TYPE_MISMATCH!>""<!>)
+    constructor(x: T1, y: Int): <!NONE_APPLICABLE!>this<!>(x, "")
     constructor(x: T1): this(x, 1)
-    constructor(x: T1, y: T2, z: String): this(<!TYPE_MISMATCH!>y<!>, <!TYPE_MISMATCH!>x<!>)
+    constructor(x: T1, y: T2, z: String): <!NONE_APPLICABLE!>this<!>(y, x)
 }
 
 class A1<T1, T2> : B<T1, T2> {
@@ -24,4 +24,3 @@ class A2<T1, T2> : B<T1, Int> {
     constructor(x: T1, y: T1, z: T1): super(x, <!TYPE_MISMATCH(Int; T1)!>y<!>)
     constructor(x: T1, y: T2, z: String): super(<!TYPE_MISMATCH(T1; T2)!>y<!>, 1)
 }
-

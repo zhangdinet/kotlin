@@ -15,7 +15,7 @@ class GenericDerivedClass<T> : GenericBaseClass<T>(), GenericBaseInterface<T> {
     override fun bar(x: T): T = super.bar(x)
 
     override fun ambiguous(x: T): T =
-            <!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)
+            <!TYPE_MISMATCH!><!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)<!>
 }
 
 class <!CONFLICTING_JVM_DECLARATIONS!>SpecializedDerivedClass<!> : GenericBaseClass<Int>(), GenericBaseInterface<String> {
@@ -23,9 +23,9 @@ class <!CONFLICTING_JVM_DECLARATIONS!>SpecializedDerivedClass<!> : GenericBaseCl
     override fun bar(x: String): String = super.bar(x)
 
     override fun ambiguous(x: String): String =
-            <!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)
+            <!TYPE_MISMATCH!><!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)<!>
     override fun ambiguous(x: Int): Int =
-            <!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)
+            <!TYPE_MISMATCH!><!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)<!>
 }
 
 class <!CONFLICTING_JVM_DECLARATIONS!>MixedDerivedClass<!><T> : GenericBaseClass<Int>(), GenericBaseInterface<T> {
@@ -33,7 +33,7 @@ class <!CONFLICTING_JVM_DECLARATIONS!>MixedDerivedClass<!><T> : GenericBaseClass
     override fun bar(x: T): T = super.bar(x)
 
     override fun ambiguous(x: Int): Int =
-            <!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)
+            <!TYPE_MISMATCH!><!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)<!>
     <!CONFLICTING_JVM_DECLARATIONS!>override fun ambiguous(x: T): T<!> =
-            <!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)
+            <!TYPE_MISMATCH!><!AMBIGUOUS_SUPER!>super<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>ambiguous<!>(x)<!>
 }

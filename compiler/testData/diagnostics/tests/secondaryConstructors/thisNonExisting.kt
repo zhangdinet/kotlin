@@ -3,5 +3,5 @@
 class A {
     constructor(x: Int) {}
     constructor(x: String) {}
-    constructor(): <!NONE_APPLICABLE!>this<!>('a') {}
+    constructor(): this(<!TOO_MANY_ARGUMENTS!>'a'<!>) {}
 }

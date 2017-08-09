@@ -84,7 +84,7 @@ fun test(n: J?, nn: J) {
 
     J(nn, nn, nn)
     J(platformNN, platformNN, platformNN)
-    J(<!TYPE_MISMATCH!>n<!>, n, n)
-    J(<!TYPE_MISMATCH!>platformN<!>, platformN, platformN)
+    <!NONE_APPLICABLE!>J<!>(n, n, n)
+    <!NONE_APPLICABLE!>J<!>(platformN, platformN, platformN)
     J(platformJ, platformJ, platformJ)
 }

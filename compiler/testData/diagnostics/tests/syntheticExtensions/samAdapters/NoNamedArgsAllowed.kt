@@ -2,9 +2,9 @@
 
 // FILE: KotlinFile.kt
 fun foo(javaClass: JavaClass) {
-    javaClass.doSomething(<!NAMED_ARGUMENTS_NOT_ALLOWED!>p<!> = 1) {
+    javaClass.doSomething(<!NAMED_ARGUMENTS_NOT_ALLOWED!>p<!> = 1) <!TYPE_MISMATCH!>{
         bar()
-    }
+    }<!>
 }
 
 fun bar(){}

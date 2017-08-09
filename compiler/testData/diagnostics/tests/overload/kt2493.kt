@@ -17,5 +17,5 @@ class C: A, B
 fun main(args: Array<String>) {
     AImpl().f()
     BImpl().f()
-    C().<!CANNOT_COMPLETE_RESOLVE!>f<!>()
+    C().<!OVERLOAD_RESOLUTION_AMBIGUITY!>f<!>()
 }
