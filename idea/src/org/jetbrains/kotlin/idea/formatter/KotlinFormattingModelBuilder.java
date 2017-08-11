@@ -16,7 +16,10 @@
 
 package org.jetbrains.kotlin.idea.formatter;
 
-import com.intellij.formatting.*;
+import com.intellij.formatting.FormattingModel;
+import com.intellij.formatting.FormattingModelBuilder;
+import com.intellij.formatting.FormattingModelProvider;
+import com.intellij.formatting.Indent;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.util.TextRange;
@@ -27,6 +30,9 @@ import com.intellij.psi.formatter.FormattingDocumentModelImpl;
 import com.intellij.psi.formatter.PsiBasedFormattingModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
+import org.jetbrains.kotlin.idea.inspections.DoNothingModel;
+import org.jetbrains.kotlin.idea.inspections.ReformatInspectionKt;
+import org.jetbrains.kotlin.psi.KtFile;
 
 public class KotlinFormattingModelBuilder implements FormattingModelBuilder {
     @NotNull
@@ -43,6 +49,13 @@ public class KotlinFormattingModelBuilder implements FormattingModelBuilder {
             FormattingDocumentModelImpl formattingDocumentModel =
                     new FormattingDocumentModelImpl(new DocumentImpl(containingFile.getViewProvider().getContents(), true), containingFile);
             return new PsiBasedFormattingModel(containingFile, block, formattingDocumentModel);
+        }
+
+        if (element instanceof KtFile) {
+            KtFile ktFile = (KtFile) element;
+            if (ReformatInspectionKt.getCreateDoNothingModel(ktFile)) {
+                return new DoNothingModel(ktFile, block);
+            }
         }
 
         return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
