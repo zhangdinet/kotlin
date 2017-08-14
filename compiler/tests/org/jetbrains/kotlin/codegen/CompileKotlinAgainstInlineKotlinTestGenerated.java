@@ -3206,6 +3206,12 @@ public class CompileKotlinAgainstInlineKotlinTestGenerated extends AbstractCompi
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/boxInline/tryCatchFinally"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
+        @TestMetadata("kt16417.kt")
+        public void testKt16417() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/tryCatchFinally/kt16417.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("kt5863.kt")
         public void testKt5863() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/tryCatchFinally/kt5863.kt");
