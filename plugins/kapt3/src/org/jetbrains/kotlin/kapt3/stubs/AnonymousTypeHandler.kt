@@ -66,9 +66,9 @@ class AnonymousTypeHandler(private val converter: ClassFileToSourceStubConverter
             else -> declaration.defaultType
         }
 
-        if (type.arguments.isEmpty()) return actualType
+        if (actualType.arguments.isEmpty()) return actualType
 
-        val arguments = type.arguments.map { typeArg ->
+        val arguments = actualType.arguments.map { typeArg ->
             if (typeArg.isStarProjection) return@map typeArg
             TypeProjectionImpl(typeArg.projectionKind, convertPossiblyAnonymousType(typeArg.type))
         }
