@@ -148,7 +148,9 @@ object IDELightClassContexts {
 
         if (hasMembersOverridingInternalMembers(classOrObject)) return false
 
-        return classOrObject.declarations.filterIsInstance<KtClassOrObject>().all { isDummyResolveApplicable(it) }
+        if (classOrObject.declarations.filterIsInstance<KtClassOrObject>().any { !isDummyResolveApplicable(it) }) return false
+
+        return IDELightClassExtension.getInstances(classOrObject.project).none { it.generatesAccessibleMembers(classOrObject) }
     }
 
     private fun hasDelegatedSupertypes(classOrObject: KtClassOrObject) = classOrObject.superTypeListEntries.any { it is KtDelegatedSuperTypeEntry }

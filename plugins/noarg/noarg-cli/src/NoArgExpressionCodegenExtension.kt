@@ -33,7 +33,9 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.org.objectweb.asm.Opcodes
 
 class NoArgExpressionCodegenExtension(val invokeInitializers: Boolean = false) : ExpressionCodegenExtension {
-    override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) = with(codegen) {
+    override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen, builderMode: ClassBuilderMode) = with(codegen) {
+        if (builderMode == ClassBuilderMode.LIGHT_CLASSES) return
+
         if (shouldGenerateNoArgConstructor()) {
             generateNoArgConstructor()
         }

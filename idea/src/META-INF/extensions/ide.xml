@@ -16,6 +16,9 @@
 
         <extensionPoint name="highlighterExtension"
                         interface="org.jetbrains.kotlin.idea.highlighter.HighlighterExtension"/>
+
+        <extensionPoint name="ideLightClassExtension"
+                        interface="org.jetbrains.kotlin.idea.caches.resolve.lightClasses.IDELightClassExtension"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
