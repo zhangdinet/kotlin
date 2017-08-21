@@ -64,7 +64,7 @@ class AnonymousTypeHandler(private val converter: ClassFileToSourceStubConverter
 
         val actualType = when {
             isAnonymousObject(declaration) -> findMostSuitableParentForAnonymousType(declaration)
-            else -> declaration.defaultType
+            else -> type
         }
 
         if (actualType.arguments.isEmpty()) return actualType
