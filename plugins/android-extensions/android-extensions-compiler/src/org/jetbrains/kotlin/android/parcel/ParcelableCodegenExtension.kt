@@ -22,8 +22,7 @@ import org.jetbrains.kotlin.android.parcel.ParcelableResolveExtension.Companion.
 import org.jetbrains.kotlin.android.parcel.serializers.PARCEL_TYPE
 import org.jetbrains.kotlin.android.parcel.serializers.ParcelSerializer
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.codegen.ExpressionCodegen
-import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
+import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.name.Name
@@ -32,9 +31,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.codegen.FunctionGenerationStrategy.CodegenBased
-import org.jetbrains.kotlin.codegen.OwnerKind
 import org.jetbrains.kotlin.codegen.context.ClassContext
-import org.jetbrains.kotlin.codegen.writeSyntheticClassMetadata
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation.*
@@ -62,7 +59,7 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
 
     protected open fun isExperimental(element: KtElement) = true
 
-    override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {
+    override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen, builderMode: ClassBuilderMode) {
         val parcelableClass = codegen.descriptor
         if (!parcelableClass.isParcelize) return
 

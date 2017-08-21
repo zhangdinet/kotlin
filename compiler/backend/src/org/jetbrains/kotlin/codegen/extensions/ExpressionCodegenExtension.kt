@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.codegen.extensions
 
+import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
@@ -44,5 +45,5 @@ interface ExpressionCodegenExtension {
      */
     fun applyFunction(receiver: StackValue, resolvedCall: ResolvedCall<*>, c: Context): StackValue? = null
 
-    fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {}
+    fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen, builderMode: ClassBuilderMode) {}
 }

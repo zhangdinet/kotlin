@@ -133,7 +133,7 @@ interface ParcelableSyntheticComponent {
     }
 }
 
-private val PARCELIZE_CLASS_FQNAME = FqName(Parcelize::class.java.canonicalName)
+val PARCELIZE_CLASS_FQNAME = FqName(Parcelize::class.java.canonicalName)
 
 internal val ClassDescriptor.isParcelize: Boolean
     get() = this.annotations.hasAnnotation(PARCELIZE_CLASS_FQNAME)
