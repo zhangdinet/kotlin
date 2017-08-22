@@ -109,7 +109,7 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
                 .getUnsubstitutedMemberScope()
                 .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.Companion.getALL_NAME_FILTER());
         for (DeclarationDescriptor memberDescriptor : classifiers) {
-            if (memberDescriptor instanceof SyntheticClassOrObjectDescriptor) {
+            if (memberDescriptor instanceof SyntheticClassOrObjectDescriptor && companionObjectDescriptor != memberDescriptor) {
                 genSyntheticClassOrObject((SyntheticClassOrObjectDescriptor) memberDescriptor);
             }
         }

@@ -1,3 +1,9 @@
+public final class User$Companion : java/lang/Object {
+    private void <init>()
+
+    public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
+}
+
 public static class User$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
@@ -22,6 +28,8 @@ public static class User$Creator : java/lang/Object, android/os/Parcelable$Creat
 
 public final class User : java/lang/Object, android/os/Parcelable {
     public final static User$Creator CREATOR
+
+    public final static User$Companion Companion
 
     private final android.os.IBinder binder
 

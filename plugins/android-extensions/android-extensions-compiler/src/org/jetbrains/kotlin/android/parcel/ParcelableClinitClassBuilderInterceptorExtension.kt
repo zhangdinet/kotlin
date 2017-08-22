@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilder
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -43,19 +44,31 @@ class ParcelableClinitClassBuilderInterceptorExtension : ClassBuilderInterceptor
             private val delegateFactory: ClassBuilderFactory,
             val bindingContext: BindingContext
     ) : ClassBuilderFactory {
-
         override fun newClassBuilder(origin: JvmDeclarationOrigin): ClassBuilder {
-            return AndroidOnDestroyCollectorClassBuilder(delegateFactory.newClassBuilder(origin), bindingContext)
+            val descriptor = (origin.descriptor as? ClassDescriptor)?.takeIf { it.isParcelize }
+            if (descriptor != null) {
+                return ParcelableClinitClassBuilder(descriptor, delegateFactory.newClassBuilder(origin), bindingContext)
+            }
+
+            return delegateFactory.newClassBuilder(origin)
         }
 
         override fun getClassBuilderMode() = delegateFactory.classBuilderMode
 
         override fun asText(builder: ClassBuilder?): String? {
-            return delegateFactory.asText((builder as AndroidOnDestroyCollectorClassBuilder).delegateClassBuilder)
+            if (builder is ParcelableClinitClassBuilder) {
+                return delegateFactory.asText(builder.delegateClassBuilder)
+            }
+
+            return delegateFactory.asText(builder)
         }
 
         override fun asBytes(builder: ClassBuilder?): ByteArray? {
-            return delegateFactory.asBytes((builder as AndroidOnDestroyCollectorClassBuilder).delegateClassBuilder)
+            if (builder is ParcelableClinitClassBuilder) {
+                return delegateFactory.asBytes(builder.delegateClassBuilder)
+            }
+
+            return delegateFactory.asBytes(builder)
         }
 
         override fun close() {
@@ -63,7 +76,8 @@ class ParcelableClinitClassBuilderInterceptorExtension : ClassBuilderInterceptor
         }
     }
 
-    private inner class AndroidOnDestroyCollectorClassBuilder(
+    private inner class ParcelableClinitClassBuilder(
+            private val descriptor: ClassDescriptor,
             internal val delegateClassBuilder: ClassBuilder,
             val bindingContext: BindingContext
     ) : DelegatingClassBuilder() {

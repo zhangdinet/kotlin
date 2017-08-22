@@ -1,3 +1,9 @@
+public final class TestNotNull$Companion : java/lang/Object {
+    private void <init>()
+
+    public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
+}
+
 public static class TestNotNull$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
@@ -8,6 +14,8 @@ public static class TestNotNull$Creator : java/lang/Object, android/os/Parcelabl
 
 public final class TestNotNull : java/lang/Object {
     public final static TestNotNull$Creator CREATOR
+
+    public final static TestNotNull$Companion Companion
 
     private final android.util.Size a
 
@@ -33,6 +41,12 @@ public final class TestNotNull : java/lang/Object {
     }
 }
 
+public final class TestNullable$Companion : java/lang/Object {
+    private void <init>()
+
+    public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
+}
+
 public static class TestNullable$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
@@ -43,6 +57,8 @@ public static class TestNullable$Creator : java/lang/Object, android/os/Parcelab
 
 public final class TestNullable : java/lang/Object {
     public final static TestNullable$Creator CREATOR
+
+    public final static TestNullable$Companion Companion
 
     private final android.util.Size a
 

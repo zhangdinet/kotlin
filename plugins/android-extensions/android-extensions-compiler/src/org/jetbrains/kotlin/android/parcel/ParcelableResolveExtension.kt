@@ -17,29 +17,59 @@
 package org.jetbrains.kotlin.android.parcel
 
 import kotlinx.android.parcel.Parcelize
+import org.jetbrains.kotlin.android.parcel.ParcelableSyntheticComponent.*
 import org.jetbrains.kotlin.android.parcel.ParcelableSyntheticComponent.ComponentKind.*
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.*
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationsImpl
+import org.jetbrains.kotlin.descriptors.impl.*
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.resolve.annotations.JVM_STATIC_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
+import org.jetbrains.kotlin.types.ErrorUtils
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.SimpleType
+import java.util.ArrayList
 
 open class ParcelableResolveExtension : SyntheticResolveExtension {
     companion object {
         fun resolveParcelClassType(module: ModuleDescriptor): SimpleType {
             return module.findClassAcrossModuleDependencies(
                     ClassId.topLevel(FqName("android.os.Parcel")))?.defaultType ?: error("Can't resolve 'android.os.Parcel' class")
+        }
+
+        fun createCreatorProperty(classDescriptor: ClassDescriptor): PropertyDescriptor {
+            val jvmStaticClass = classDescriptor.module
+                    .findClassAcrossModuleDependencies(ClassId.topLevel(JVM_STATIC_ANNOTATION_FQ_NAME))
+                    ?: error("@JvmStatic was not found")
+
+            val jvmStaticAnnotation = AnnotationDescriptorImpl(jvmStaticClass.defaultType, emptyMap(), classDescriptor.source)
+            val annotations = AnnotationsImpl(listOf(jvmStaticAnnotation))
+
+            val propertyDescriptor = PropertyDescriptorImpl.create(
+                    classDescriptor, annotations, Modality.FINAL, Visibilities.PUBLIC, false,
+                    Name.identifier(ComponentKind.CREATOR.jvmName),
+                    Kind.SYNTHESIZED, classDescriptor.source, false, false, false, false, false, false)
+
+            val outType = classDescriptor.module.findClassAcrossModuleDependencies(ClassId.topLevel(ANDROID_PARCELABLE_CLASS_FQNAME))
+                    ?.unsubstitutedMemberScope
+                    ?.getContributedClassifier(Name.identifier("Creator"), NoLookupLocation.WHEN_GET_DECLARATION_SCOPE)
+                    ?.defaultType
+                    ?: ErrorUtils.createErrorType("Parcelable Creator class not found")
+
+            propertyDescriptor.setType(outType, emptyList(), classDescriptor.thisAsReceiverParameter, null as KotlinType?)
+            return propertyDescriptor
         }
 
         fun createMethod(
@@ -52,8 +82,8 @@ open class ParcelableResolveExtension : SyntheticResolveExtension {
                     classDescriptor,
                     null,
                     Annotations.EMPTY,
-                    Name.identifier(componentKind.methodName),
-                    CallableMemberDescriptor.Kind.SYNTHESIZED,
+                    Name.identifier(componentKind.jvmName),
+                    Kind.SYNTHESIZED,
                     classDescriptor.source
             ) {
                 override val componentKind = componentKind
@@ -76,33 +106,58 @@ open class ParcelableResolveExtension : SyntheticResolveExtension {
 
     protected open fun isExperimental(element: KtElement) = true
 
-    override fun getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor) = null
+    override fun getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor): Name? {
+        if (thisDescriptor.kind == ClassKind.CLASS && isExperimental(thisDescriptor) && thisDescriptor.isParcelize) {
+            return Name.identifier("Companion")
+        }
+
+        return null
+    }
+
+    override fun generateSyntheticProperties(
+            thisDescriptor: ClassDescriptor,
+            name: Name,
+            fromSupertypes: ArrayList<PropertyDescriptor>,
+            result: MutableSet<PropertyDescriptor>
+    ) {
+        if (name.asString() == ComponentKind.CREATOR.jvmName
+            && thisDescriptor.isCompanionObject
+            && thisDescriptor.containingDeclaration is ClassDescriptor
+            && isExperimental(thisDescriptor)
+            && result.none { it.name.asString() == ComponentKind.CREATOR.jvmName }
+        ) {
+            val containingClass = (thisDescriptor.containingDeclaration as? ClassDescriptor)?.takeIf { it.isParcelize }
+            if (containingClass != null) {
+                result += createCreatorProperty(thisDescriptor)
+            }
+        }
+    }
+
+    fun isExperimental(thisDescriptor: ClassDescriptor): Boolean {
+        val sourceElement = (thisDescriptor.source as? PsiSourceElement)?.psi as? KtElement ?: return false
+        return isExperimental(sourceElement)
+    }
 
     override fun generateSyntheticMethods(
-            clazz: ClassDescriptor,
+            thisDescriptor: ClassDescriptor,
             name: Name,
             fromSupertypes: List<SimpleFunctionDescriptor>,
             result: MutableCollection<SimpleFunctionDescriptor>
     ) {
-        fun isExperimental(): Boolean {
-            val sourceElement = (clazz.source as? PsiSourceElement)?.psi as? KtElement ?: return false
-            return isExperimental(sourceElement)
-        }
-
-        if (name.asString() == DESCRIBE_CONTENTS.methodName
-                && clazz.isParcelize
-                && isExperimental()
-                && result.none { it.isDescribeContents() }
+        if (name.asString() == DESCRIBE_CONTENTS.jvmName
+            && thisDescriptor.isParcelize
+            && isExperimental(thisDescriptor)
+            && result.none { it.isDescribeContents() }
         ) {
-            result += createMethod(clazz, DESCRIBE_CONTENTS, clazz.builtIns.intType)
-        } else if (name.asString() == WRITE_TO_PARCEL.methodName
-                && clazz.isParcelize
-                && isExperimental()
-                && result.none { it.isWriteToParcel() }
+            result += createMethod(thisDescriptor, DESCRIBE_CONTENTS, thisDescriptor.builtIns.intType)
+        } else if (name.asString() == WRITE_TO_PARCEL.jvmName
+                   && thisDescriptor.isParcelize
+                   && isExperimental(thisDescriptor)
+                   && result.none { it.isWriteToParcel() }
         ) {
-            val builtIns = clazz.builtIns
-            val parcelClassType = resolveParcelClassType(clazz.module)
-            result += createMethod(clazz, WRITE_TO_PARCEL, builtIns.unitType, "parcel" to parcelClassType, "flags" to builtIns.intType)
+            val builtIns = thisDescriptor.builtIns
+            val parcelClassType = resolveParcelClassType(thisDescriptor.module)
+            result += createMethod(thisDescriptor, WRITE_TO_PARCEL, builtIns.unitType, "parcel" to parcelClassType, "flags" to builtIns.intType)
         }
     }
 
@@ -125,15 +180,16 @@ private fun KotlinType.isParcel() = constructor.declarationDescriptor?.fqNameSaf
 interface ParcelableSyntheticComponent {
     val componentKind: ComponentKind
 
-    enum class ComponentKind(val methodName: String) {
+    enum class ComponentKind(val jvmName: String) {
         WRITE_TO_PARCEL("writeToParcel"),
         DESCRIBE_CONTENTS("describeContents"),
         NEW_ARRAY("newArray"),
-        CREATE_FROM_PARCEL("createFromParcel")
+        CREATE_FROM_PARCEL("createFromParcel"),
+        CREATOR("CREATOR")
     }
 }
 
 val PARCELIZE_CLASS_FQNAME = FqName(Parcelize::class.java.canonicalName)
 
-internal val ClassDescriptor.isParcelize: Boolean
+val ClassDescriptor.isParcelize: Boolean
     get() = this.annotations.hasAnnotation(PARCELIZE_CLASS_FQNAME)
