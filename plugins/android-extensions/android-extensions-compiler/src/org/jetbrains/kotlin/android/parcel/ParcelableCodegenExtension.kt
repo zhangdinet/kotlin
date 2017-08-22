@@ -323,7 +323,7 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
 
     private fun ClassDescriptor.findFunction(componentKind: ParcelableSyntheticComponent.ComponentKind): SimpleFunctionDescriptor? {
         return unsubstitutedMemberScope
-                .getContributedFunctions(Name.identifier(componentKind.methodName), WHEN_GET_ALL_DESCRIPTORS)
+                .getContributedFunctions(Name.identifier(componentKind.jvmName), WHEN_GET_ALL_DESCRIPTORS)
                 .firstOrNull { (it as? ParcelableSyntheticComponent)?.componentKind == componentKind }
     }
 }

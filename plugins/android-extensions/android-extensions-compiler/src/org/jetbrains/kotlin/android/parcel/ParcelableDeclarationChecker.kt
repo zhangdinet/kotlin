@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.resolve.jvm.annotations.findJvmFieldAnnotation
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.isError
 
-private val ANDROID_PARCELABLE_CLASS_FQNAME = FqName("android.os.Parcelable")
+internal val ANDROID_PARCELABLE_CLASS_FQNAME = FqName("android.os.Parcelable")
 internal val ANDROID_PARCEL_CLASS_FQNAME = FqName("android.os.Parcel")
 
 class ParcelableDeclarationChecker : SimpleDeclarationChecker {
