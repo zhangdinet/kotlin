@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.codegen.extensions
 
 import org.jetbrains.kotlin.codegen.ClassBuilderMode
+import org.jetbrains.kotlin.codegen.ExpressionCodegen
 import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
@@ -29,6 +30,7 @@ interface ExpressionCodegenExtension {
             "org.jetbrains.kotlin.expressionCodegenExtension", ExpressionCodegenExtension::class.java)
 
     class Context(
+            val codegen: ExpressionCodegen,
             val typeMapper: KotlinTypeMapper,
             val v: InstructionAdapter
     )
