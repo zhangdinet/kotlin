@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 class ResolutionResultsVerifierCallChecker(
-        val turnedOn: Boolean = true // System.getenv("DUMP_RESOLUTION").toBoolean()
+        val turnedOn: Boolean = System.getenv("DUMP_RESOLUTION")?.toBoolean() ?: false
 ) : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         if (turnedOn) {
