@@ -57,6 +57,7 @@ import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.ResolutionResultsStorage
 import org.jetbrains.kotlin.script.tryConstructClassFromStringArgs
 import org.jetbrains.kotlin.util.PerformanceCounter
 import org.jetbrains.kotlin.utils.newLinkedHashMapWithExpectedSize
@@ -396,6 +397,8 @@ object KotlinToJVMBytecodeCompiler {
         K2JVMCompiler.reportPerf(environment.configuration, message)
 
         val analysisResult = analyzerWithCompilerReport.analysisResult
+
+        ResolutionResultsStorage.dumpResults("resolutionResults", true)
 
         return if (!analyzerWithCompilerReport.hasErrors() || analysisResult is AnalysisResult.RetryWithAdditionalJavaRoots)
             analysisResult
