@@ -32,5 +32,16 @@
     <orderEntry type="library" exported="" name="idea-full" level="project" />
     <orderEntry type="module" module-name="backend.jvm" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../r8/build/libs/d8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../../../r8/src/main/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

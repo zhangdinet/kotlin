@@ -425,7 +425,8 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                         GenerationUtils.compileFiles(myFiles.getPsiFiles(), myEnvironment, getClassBuilderFactory()).getFactory();
 
                 if (verifyWithDex() && DxChecker.RUN_DX_CHECKER) {
-                    DxChecker.check(classFileFactory);
+                    //DxChecker.check(classFileFactory);
+                    D8Checker.check(classFileFactory);
                 }
             }
             catch (Throwable e) {
