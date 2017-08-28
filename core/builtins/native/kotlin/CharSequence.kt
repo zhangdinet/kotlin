@@ -38,4 +38,9 @@ public interface CharSequence {
      * @param endIndex the end index (exclusive).
      */
     public fun subSequence(startIndex: Int, endIndex: Int): CharSequence
+
+    /**
+     * TODO: Extensive docs about toString
+     */
+    public override fun toString(): String
 }

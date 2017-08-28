@@ -36,6 +36,9 @@ header class StringBuilder : Appendable, CharSequence {
     override fun append(csq: CharSequence?): StringBuilder
     override fun append(csq: CharSequence?, start: Int, end: Int): StringBuilder
     fun append(obj: Any?): StringBuilder
+
+    // questionable, why this override is required, it should be inherited from Any
+    override fun toString(): String
 }
 
 header class Regex {
