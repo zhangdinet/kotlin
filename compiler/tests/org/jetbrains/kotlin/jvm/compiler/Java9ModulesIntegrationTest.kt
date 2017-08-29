@@ -230,6 +230,7 @@ class Java9ModulesIntegrationTest : AbstractKotlinCompilerIntegrationTest() {
         val namedWithExplicitDependency = module("namedWithExplicitDependency")
         module("namedWithoutExplicitDependency")
         module("namedWithIndirectDependencyViaOtherModule", listOf(namedWithExplicitDependency))
+        module("namedWithIndirectDependencyViaReflect", listOf(ForTestCompileRuntime.reflectJarForTests()))
     }
 
     fun testDependencyOnStdlibJdk78() {
