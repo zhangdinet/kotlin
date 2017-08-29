@@ -44,7 +44,6 @@ class JvmBuiltInsPackageFragmentProvider(
                 AnnotationAndConstantLoaderImpl(moduleDescriptor, notFoundClasses, BuiltInSerializerProtocol),
                 this,
                 LocalClassifierTypeSettings.Default,
-                ErrorReporter.DO_NOTHING,
                 LookupTracker.DO_NOTHING,
                 FlexibleTypeDeserializer.ThrowException,
                 listOf(

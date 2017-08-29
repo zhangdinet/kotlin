@@ -16,17 +16,17 @@
 
 package org.jetbrains.kotlin.load.java.components;
 
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.descriptors.*;
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor;
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor;
+import org.jetbrains.kotlin.descriptors.ClassDescriptor;
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor;
 import org.jetbrains.kotlin.load.java.structure.*;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.resolve.NonReportingOverrideStrategy;
 import org.jetbrains.kotlin.resolve.OverridingUtil;
-import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -39,18 +39,18 @@ public final class DescriptorResolverUtils {
 
     @NotNull
     public static <D extends CallableMemberDescriptor> Collection<D> resolveOverridesForNonStaticMembers(
-        @NotNull Name name, @NotNull Collection<D> membersFromSupertypes, @NotNull Collection<D> membersFromCurrent,
-        @NotNull ClassDescriptor classDescriptor, @NotNull ErrorReporter errorReporter
-) {
-        return resolveOverrides(name, membersFromSupertypes, membersFromCurrent, classDescriptor, errorReporter, false);
+            @NotNull Name name, @NotNull Collection<D> membersFromSupertypes, @NotNull Collection<D> membersFromCurrent,
+            @NotNull ClassDescriptor classDescriptor
+    ) {
+        return resolveOverrides(name, membersFromSupertypes, membersFromCurrent, classDescriptor, false);
     }
 
     @NotNull
     public static <D extends CallableMemberDescriptor> Collection<D> resolveOverridesForStaticMembers(
-        @NotNull Name name, @NotNull Collection<D> membersFromSupertypes, @NotNull Collection<D> membersFromCurrent,
-        @NotNull ClassDescriptor classDescriptor, @NotNull ErrorReporter errorReporter
-) {
-        return resolveOverrides(name, membersFromSupertypes, membersFromCurrent, classDescriptor, errorReporter, true);
+            @NotNull Name name, @NotNull Collection<D> membersFromSupertypes, @NotNull Collection<D> membersFromCurrent,
+            @NotNull ClassDescriptor classDescriptor
+    ) {
+        return resolveOverrides(name, membersFromSupertypes, membersFromCurrent, classDescriptor, true);
     }
 
     @NotNull
@@ -59,7 +59,6 @@ public final class DescriptorResolverUtils {
             @NotNull Collection<D> membersFromSupertypes,
             @NotNull Collection<D> membersFromCurrent,
             @NotNull ClassDescriptor classDescriptor,
-            @NotNull final ErrorReporter errorReporter,
             final boolean isStaticContext
     ) {
         final Set<D> result = new LinkedHashSet<D>();
@@ -70,13 +69,7 @@ public final class DescriptorResolverUtils {
                     @Override
                     @SuppressWarnings("unchecked")
                     public void addFakeOverride(@NotNull CallableMemberDescriptor fakeOverride) {
-                        OverridingUtil.resolveUnknownVisibilityForMember(fakeOverride, new Function1<CallableMemberDescriptor, Unit>() {
-                            @Override
-                            public Unit invoke(@NotNull CallableMemberDescriptor descriptor) {
-                                errorReporter.reportCannotInferVisibility(descriptor);
-                                return Unit.INSTANCE;
-                            }
-                        });
+                        OverridingUtil.resolveUnknownVisibilityForMember(fakeOverride, null);
                         result.add((D) fakeOverride);
                     }
 

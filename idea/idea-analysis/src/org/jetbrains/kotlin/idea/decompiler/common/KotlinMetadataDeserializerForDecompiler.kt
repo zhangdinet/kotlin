@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.NotFoundClasses
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.DeserializerForDecompilerBase
-import org.jetbrains.kotlin.idea.decompiler.textBuilder.LoggingErrorReporter
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.ResolveEverythingToKotlinAnyLocalClassifierResolver
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
@@ -50,7 +49,7 @@ class KotlinMetadataDeserializerForDecompiler(
         deserializationComponents = DeserializationComponents(
                 storageManager, moduleDescriptor, DeserializationConfiguration.Default, ProtoBasedClassDataFinder(proto, nameResolver),
                 AnnotationAndConstantLoaderImpl(moduleDescriptor, notFoundClasses, serializerProtocol), packageFragmentProvider,
-                ResolveEverythingToKotlinAnyLocalClassifierResolver(builtIns), LoggingErrorReporter(LOG),
+                ResolveEverythingToKotlinAnyLocalClassifierResolver(builtIns),
                 LookupTracker.DO_NOTHING, flexibleTypeDeserializer, emptyList(), notFoundClasses
         )
     }

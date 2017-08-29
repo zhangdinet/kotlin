@@ -77,7 +77,6 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
                 AnnotationAndConstantLoaderImpl(module, notFoundClasses, BuiltInSerializerProtocol),
                 provider,
                 LocalClassifierTypeSettings.Default,
-                ErrorReporter.DO_NOTHING,
                 LookupTracker.DO_NOTHING,
                 FlexibleTypeDeserializer.ThrowException,
                 classDescriptorFactories,

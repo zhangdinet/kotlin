@@ -62,7 +62,7 @@ class RuntimeModuleData private constructor(
             val annotationTypeQualifierResolver = AnnotationTypeQualifierResolver(storageManager, Jsr305State.IGNORE)
             val globalJavaResolverContext = JavaResolverComponents(
                     storageManager, ReflectJavaClassFinder(classLoader), reflectKotlinClassFinder, deserializedDescriptorResolver,
-                    ExternalAnnotationResolver.EMPTY, SignaturePropagator.DO_NOTHING, RuntimeErrorReporter, javaResolverCache,
+                    ExternalAnnotationResolver.EMPTY, SignaturePropagator.DO_NOTHING, javaResolverCache,
                     JavaPropertyInitializerEvaluator.DoNothing, SamConversionResolver.Empty, RuntimeSourceElementFactory, singleModuleClassResolver,
                     runtimePackagePartProvider, SupertypeLoopChecker.EMPTY, LookupTracker.DO_NOTHING, module,
                     ReflectionTypes(module, notFoundClasses),
@@ -81,8 +81,7 @@ class RuntimeModuleData private constructor(
             )
             val deserializationComponentsForJava = DeserializationComponentsForJava(
                     storageManager, module, DeserializationConfiguration.Default, javaClassDataFinder,
-                    binaryClassAnnotationAndConstantLoader, lazyJavaPackageFragmentProvider, notFoundClasses,
-                    RuntimeErrorReporter, LookupTracker.DO_NOTHING
+                    binaryClassAnnotationAndConstantLoader, lazyJavaPackageFragmentProvider, notFoundClasses, LookupTracker.DO_NOTHING
             )
 
             singleModuleClassResolver.resolver = javaDescriptorResolver

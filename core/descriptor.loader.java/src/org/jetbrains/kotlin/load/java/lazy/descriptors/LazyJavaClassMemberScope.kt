@@ -51,7 +51,6 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
-import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter
 import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
@@ -253,8 +252,7 @@ class LazyJavaClassMemberScope(
         val specialBuiltinsFromSuperTypes = SmartSet.create<SimpleFunctionDescriptor>()
 
         // Merge functions with same signatures
-        val mergedFunctionFromSuperTypes = resolveOverridesForNonStaticMembers(
-                name, functionsFromSupertypes, emptyList(), ownerDescriptor, ErrorReporter.DO_NOTHING)
+        val mergedFunctionFromSuperTypes = resolveOverridesForNonStaticMembers(name, functionsFromSupertypes, emptyList(), ownerDescriptor)
 
         // add declarations
         addOverriddenBuiltinMethods(
@@ -278,10 +276,7 @@ class LazyJavaClassMemberScope(
             functionsFromSupertypes: Collection<SimpleFunctionDescriptor>,
             isSpecialBuiltinName: Boolean
     ) {
-
-        val additionalOverrides = resolveOverridesForNonStaticMembers(
-                name, functionsFromSupertypes, result, ownerDescriptor, c.components.errorReporter
-        )
+        val additionalOverrides = resolveOverridesForNonStaticMembers(name, functionsFromSupertypes, result, ownerDescriptor)
 
         if (!isSpecialBuiltinName) {
             result.addAll(additionalOverrides)
@@ -389,7 +384,8 @@ class LazyJavaClassMemberScope(
         }
 
         result.addAll(resolveOverridesForNonStaticMembers(
-                name, propertiesFromSupertypes + propertiesOverridesFromSuperTypes, result, ownerDescriptor, c.components.errorReporter))
+                name, propertiesFromSupertypes + propertiesOverridesFromSuperTypes, result, ownerDescriptor
+        ))
     }
 
     private fun addPropertyOverrideByMethod(

@@ -52,7 +52,6 @@ fun createKotlinJavascriptPackageFragmentProvider(
             AnnotationAndConstantLoaderImpl(module, notFoundClasses, JsSerializerProtocol),
             provider,
             LocalClassifierTypeSettings.Default,
-            ErrorReporter.DO_NOTHING,
             lookupTracker,
             DynamicTypeDeserializer,
             emptyList(),

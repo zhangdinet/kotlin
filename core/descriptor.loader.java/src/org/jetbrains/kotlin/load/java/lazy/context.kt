@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.load.java.typeEnhancement.SignatureEnhancement
 import org.jetbrains.kotlin.load.kotlin.DeserializedDescriptorResolver
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter
 import org.jetbrains.kotlin.storage.StorageManager
 import java.util.*
 
@@ -45,7 +44,6 @@ class JavaResolverComponents(
         val deserializedDescriptorResolver: DeserializedDescriptorResolver,
         val externalAnnotationResolver: ExternalAnnotationResolver,
         val signaturePropagator: SignaturePropagator,
-        val errorReporter: ErrorReporter,
         val javaResolverCache: JavaResolverCache,
         val javaPropertyInitializerEvaluator: JavaPropertyInitializerEvaluator,
         val samConversionResolver: SamConversionResolver,
@@ -63,7 +61,7 @@ class JavaResolverComponents(
             javaResolverCache: JavaResolverCache = this.javaResolverCache
     ) = JavaResolverComponents(
             storageManager, finder, kotlinClassFinder, deserializedDescriptorResolver,
-            externalAnnotationResolver, signaturePropagator, errorReporter, javaResolverCache,
+            externalAnnotationResolver, signaturePropagator, javaResolverCache,
             javaPropertyInitializerEvaluator, samConversionResolver, sourceElementFactory,
             moduleClassResolver, packageMapper, supertypeLoopChecker, lookupTracker, module, reflectionTypes,
             annotationTypeQualifierResolver, signatureEnhancement

@@ -10,7 +10,7 @@ interface T {
 }
 
 class G : C(), T {
-    <!CANNOT_INFER_VISIBILITY!>override fun foo()<!> {} //should be an error "cannot infer visibility"; for now 'public' is inferred in such cases
+    <!CANNOT_INFER_VISIBILITY!>override fun foo()<!> {}
 }
 
 open class A {
