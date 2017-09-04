@@ -4,7 +4,7 @@ public final class TestNotNull$Companion : java/lang/Object {
     public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
 }
 
-public static class TestNotNull$Creator : java/lang/Object, android/os/Parcelable$Creator {
+public final class TestNotNull$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
     public final java.lang.Object createFromParcel(android.os.Parcel p0)
@@ -47,7 +47,7 @@ public final class TestNullable$Companion : java/lang/Object {
     public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
 }
 
-public static class TestNullable$Creator : java/lang/Object, android/os/Parcelable$Creator {
+public final class TestNullable$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
     public final java.lang.Object createFromParcel(android.os.Parcel p0)

@@ -3,7 +3,7 @@ public abstract class AbstractUser : java/lang/Object, android/os/Parcelable {
 
     public int describeContents() {
         LABEL (L0)
-        LINENUMBER (7)
+        LINENUMBER (8)
           BIPUSH (100)
           IRETURN
         LABEL (L1)
@@ -16,7 +16,7 @@ public final class User$Companion : java/lang/Object {
     public void <init>(kotlin.jvm.internal.DefaultConstructorMarker p0)
 }
 
-public static class User$Creator : java/lang/Object, android/os/Parcelable$Creator {
+public final class User$Creator : java/lang/Object, android/os/Parcelable$Creator {
     public void <init>()
 
     public final java.lang.Object createFromParcel(android.os.Parcel p0)
