@@ -147,12 +147,10 @@ private fun <T> KtLightElement<*, *>.processLightElement(p: ModuleInfoProcessor<
     return element.processInfos(p)
 }
 
-
-fun getModuleInfoByVirtualFile(project: Project, virtualFile: VirtualFile): IdeaModuleInfo? = processVirtualFile(
-        project, virtualFile,
-        treatAsLibrarySource = false,
-        onOccurrence = { return@getModuleInfoByVirtualFile it }
-)
+fun getModuleInfoByVirtualFile(project: Project, virtualFile: VirtualFile): IdeaModuleInfo? {
+    // AAAAAA! No return! Unreachable code warning if added!
+    processVirtualFile(project, virtualFile, treatAsLibrarySource = false, onOccurrence = { return@getModuleInfoByVirtualFile it })
+}
 
 private inline fun <T> processVirtualFile(
         project: Project, virtualFile: VirtualFile,
