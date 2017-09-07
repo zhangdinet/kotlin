@@ -174,7 +174,9 @@ private inline fun <T> processVirtualFile(
     }
 
     projectFileIndex.getOrderEntriesForFile(virtualFile).forEach { orderEntry ->
-        orderEntry.process(project, virtualFile, treatAsLibrarySource, onOccurrence)
+        orderEntry.toIdeaModuleInfo(project, virtualFile, treatAsLibrarySource)?.let {
+            onOccurrence(it)
+        }
     }
 
     val scriptDefinition = getScriptDefinition(virtualFile, project)
@@ -205,9 +207,7 @@ private inline fun <reified T : IdeaModuleInfo> collectModuleInfosByType(project
 
     val result = linkedSetOf<T?>()
     orderEntries.forEach {
-        it.process(project, virtualFile, treatAsLibrarySource = false) {
-            result.add(it as? T)
-        }
+        (it.toIdeaModuleInfo(project, virtualFile, treatAsLibrarySource = false) as? T)?.let { result.add(it) }
     }
 
     // NOTE: non idea model infos can be obtained this way, like script related infos
@@ -217,27 +217,27 @@ private inline fun <reified T : IdeaModuleInfo> collectModuleInfosByType(project
     return result.filterNotNull()
 }
 
-private inline fun <T> OrderEntry.process(
+private fun OrderEntry.toIdeaModuleInfo(
         project: Project,
         virtualFile: VirtualFile,
-        treatAsLibrarySource: Boolean = false,
-        onOccurrence: (IdeaModuleInfo) -> T
-) {
-    if (!this.isValid) return
+        treatAsLibrarySource: Boolean = false): IdeaModuleInfo? {
+    if (!this.isValid) return null
 
     when (this) {
         is LibraryOrderEntry -> {
-            val library = this.library ?: return
+            val library = this.library ?: return null
             if (ProjectRootsUtil.isLibraryClassFile(project, virtualFile) && !treatAsLibrarySource) {
-                onOccurrence(LibraryInfo(project, library))
+                return LibraryInfo(project, library)
             }
             else if (ProjectRootsUtil.isLibraryFile(project, virtualFile) || treatAsLibrarySource) {
-                onOccurrence(LibrarySourceInfo(project, library))
+                LibrarySourceInfo(project, library)
             }
         }
         is JdkOrderEntry -> {
-            val sdk = this.jdk ?: return
-            onOccurrence(SdkInfo(project, sdk))
+            val sdk = this.jdk ?: return null
+            SdkInfo(project, sdk)
         }
     }
+
+    return null
 }
