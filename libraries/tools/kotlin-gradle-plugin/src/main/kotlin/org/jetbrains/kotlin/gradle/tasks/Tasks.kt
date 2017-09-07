@@ -59,6 +59,7 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
     var compilerJarFile: File? = null
     var compilerClasspath: List<File>? = null
 
+    @get:Input
     internal val computedCompilerClasspath: List<File>
         get() = compilerClasspath?.takeIf { it.isNotEmpty() }
                 ?: compilerJarFile?.let {
@@ -67,6 +68,7 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
                 }
                 ?: findKotlinCompilerClasspath(project).takeIf { it.isNotEmpty() }
                 ?: throw IllegalStateException("Could not find Kotlin Compiler classpath. Please specify $name.compilerClasspath")
+
     protected abstract fun findKotlinCompilerClasspath(project: Project): List<File>
 }
 
@@ -105,6 +107,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         get() = (classpath + additionalClasspath)
                 .filterTo(LinkedHashSet(), File::exists)
 
+    @get:Input
     override val serializedCompilerArguments: List<String>
         get() {
             val arguments = createCompilerArgs()
