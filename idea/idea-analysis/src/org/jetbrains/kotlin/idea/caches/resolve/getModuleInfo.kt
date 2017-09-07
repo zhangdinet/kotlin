@@ -40,6 +40,13 @@ fun PsiElement.getNullableModuleInfo(): IdeaModuleInfo? = this.processInfos(Modu
 
 fun PsiElement.getModuleInfos(): List<IdeaModuleInfo> = this.processInfos(ModuleInfoProcessor.CollectToList)
 
+fun getModuleInfoByVirtualFile(project: Project, virtualFile: VirtualFile): IdeaModuleInfo? {
+    processVirtualFile(project, virtualFile, treatAsLibrarySource = false, onOccurrence = { return@getModuleInfoByVirtualFile it })
+}
+
+fun getBinaryLibrariesModuleInfos(project: Project, virtualFile: VirtualFile) = collectModuleInfosByType<BinaryModuleInfo>(project, virtualFile)
+fun getLibrarySourcesModuleInfos(project: Project, virtualFile: VirtualFile) = collectModuleInfosByType<LibrarySourceInfo>(project, virtualFile)
+
 private typealias VirtualFileProcessor<T> = (Project, VirtualFile, Boolean) -> T
 
 private sealed class ModuleInfoProcessor<out T>(
@@ -147,14 +154,11 @@ private fun <T> KtLightElement<*, *>.processLightElement(p: ModuleInfoProcessor<
     return element.processInfos(p)
 }
 
-fun getModuleInfoByVirtualFile(project: Project, virtualFile: VirtualFile): IdeaModuleInfo? {
-    // AAAAAA! No return! Unreachable code warning if added!
-    processVirtualFile(project, virtualFile, treatAsLibrarySource = false, onOccurrence = { return@getModuleInfoByVirtualFile it })
-}
-
 private inline fun <T> processVirtualFile(
-        project: Project, virtualFile: VirtualFile,
-        treatAsLibrarySource: Boolean, onOccurrence: (IdeaModuleInfo?) -> T
+        project: Project,
+        virtualFile: VirtualFile,
+        treatAsLibrarySource: Boolean,
+        onOccurrence: (IdeaModuleInfo?) -> T
 ): T {
     val projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project)
 
@@ -169,8 +173,9 @@ private inline fun <T> processVirtualFile(
         }
     }
 
-    projectFileIndex.getOrderEntriesForFile(virtualFile)
-            .process(project, virtualFile, treatAsLibrarySource, onOccurrence)
+    projectFileIndex.getOrderEntriesForFile(virtualFile).forEach { orderEntry ->
+        orderEntry.process(project, virtualFile, treatAsLibrarySource, onOccurrence)
+    }
 
     val scriptDefinition = getScriptDefinition(virtualFile, project)
     if (scriptDefinition != null) {
@@ -187,6 +192,7 @@ private inline fun <T> processVirtualFile(
             onOccurrence(ScriptDependenciesModuleInfo(project, null))
         }
     }
+
     if (!isBinary && virtualFile in scriptConfigurationManager.getAllLibrarySourcesScope()) {
         onOccurrence(ScriptDependenciesSourceModuleInfo(project))
     }
@@ -194,16 +200,16 @@ private inline fun <T> processVirtualFile(
     return onOccurrence(null)
 }
 
-fun getBinaryLibrariesModuleInfos(project: Project, virtualFile: VirtualFile) = collectModuleInfosByType<BinaryModuleInfo>(project, virtualFile)
-fun getLibrarySourcesModuleInfos(project: Project, virtualFile: VirtualFile) = collectModuleInfosByType<LibrarySourceInfo>(project, virtualFile)
-
 private inline fun <reified T : IdeaModuleInfo> collectModuleInfosByType(project: Project, virtualFile: VirtualFile): Collection<T> {
     val orderEntries = ProjectFileIndex.SERVICE.getInstance(project).getOrderEntriesForFile(virtualFile)
 
     val result = linkedSetOf<T?>()
-    orderEntries.process(project, virtualFile, treatAsLibrarySource = false) {
-        result.add(it as? T)
+    orderEntries.forEach {
+        it.process(project, virtualFile, treatAsLibrarySource = false) {
+            result.add(it as? T)
+        }
     }
+
     // NOTE: non idea model infos can be obtained this way, like script related infos
     // only one though, luckily it covers existing cases
     result.add(getModuleInfoByVirtualFile(project, virtualFile) as? T)
@@ -211,29 +217,27 @@ private inline fun <reified T : IdeaModuleInfo> collectModuleInfosByType(project
     return result.filterNotNull()
 }
 
-private inline fun <T> List<OrderEntry>.process(
+private inline fun <T> OrderEntry.process(
         project: Project,
         virtualFile: VirtualFile,
         treatAsLibrarySource: Boolean = false,
         onOccurrence: (IdeaModuleInfo) -> T
 ) {
-    entries@ for (orderEntry in this) {
-        if (!orderEntry.isValid) continue
+    if (!this.isValid) return
 
-        when (orderEntry) {
-            is LibraryOrderEntry -> {
-                val library = orderEntry.library ?: continue@entries
-                if (ProjectRootsUtil.isLibraryClassFile(project, virtualFile) && !treatAsLibrarySource) {
-                    onOccurrence(LibraryInfo(project, library))
-                }
-                else if (ProjectRootsUtil.isLibraryFile(project, virtualFile) || treatAsLibrarySource) {
-                    onOccurrence(LibrarySourceInfo(project, library))
-                }
+    when (this) {
+        is LibraryOrderEntry -> {
+            val library = this.library ?: return
+            if (ProjectRootsUtil.isLibraryClassFile(project, virtualFile) && !treatAsLibrarySource) {
+                onOccurrence(LibraryInfo(project, library))
             }
-            is JdkOrderEntry -> {
-                val sdk = orderEntry.jdk ?: continue@entries
-                onOccurrence(SdkInfo(project, sdk))
+            else if (ProjectRootsUtil.isLibraryFile(project, virtualFile) || treatAsLibrarySource) {
+                onOccurrence(LibrarySourceInfo(project, library))
             }
+        }
+        is JdkOrderEntry -> {
+            val sdk = this.jdk ?: return
+            onOccurrence(SdkInfo(project, sdk))
         }
     }
 }
