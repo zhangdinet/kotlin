@@ -98,6 +98,7 @@
         <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
         <ideLightClassExtension implementation="org.jetbrains.kotlin.android.parcel.ParcelableIDELightClassExtension"/>
         <kotlinIndicesHelperExtension implementation="org.jetbrains.kotlin.android.parcel.ParcelableIndicesHelperExtension"/>
+        <quickFixContributor implementation="org.jetbrains.kotlin.android.parcel.quickfixes.ParcelableQuickFixContributor"/>
 
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
