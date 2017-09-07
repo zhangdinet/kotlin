@@ -26,13 +26,19 @@ import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.idea.caches.resolve.lightClasses.KtLightClassForDecompiledDeclaration
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
-import org.jetbrains.kotlin.idea.util.isKotlinBinary
 import org.jetbrains.kotlin.idea.util.isInSourceContentWithoutInjected
+import org.jetbrains.kotlin.idea.util.isKotlinBinary
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.script.getScriptDefinition
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.sure
+
+fun PsiElement.getModuleInfo(): IdeaModuleInfo = this.processInfos(ModuleInfoProcessor.NotNullTakeFirst)
+
+fun PsiElement.getNullableModuleInfo(): IdeaModuleInfo? = this.processInfos(ModuleInfoProcessor.NullableTakeFirst)
+
+fun PsiElement.getModuleInfos(): List<IdeaModuleInfo> = this.processInfos(ModuleInfoProcessor.CollectToList)
 
 private typealias VirtualFileProcessor<T> = (Project, VirtualFile, Boolean) -> T
 
@@ -77,37 +83,39 @@ private sealed class ModuleInfoProcessor<out T>(
     )
 }
 
-fun PsiElement.getModuleInfo(): IdeaModuleInfo = this.processInfos(ModuleInfoProcessor.NotNullTakeFirst)
+private fun <T> PsiElement.processInfos(p: ModuleInfoProcessor<T>): T {
+    (containingFile?.moduleInfo as? IdeaModuleInfo)?.let {
+        return p.onResult(it)
+    }
 
-fun PsiElement.getNullableModuleInfo(): IdeaModuleInfo? = this.processInfos(ModuleInfoProcessor.NullableTakeFirst)
+    if (this is KtLightElement<*, *>) {
+        return this.processLightElement(p)
+    }
 
-fun PsiElement.getModuleInfos(): List<IdeaModuleInfo> = this.processInfos(ModuleInfoProcessor.CollectToList)
-
-private fun <T> PsiElement.processInfos(
-        p: ModuleInfoProcessor<T>
-): T {
-    (containingFile?.moduleInfo as? IdeaModuleInfo)?.let { return p.onResult(it) }
-
-    if (this is KtLightElement<*, *>) return this.processLightElement(p)
+    val containingFile = containingFile ?:
+                         return p.onFailure("Analyzing element of type ${this::class.java} with no containing file\nText:\n$text")
 
     val containingKtFile = (this as? KtElement)?.containingFile as? KtFile
-    containingKtFile?.analysisContext?.let { return it.processInfos(p) }
+    if (containingKtFile != null) {
+        containingKtFile.analysisContext?.let {
+            return it.processInfos(p)
+        }
 
-    containingKtFile?.doNotAnalyze?.let {
-        return p.onFailure(
-                "Should not analyze element: $text in file ${containingKtFile.name}\n$it"
-        )
+        containingKtFile.doNotAnalyze?.let {
+            return p.onFailure("Should not analyze element: $text in file ${containingKtFile.name}\n$it")
+        }
+
+        val explicitModuleInfo = containingKtFile.moduleInfo ?: (containingKtFile.originalFile as? KtFile)?.moduleInfo
+        if (explicitModuleInfo is IdeaModuleInfo) {
+            return p.onResult(explicitModuleInfo)
+        }
+
+        if (containingKtFile is KtCodeFragment) {
+            val context = containingKtFile.getContext() ?:
+                          return p.onFailure("Analyzing code fragment of type ${containingKtFile::class.java} with no context element\nText:\n${containingKtFile.getText()}")
+            return context.processInfos(p)
+        }
     }
-
-    val explicitModuleInfo = containingKtFile?.moduleInfo ?: (containingKtFile?.originalFile as? KtFile)?.moduleInfo
-    if (explicitModuleInfo is IdeaModuleInfo) return p.onResult(explicitModuleInfo)
-
-    if (containingKtFile is KtCodeFragment) {
-        return containingKtFile.getContext()?.processInfos(p)
-               ?: p.onFailure("Analyzing code fragment of type ${containingKtFile::class.java} with no context element\nText:\n${containingKtFile.getText()}")
-    }
-
-    val containingFile = containingFile ?: return p.onFailure("Analyzing element of type ${this::class.java} with no containing file\nText:\n$text")
 
     val virtualFile = containingFile.originalFile.virtualFile
             ?: return p.onFailure("Analyzing element of type ${this::class.java} in non-physical file $containingFile of type ${containingFile::class.java}\nText:\n$text")
@@ -128,18 +136,19 @@ private fun <T> KtLightElement<*, *>.processLightElement(p: ModuleInfoProcessor<
                 false
         )
     }
+
     val element = kotlinOrigin ?: when (this) {
         is FakeLightClassForFileOfPackage -> this.getContainingFile()!!
         is KtLightClassForFacade -> this.files.first()
-        else -> return p.onFailure("Light element without origin is referenced by resolve:\n$this\n${this.clsDelegate.text}")
+        else ->
+            return p.onFailure("Light element without origin is referenced by resolve:\n$this\n${this.clsDelegate.text}")
     }
+
     return element.processInfos(p)
 }
 
 
-fun getModuleInfoByVirtualFile(
-        project: Project, virtualFile: VirtualFile
-): IdeaModuleInfo? = processVirtualFile(
+fun getModuleInfoByVirtualFile(project: Project, virtualFile: VirtualFile): IdeaModuleInfo? = processVirtualFile(
         project, virtualFile,
         treatAsLibrarySource = false,
         onOccurrence = { return@getModuleInfoByVirtualFile it }
