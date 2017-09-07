@@ -21,9 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.jetbrains.kotlin.annotation.AnnotationFileUpdater
@@ -59,6 +58,7 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
     var compilerJarFile: File? = null
     var compilerClasspath: List<File>? = null
 
+    @get:InputFiles
     internal val computedCompilerClasspath: List<File>
         get() = compilerClasspath?.takeIf { it.isNotEmpty() }
                 ?: compilerJarFile?.let {
@@ -67,6 +67,7 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
                 }
                 ?: findKotlinCompilerClasspath(project).takeIf { it.isNotEmpty() }
                 ?: throw IllegalStateException("Could not find Kotlin Compiler classpath. Please specify $name.compilerClasspath")
+
     protected abstract fun findKotlinCompilerClasspath(project: Project): List<File>
 }
 
@@ -105,6 +106,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         get() = (classpath + additionalClasspath)
                 .filterTo(LinkedHashSet(), File::exists)
 
+    @get:Input
     override val serializedCompilerArguments: List<String>
         get() {
             val arguments = createCompilerArgs()
@@ -251,10 +253,8 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
      *
      * Example: a Java source file with `package com.example.my.package` is located in directory `src/main/java/my/package`.
      * Then, for the Kotlin compilation to locate the source file, use package prefix `"com.example"` */
+    @get:Input @get:Optional
     var javaPackagePrefix: String? = null
-
-    @get:Input
-    internal val javaPackagePrefixInputString get() = javaPackagePrefix ?: ""
 
     internal var artifactDifferenceRegistryProvider: ArtifactDifferenceRegistryProvider? = null
     internal var artifactFile: File? = null
