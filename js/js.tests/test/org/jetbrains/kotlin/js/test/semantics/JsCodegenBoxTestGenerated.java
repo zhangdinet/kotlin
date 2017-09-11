@@ -8555,6 +8555,18 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             doTest(fileName);
         }
 
+        @TestMetadata("deepInnerClassInEnumEntryClass.kt")
+        public void testDeepInnerClassInEnumEntryClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/deepInnerClassInEnumEntryClass.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("deepInnerClassInEnumEntryClass2.kt")
+        public void testDeepInnerClassInEnumEntryClass2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/deepInnerClassInEnumEntryClass2.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("emptyConstructor.kt")
         public void testEmptyConstructor() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/emptyConstructor.kt");
@@ -8615,6 +8627,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             doTest(fileName);
         }
 
+        @TestMetadata("innerClassMethodInEnumEntryClass.kt")
+        public void testInnerClassMethodInEnumEntryClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/innerClassMethodInEnumEntryClass.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("innerWithExistingClassObject.kt")
         public void testInnerWithExistingClassObject() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/innerWithExistingClassObject.kt");
@@ -8630,6 +8648,36 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
         @TestMetadata("kt2350.kt")
         public void testKt2350() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt2350.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7257.kt")
+        public void testKt7257() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt7257.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7257_anonObjectInit.kt")
+        public void testKt7257_anonObjectInit() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt7257_anonObjectInit.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7257_anonObjectMethod.kt")
+        public void testKt7257_anonObjectMethod() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt7257_anonObjectMethod.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7257_namedLocalFun.kt")
+        public void testKt7257_namedLocalFun() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt7257_namedLocalFun.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt7257_notInline.kt")
+        public void testKt7257_notInline() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/enum/kt7257_notInline.kt");
             doTest(fileName);
         }
 
