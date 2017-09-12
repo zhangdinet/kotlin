@@ -160,6 +160,7 @@ class LazyImportResolver(
             name: Name,
             descriptorSelector: (ImportingScope, Name) -> D?
     ): D? {
+        if (definitelyDoesNotContainName(name) && !name.asString().startsWith("Function") && !name.asString().startsWith("KFunction")) return null
         fun compute(): D? {
             val imports = indexedImports.importsForName(name)
 
@@ -178,6 +179,7 @@ class LazyImportResolver(
             name: Name,
             descriptorsSelector: (ImportingScope, Name) -> Collection<D>
     ): Collection<D> {
+        if (definitelyDoesNotContainName(name)) return emptyList()
         return storageManager.compute {
             var descriptors: Collection<D>? = null
             for (directive in indexedImports.importsForName(name)) {
