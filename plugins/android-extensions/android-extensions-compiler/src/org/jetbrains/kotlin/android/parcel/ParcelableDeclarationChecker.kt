@@ -214,7 +214,8 @@ class ParcelableDeclarationChecker : SimpleDeclarationChecker {
             val asmType = typeMapper.mapType(type)
 
             try {
-                val context = ParcelSerializer.ParcelSerializerContext(typeMapper, typeMapper.mapType(containerClass.defaultType))
+                val parcelers = getTypeParcelers(descriptor.annotations) + getTypeParcelers(containerClass.annotations)
+                val context = ParcelSerializer.ParcelSerializerContext(typeMapper, typeMapper.mapType(containerClass.defaultType), parcelers)
                 ParcelSerializer.get(type, asmType, context, strict = true)
             }
             catch (e: IllegalArgumentException) {
