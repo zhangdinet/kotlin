@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.scopes.utils.collectVariables
 import org.jetbrains.kotlin.resolve.selectMostSpecificInEachOverridableGroup
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.getImmediateSuperclassNotAny
+import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.*
@@ -78,12 +79,62 @@ internal abstract class AbstractScopeTowerLevel(
 
 }
 
+internal abstract class CachingResultsScopeTowerLevel(
+        scopeTower: ImplicitScopeTower
+) : AbstractScopeTowerLevel(scopeTower) {
+    private var callName: Name? = null
+    abstract fun doGetVariables(name: Name): Collection<CandidateWithBoundDispatchReceiver>
+    abstract fun doGetObjects(name: Name): Collection<CandidateWithBoundDispatchReceiver>
+    abstract fun doGetFunctions(name: Name): Collection<CandidateWithBoundDispatchReceiver>
+
+    private val commonFunctions by lazy(LazyThreadSafetyMode.NONE) {
+        doGetFunctions(callName!!)
+    }
+
+    private val variables by lazy(LazyThreadSafetyMode.NONE) {
+        doGetVariables(callName!!)
+    }
+
+    private val objects by lazy(LazyThreadSafetyMode.NONE) {
+        doGetObjects(callName!!)
+    }
+
+    private val invokeFunctions by lazy(LazyThreadSafetyMode.NONE) {
+        doGetFunctions(OperatorNameConventions.INVOKE)
+    }
+
+    override fun getVariables(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
+        if (callName == null) {
+            callName = name
+        }
+        if (name == callName) return variables
+        return doGetVariables(name)
+    }
+
+    override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
+        if (callName == null) {
+            callName = name
+        }
+        if (name == callName) return objects
+        return doGetObjects(name)
+    }
+
+    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
+        if (name == OperatorNameConventions.INVOKE) return invokeFunctions
+        if (callName == null) {
+            callName = name
+        }
+        if (name == callName) return commonFunctions
+        return doGetFunctions(name)
+    }
+}
+
 // todo KT-9538 Unresolved inner class via subclass reference
 // todo add static methods & fields with error
 internal class MemberScopeTowerLevel(
         scopeTower: ImplicitScopeTower,
         val dispatchReceiver: ReceiverValueWithSmartCastInfo
-): AbstractScopeTowerLevel(scopeTower) {
+): CachingResultsScopeTowerLevel(scopeTower) {
 
     private val syntheticScopes = scopeTower.syntheticScopes
 
@@ -155,7 +206,7 @@ internal class MemberScopeTowerLevel(
         return ReceiverValueWithSmartCastInfo(newReceiverValue, possibleTypes, isStable)
     }
 
-    override fun getVariables(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
+    override fun doGetVariables(name: Name): Collection<CandidateWithBoundDispatchReceiver> {
         return collectMembers { getContributedVariables(name, location) }
     }
 
@@ -163,7 +214,11 @@ internal class MemberScopeTowerLevel(
         return emptyList()
     }
 
-    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
+    override fun doGetObjects(name: Name): Collection<CandidateWithBoundDispatchReceiver> {
+        TODO("not implemented")
+    }
+
+    override fun doGetFunctions(name: Name): Collection<CandidateWithBoundDispatchReceiver> {
         return collectMembers {
             getContributedFunctions(name, location) + it.getInnerConstructors(name, location) +
             syntheticScopes.collectSyntheticMemberFunctions(listOfNotNull(it), name, location)
@@ -178,18 +233,18 @@ internal class MemberScopeTowerLevel(
     }
 }
 
-internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qualifier: QualifierReceiver) : AbstractScopeTowerLevel(scopeTower) {
-    override fun getVariables(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
+internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qualifier: QualifierReceiver) : CachingResultsScopeTowerLevel(scopeTower) {
+    override fun doGetVariables(name: Name) = qualifier.staticScope
             .getContributedVariables(name, location).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
-    override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
+    override fun doGetObjects(name: Name) = qualifier.staticScope
             .getContributedObjectVariables(name, location).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
-    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
+    override fun doGetFunctions(name: Name) = qualifier.staticScope
             .getContributedFunctionsAndConstructors(name,
                                                     location,
                                                     scopeTower.syntheticScopes,
@@ -204,21 +259,21 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
 internal open class ScopeBasedTowerLevel protected constructor(
         scopeTower: ImplicitScopeTower,
         private val resolutionScope: ResolutionScope
-) : AbstractScopeTowerLevel(scopeTower) {
+) : CachingResultsScopeTowerLevel(scopeTower) {
 
     internal constructor(scopeTower: ImplicitScopeTower, lexicalScope: LexicalScope) : this(scopeTower, lexicalScope as ResolutionScope)
 
-    override fun getVariables(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver>
+    override fun doGetVariables(name: Name): Collection<CandidateWithBoundDispatchReceiver>
             = resolutionScope.getContributedVariables(name, location).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
-    override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver>
+    override fun doGetObjects(name: Name): Collection<CandidateWithBoundDispatchReceiver>
             = resolutionScope.getContributedObjectVariables(name, location).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
-    override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver>
+    override fun doGetFunctions(name: Name): Collection<CandidateWithBoundDispatchReceiver>
             = resolutionScope.getContributedFunctionsAndConstructors(name,
                                                                      location,
                                                                      scopeTower.syntheticScopes,
