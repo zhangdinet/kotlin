@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
-import org.jetbrains.kotlin.util.OperatorNameConventions
 import java.util.*
 
 interface Candidate {
@@ -252,7 +251,7 @@ class TowerResolver {
             // invokeExtension on local variable
             TowerData.OnlyImplicitReceiver(implicitReceiver).process()?.let { return it }
 
-            if (callKind == KotlinCallKind.VARIABLE && hasExplicitReceiver == true) return null
+            //if (callKind == KotlinCallKind.VARIABLE && hasExplicitReceiver == true) return null
 
             // local extensions for implicit receiver
             for (localLevel in localLevels) {
@@ -272,14 +271,7 @@ class TowerResolver {
         }
 
         private fun ScopeTowerLevel.mayFitForName(name: Name): Boolean {
-            if (callKind == KotlinCallKind.VARIABLE) {
-                return getVariables(name, null).isNotEmpty() ||
-                       getObjects(name, null).isNotEmpty()
-            }
-            return getFunctions(name, null).isNotEmpty() ||
-                   getObjects(name, null).isNotEmpty() ||
-                   getVariables(name, null).isNotEmpty() ||
-                   getFunctions(OperatorNameConventions.INVOKE, null).isNotEmpty()
+            return true
         }
     }
 
