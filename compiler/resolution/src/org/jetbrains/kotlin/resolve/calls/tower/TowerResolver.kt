@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.resolve.calls.tower
 
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
@@ -269,13 +270,17 @@ class TowerResolver {
             return possibleTypes.any { it.mayFitForName(name) }
         }
 
-        private fun KotlinType.mayFitForName(name: Name) =
-                isDynamic() ||
-                !memberScope.definitelyDoesNotContainName(name) ||
-                !memberScope.definitelyDoesNotContainName(OperatorNameConventions.INVOKE)
+        private fun KotlinType.mayFitForName(name: Name): Boolean =
+                isDynamic() || memberScope.mayFitForName(name)
 
         private fun ResolutionScope.mayFitForName(name: Name) =
-                !definitelyDoesNotContainName(name) || !definitelyDoesNotContainName(OperatorNameConventions.INVOKE)
+                !definitelyDoesNotContainName1(name) ||
+                getContributedFunctions(OperatorNameConventions.INVOKE, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isNotEmpty()
+
+        private fun ResolutionScope.definitelyDoesNotContainName1(name: Name) =
+                getContributedClassifier(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE) == null &&
+                getContributedFunctions(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isEmpty() &&
+                getContributedVariables(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isEmpty()
     }
 
     fun <C : Candidate> runWithEmptyTowerData(
