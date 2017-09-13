@@ -16,19 +16,15 @@
 
 package org.jetbrains.kotlin.resolve.calls.tower
 
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.descriptorUtil.HIDES_MEMBERS_NAME_LIST
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.isDynamic
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import java.util.*
 
@@ -116,8 +112,8 @@ class TowerResolver {
 
         private val localLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.NONE) {
             implicitScopeTower.lexicalScope.parentsWithSelf.
-                    filterIsInstance<LexicalScope>().filter { it.kind.withLocalDescriptors && it.mayFitForName(name) }.
-                    map { ScopeBasedTowerLevel(implicitScopeTower, it) }.toList()
+                    filterIsInstance<LexicalScope>().filter { it.kind.withLocalDescriptors }.
+                    mapNotNull { scopeBasedTowerLevels(it).takeIf { it.mayFitForName(name) } }.toList()
         }
 
         private val nonLocalLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.NONE) {
@@ -144,8 +140,8 @@ class TowerResolver {
         private fun ImplicitScopeTower.createNonLocalLevels(): Collection<ScopeTowerLevel> {
             val mainResult = mutableListOf<ScopeTowerLevel>()
 
-            fun addLevel(scopeTowerLevel: ScopeTowerLevel, mayFitForName: Boolean) {
-                if (mayFitForName) {
+            fun addLevel(scopeTowerLevel: ScopeTowerLevel) {
+                if (scopeTowerLevel.mayFitForName(name)) {
                     mainResult.add(scopeTowerLevel)
                 }
                 else {
@@ -157,22 +153,19 @@ class TowerResolver {
                 if (scope is LexicalScope) {
                     if (!scope.kind.withLocalDescriptors) {
                         addLevel(
-                                scopeBasedTowerLevels(scope),
-                                scope.mayFitForName(name)
+                                scopeBasedTowerLevels(scope)
                         )
                     }
 
                     getImplicitReceiver(scope)?.let {
                         addLevel(
-                                memberScopeTowerLevels(it),
-                                it.mayFitForName(name)
+                                memberScopeTowerLevels(it)
                         )
                     }
                 }
                 else {
                     addLevel(
-                            importScopeTowerLevels(scope as ImportingScope),
-                            scope.mayFitForName(name)
+                            importScopeTowerLevels(scope as ImportingScope)
                     )
                 }
             }
@@ -184,8 +177,8 @@ class TowerResolver {
             recordLookups()
         }
 
-        private fun TowerData.process(mayFitForName: Boolean): Collection<C>? {
-            if (!mayFitForName) {
+        private fun TowerData.TowerLevel.processTowerLevel(): Collection<C>? {
+            if (!this.level.mayFitForName(name)) {
                 skippedDataForLookup.add(this)
                 return null
             }
@@ -213,7 +206,7 @@ class TowerResolver {
                     // statics
                     if (!scope.kind.withLocalDescriptors) {
                         TowerData.TowerLevel(scopeBasedTowerLevels(scope))
-                                .process(scope.mayFitForName(name))?.let { return it }
+                                .processTowerLevel()?.let { return it }
                     }
 
                     implicitScopeTower.getImplicitReceiver(scope)
@@ -222,7 +215,7 @@ class TowerResolver {
                 }
                 else {
                     TowerData.TowerLevel(importScopeTowerLevels(scope as ImportingScope))
-                            .process(scope.mayFitForName(name))?.let { return it }
+                            .processTowerLevel()?.let { return it }
                 }
             }
 
@@ -239,7 +232,7 @@ class TowerResolver {
 
             // members of implicit receiver or member extension for explicit receiver
             TowerData.TowerLevel(memberScopeTowerLevels(implicitReceiver))
-                    .process(implicitReceiver.mayFitForName(name))?.let { return it }
+                    .processTowerLevel()?.let { return it }
 
             // synthetic properties
             TowerData.BothTowerLevelAndImplicitReceiver(syntheticLevel, implicitReceiver).process()?.let { return it }
@@ -264,23 +257,11 @@ class TowerResolver {
             processor.recordLookups(skippedDataForLookup, name)
         }
 
-        private fun ReceiverValueWithSmartCastInfo.mayFitForName(name: Name): Boolean {
-            if (receiverValue.type.mayFitForName(name)) return true
-            if (possibleTypes.isEmpty()) return false
-            return possibleTypes.any { it.mayFitForName(name) }
-        }
-
-        private fun KotlinType.mayFitForName(name: Name): Boolean =
-                isDynamic() || memberScope.mayFitForName(name)
-
-        private fun ResolutionScope.mayFitForName(name: Name) =
-                !definitelyDoesNotContainName1(name) ||
-                getContributedFunctions(OperatorNameConventions.INVOKE, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isNotEmpty()
-
-        private fun ResolutionScope.definitelyDoesNotContainName1(name: Name) =
-                getContributedClassifier(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE) == null &&
-                getContributedFunctions(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isEmpty() &&
-                getContributedVariables(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE).isEmpty()
+        private fun ScopeTowerLevel.mayFitForName(name: Name) =
+                getFunctions(name, null).isNotEmpty() ||
+                getObjects(name, null).isNotEmpty() ||
+                getVariables(name, null).isNotEmpty() ||
+                getFunctions(OperatorNameConventions.INVOKE, null).isNotEmpty()
     }
 
     fun <C : Candidate> runWithEmptyTowerData(
