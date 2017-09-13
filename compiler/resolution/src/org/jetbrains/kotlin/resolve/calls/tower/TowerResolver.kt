@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
+import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isDynamic
 import org.jetbrains.kotlin.util.OperatorNameConventions
@@ -125,6 +126,20 @@ class TowerResolver {
         val hidesMembersLevel = HidesMembersTowerLevel(implicitScopeTower)
         val syntheticLevel = SyntheticScopeBasedTowerLevel(implicitScopeTower, implicitScopeTower.syntheticScopes)
 
+        private val scopeBasedTowerLevels = LockBasedStorageManager.NO_LOCKS.createMemoizedFunction {
+            scope: LexicalScope ->
+            ScopeBasedTowerLevel(implicitScopeTower, scope)
+        }
+
+        private val memberScopeTowerLevels = LockBasedStorageManager.NO_LOCKS.createMemoizedFunction {
+            receiver: ReceiverValueWithSmartCastInfo ->
+            MemberScopeTowerLevel(implicitScopeTower, receiver)
+        }
+
+        private val importScopeTowerLevels = LockBasedStorageManager.NO_LOCKS.createMemoizedFunction { scope: ImportingScope ->
+            ImportingScopeBasedTowerLevel(implicitScopeTower, scope)
+        }
+
         private fun ImplicitScopeTower.createNonLocalLevels(): Collection<ScopeTowerLevel> {
             val mainResult = mutableListOf<ScopeTowerLevel>()
 
@@ -141,21 +156,21 @@ class TowerResolver {
                 if (scope is LexicalScope) {
                     if (!scope.kind.withLocalDescriptors) {
                         addLevel(
-                                ScopeBasedTowerLevel(this@createNonLocalLevels, scope),
+                                scopeBasedTowerLevels(scope),
                                 scope.mayFitForName(name)
                         )
                     }
 
                     getImplicitReceiver(scope)?.let {
                         addLevel(
-                                MemberScopeTowerLevel(this@createNonLocalLevels, it),
+                                memberScopeTowerLevels(it),
                                 it.mayFitForName(name)
                         )
                     }
                 }
                 else {
                     addLevel(
-                            ImportingScopeBasedTowerLevel(this@createNonLocalLevels, scope as ImportingScope),
+                            importScopeTowerLevels(scope as ImportingScope),
                             scope.mayFitForName(name)
                     )
                 }
@@ -196,7 +211,7 @@ class TowerResolver {
                 if (scope is LexicalScope) {
                     // statics
                     if (!scope.kind.withLocalDescriptors) {
-                        TowerData.TowerLevel(ScopeBasedTowerLevel(implicitScopeTower, scope))
+                        TowerData.TowerLevel(scopeBasedTowerLevels(scope))
                                 .process(scope.mayFitForName(name))?.let { return it }
                     }
 
@@ -205,7 +220,7 @@ class TowerResolver {
                             ?.let { return it }
                 }
                 else {
-                    TowerData.TowerLevel(ImportingScopeBasedTowerLevel(implicitScopeTower, scope as ImportingScope))
+                    TowerData.TowerLevel(importScopeTowerLevels(scope as ImportingScope))
                             .process(scope.mayFitForName(name))?.let { return it }
                 }
             }
@@ -222,7 +237,7 @@ class TowerResolver {
             }
 
             // members of implicit receiver or member extension for explicit receiver
-            TowerData.TowerLevel(MemberScopeTowerLevel(implicitScopeTower, implicitReceiver))
+            TowerData.TowerLevel(memberScopeTowerLevels(implicitReceiver))
                     .process(implicitReceiver.mayFitForName(name))?.let { return it }
 
             // synthetic properties
