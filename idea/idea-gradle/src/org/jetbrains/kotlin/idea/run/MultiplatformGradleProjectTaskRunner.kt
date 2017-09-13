@@ -22,6 +22,7 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootModel
@@ -30,11 +31,11 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.task.*
 import com.intellij.task.impl.ModuleBuildTaskImpl
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.TargetPlatformKind
-import org.jetbrains.kotlin.idea.project.languageVersionSettings
+import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import org.jetbrains.kotlin.idea.project.targetPlatform
 import org.jetbrains.kotlin.idea.util.rootManager
+import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.plugins.gradle.execution.build.GradleProjectTaskRunner
 import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
@@ -156,5 +157,11 @@ class MultiplatformGradleOrderEnumeratorHandler : OrderEnumerationHandler() {
     }
 }
 
-private fun Module.isMultiplatformModule(): Boolean =
-        languageVersionSettings.supportsFeature(LanguageFeature.MultiPlatformProjects)
+private fun Module.isMultiplatformModule(): Boolean {
+    if (TargetPlatformDetector.getPlatform(this) == TargetPlatform.Common) return true
+    val allDependencies = HashSet<Module>()
+    ModuleUtilCore.getDependencies(this, allDependencies)
+    return allDependencies.any { depModule ->
+        TargetPlatformDetector.getPlatform(depModule) == TargetPlatform.Common
+    }
+}
