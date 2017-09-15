@@ -58,7 +58,7 @@ The tests that use the Gradle plugins DSL ([`PluginsDslIT`](https://github.com/J
 
 ## Kotlin serialization Gradle Plugin
 
-First, build all the above. Then run `./gradlew :kotlin-serialization:install` to install it to your local maven repository.
+First, build all the above. Then run `./gradlew :kotlinx-gradle-serialization-plugin:publishToMavenLocal` to install it to your local maven repository.
 
 When it is installed in local maven repository, you can add it as a dependency in buildscript classpath and apply it:
 
@@ -72,13 +72,13 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.1-SNAPSHOT"
-        classpath "org.jetbrains.kotlinx:kotlin-serialization:0.1"
+        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:0.1"
     }
 }
 
 apply plugin: 'kotlin'
-apply plugin: 'kotlin-serialization'
+apply plugin: 'kotlinx-serialization'
 
 ```
 
-You can also obtain it from bintray: https://bintray.com/kotlin/kotlinx/kotlinx.serialization
+You can also obtain it from bintray: https://bintray.com/kotlin/kotlinx/kotlinx.serialization.plugin
