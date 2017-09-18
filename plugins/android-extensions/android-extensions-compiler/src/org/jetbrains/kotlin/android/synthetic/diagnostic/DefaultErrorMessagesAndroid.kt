@@ -72,13 +72,13 @@ object DefaultErrorMessagesAndroid : DefaultErrorMessages.Extension {
                 "'Parcelable' constructor parameter should be 'val' or 'var'")
 
         MAP.put(ErrorsAndroid.PROPERTY_WONT_BE_SERIALIZED,
-                "Property would not be serialized into a 'Parcel'. Add '@Transient' annotation to remove the warning")
+                "Property would not be serialized into a 'Parcel'. Add '@IgnoredOnParcel' annotation to remove the warning")
 
         MAP.put(ErrorsAndroid.OVERRIDING_WRITE_TO_PARCEL_IS_NOT_ALLOWED,
-                "Overriding 'writeToParcel' is not allowed. Use 'Parceler' companion object instead")
+                "Overriding 'writeToParcel' is not allowed. Use 'Parceler' companion object instead.")
 
         MAP.put(ErrorsAndroid.CREATOR_DEFINITION_IS_NOT_ALLOWED,
-                "'CREATOR' definition is not allowed. Use 'Parceler' companion object instead")
+                "'CREATOR' definition is not allowed. Use 'Parceler' companion object instead.")
 
         MAP.put(ErrorsAndroid.PARCELABLE_TYPE_NOT_SUPPORTED,
                 "Type is not directly supported by 'Parcelize'. " +
