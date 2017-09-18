@@ -71,7 +71,7 @@ abstract class AbstractGradleImportHandler : GradleProjectImportHandler {
         // So we use ones from the IDEA plugin.
         val classpath = listOf(pluginJarFileFromIdea.absolutePath)
 
-        return AnnotationBasedCompilerPluginSetup(annotationFqNames, classpath)
+        return AnnotationBasedCompilerPluginSetup(annotationFqNames, emptyList(), classpath)
     }
 
     private fun getPluginSetupBySourceSet(sourceSetNode: DataNode<GradleSourceSetData>) =

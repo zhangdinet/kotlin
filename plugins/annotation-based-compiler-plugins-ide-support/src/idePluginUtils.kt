@@ -31,7 +31,11 @@ fun Module.getSpecialAnnotations(prefix: String): List<String> {
     ?: emptyList()
 }
 
-internal class AnnotationBasedCompilerPluginSetup(val annotationFqNames: List<String>, val classpath: List<String>)
+internal class AnnotationBasedCompilerPluginSetup(
+        val annotationFqNames: List<String>,
+        val additionalOptions: List<Pair<String, String>>,
+        val classpath: List<String>
+)
 
 internal fun modifyCompilerArgumentsForPlugin(
         facet: KotlinFacet,
@@ -47,9 +51,10 @@ internal fun modifyCompilerArgumentsForPlugin(
 
     /** See [CommonCompilerArguments.PLUGIN_OPTION_FORMAT] **/
     val annotationOptions = setup?.annotationFqNames?.map { "plugin:$compilerPluginId:$annotationOptionName=$it" } ?: emptyList()
+    val additionalOptions = setup?.additionalOptions?.map { (key, value) -> "plugin:$compilerPluginId:$key=$value" } ?: emptyList()
 
     val oldPluginOptions = (commonArguments.pluginOptions ?: emptyArray()).filterTo(mutableListOf()) { !it.startsWith("plugin:$compilerPluginId:") }
-    val newPluginOptions = oldPluginOptions + annotationOptions
+    val newPluginOptions = oldPluginOptions + annotationOptions + additionalOptions
 
     val oldPluginClasspaths = (commonArguments.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
         val lastIndexOfFile = it.lastIndexOfAny(charArrayOf('/', File.separatorChar))

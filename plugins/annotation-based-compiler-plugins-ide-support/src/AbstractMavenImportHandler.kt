@@ -39,6 +39,10 @@ abstract class AbstractMavenImportHandler : MavenProjectImportHandler {
                                          annotationOptionName = annotationOptionName)
     }
 
+    open fun parseAdditionalPluginOptions(enabledCompilerPlugins: List<String>, pluginOptions: List<String>): List<Pair<String, String>> {
+        return emptyList()
+    }
+
     abstract fun getAnnotations(enabledCompilerPlugins: List<String>, compilerPluginOptions: List<String>): List<String>?
 
     private fun getPluginSetup(mavenProject: MavenProject): AnnotationBasedCompilerPluginSetup? {
@@ -63,7 +67,8 @@ abstract class AbstractMavenImportHandler : MavenProjectImportHandler {
         val classpath = listOf(pluginJarFileFromIdea.absolutePath)
 
         val annotationFqNames = getAnnotations(enabledCompilerPlugins, compilerPluginOptions) ?: return null
-        return AnnotationBasedCompilerPluginSetup(annotationFqNames, classpath)
+        val additionalOptions = parseAdditionalPluginOptions(enabledCompilerPlugins, compilerPluginOptions)
+        return AnnotationBasedCompilerPluginSetup(annotationFqNames, additionalOptions, classpath)
     }
 
     private fun Element.getElement(name: String) = content.firstOrNull { it is Element && it.name == name } as? Element
