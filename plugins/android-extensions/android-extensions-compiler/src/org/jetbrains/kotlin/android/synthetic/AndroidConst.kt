@@ -32,7 +32,8 @@ object AndroidConst {
     val ID_ATTRIBUTE_NO_NAMESPACE: String = "id"
     val CLASS_ATTRIBUTE_NO_NAMESPACE: String = "class"
 
-    val IDENTIFIER_REGEX = "^@(\\+)?(([A-Za-z0-9_\\.]+)\\:)?id\\/([A-Za-z0-9_]+)$".toRegex()
+    // https://stackoverflow.com/a/5315414
+    val IDENTIFIER_REGEX = "^@(\\+)?(([(?:\\P{M}\\p{M}*)0-9_\\.]+)\\:)?id\\/([(?:\\P{M}\\p{M}*)0-9_]+)$".toRegex()
 
     val CLEAR_FUNCTION_NAME = "clearFindViewByIdCache"
 
