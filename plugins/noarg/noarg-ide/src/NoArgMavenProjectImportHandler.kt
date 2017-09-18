@@ -17,12 +17,16 @@
 package org.jetbrains.kotlin.noarg.ide
 
 import org.jetbrains.kotlin.annotation.plugin.ide.AbstractMavenImportHandler
+import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor.Companion.INVOKE_INITIALIZERS_OPTION
+import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor.Companion.ANNOTATION_OPTION
+import org.jetbrains.kotlin.noarg.NoArgCommandLineProcessor.Companion.SUPPORTED_PRESETS
 
 class NoArgMavenProjectImportHandler : AbstractMavenImportHandler() {
     private companion object {
-        val ANNOTATATION_PARAMETER_PREFIX = "no-arg:${NoArgCommandLineProcessor.ANNOTATION_OPTION.name}="
+        val MAVEN_PLUGIN_NAME = "no-arg"
     }
 
     override val compilerPluginId = NoArgCommandLineProcessor.PLUGIN_ID
@@ -31,22 +35,39 @@ class NoArgMavenProjectImportHandler : AbstractMavenImportHandler() {
     override val mavenPluginArtifactName = "kotlin-maven-noarg"
     override val pluginJarFileFromIdea = PathUtil.kotlinPathsForIdeaPlugin.noArgPluginJarPath
 
-    override fun getAnnotations(enabledCompilerPlugins: List<String>, compilerPluginOptions: List<String>): List<String>? {
-        if ("no-arg" !in enabledCompilerPlugins && "jpa" !in enabledCompilerPlugins) {
-            return null
+    private fun getOptions(rawOptions: List<String>, option: CliOption): List<String> {
+        return rawOptions.mapNotNull { text ->
+            val prefix = MAVEN_PLUGIN_NAME + ":" + option.name + "="
+            if (!text.startsWith(prefix)) return@mapNotNull null
+            text.substring(prefix.length)
         }
+    }
+
+    private fun isNoArgEnabled(enabledCompilerPlugins: List<String>): Boolean {
+        return "no-arg" in enabledCompilerPlugins || "jpa" in enabledCompilerPlugins
+    }
+
+    override fun parseAdditionalPluginOptions(enabledCompilerPlugins: List<String>, pluginOptions: List<String>): List<Pair<String, String>> {
+        if (!isNoArgEnabled(enabledCompilerPlugins)) return emptyList()
+
+        return mutableListOf<Pair<String, String>>().apply {
+            getOptions(pluginOptions, INVOKE_INITIALIZERS_OPTION).lastOrNull()?.let { value ->
+                add(Pair(INVOKE_INITIALIZERS_OPTION.name, value))
+            }
+        }
+    }
+
+    override fun getAnnotations(enabledCompilerPlugins: List<String>, compilerPluginOptions: List<String>): List<String>? {
+        if (!isNoArgEnabled(enabledCompilerPlugins)) return null
 
         val annotations = mutableListOf<String>()
-        for ((presetName, presetAnnotations) in NoArgCommandLineProcessor.SUPPORTED_PRESETS) {
+        for ((presetName, presetAnnotations) in SUPPORTED_PRESETS) {
             if (presetName in enabledCompilerPlugins) {
                 annotations.addAll(presetAnnotations)
             }
         }
 
-        annotations.addAll(compilerPluginOptions.mapNotNull { text ->
-            if (!text.startsWith(ANNOTATATION_PARAMETER_PREFIX)) return@mapNotNull null
-            text.substring(ANNOTATATION_PARAMETER_PREFIX.length)
-        })
+        annotations.addAll(getOptions(compilerPluginOptions, ANNOTATION_OPTION))
 
         return annotations
     }
