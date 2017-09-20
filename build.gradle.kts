@@ -309,10 +309,19 @@ tasks {
         }
     }
 
-    "gradlePluginsTest" {
+    "gradlePluginTest" {
         gradlePluginProjects.forEach {
             dependsOn(it + ":check")
         }
+    }
+
+    "gradlePluginsTest" {
+        // deprecated
+        dependsOn("gradlePluginTest")
+    }
+
+    "gradlePluginIntegrationTest" {
+        dependsOn(":kotlin-gradle-plugin-integration-tests:check")
     }
 
     "jvmCompilerTest" {
@@ -364,7 +373,7 @@ tasks {
 
     "distTest" {
         dependsOn("compilerTest")
-        dependsOn("gradlePluginsTest")
+        dependsOn("gradlePluginTest")
         dependsOn("examplesTest")
     }
 
