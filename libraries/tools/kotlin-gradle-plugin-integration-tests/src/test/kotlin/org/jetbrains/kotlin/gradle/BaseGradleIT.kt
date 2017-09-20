@@ -429,6 +429,9 @@ abstract class BaseGradleIT {
                 if (options.debug) {
                     add("-Dorg.gradle.debug=true")
                 }
+                System.getProperty("maven.repo.local")?.let {
+                    add("-Dmaven.repo.local=$it") // TODO: proper escaping
+                }
                 addAll(options.freeCommandLineArgs)
             }
 
