@@ -109,49 +109,5 @@ class KotlinSpringReferenceContributor : AbstractKotlinReferenceContributor() {
             KtSpringBeanScopeReference(it)
         }
 
-        registrar.registerMultiProvider<KtStringTemplateExpression> {
-            if (!it.isPlain()) return@registerMultiProvider PsiReference.EMPTY_ARRAY
-
-            val callExpression = (it.parent as? KtValueArgument)?.getStrictParentOfType<KtCallExpression>()
-                                 ?: return@registerMultiProvider PsiReference.EMPTY_ARRAY
-            val context = callExpression.analyze(BodyResolveMode.PARTIAL)
-            val resolvedCall = callExpression.getResolvedCall(context) ?: return@registerMultiProvider PsiReference.EMPTY_ARRAY
-            val classDescriptor = (resolvedCall.resultingDescriptor as? ConstructorDescriptor)?.containingDeclaration
-                                  ?: return@registerMultiProvider PsiReference.EMPTY_ARRAY
-            val qName = classDescriptor.importableFqName?.asString()
-            if (qName != SpringConstants.CLASS_PATH_XML_APP_CONTEXT && qName != SpringConstants.CLASS_PATH_RESOURCE) {
-                return@registerMultiProvider PsiReference.EMPTY_ARRAY
-            }
-
-            val content = it.plainContent
-            val resourcesBuilder = SpringResourcesBuilder.create(it, content).fromRoot(content.startsWith("/")).soft(false)
-            SpringResourcesUtil.getInstance().getClassPathReferences(resourcesBuilder)
-        }
-
-        registrar.registerProvider<KtStringTemplateExpression>(PsiReferenceRegistrar.HIGHER_PRIORITY) {
-            if (!it.isPlain()) return@registerProvider null
-
-            val argument = it.parent as? KtValueArgument ?: return@registerProvider null
-            val argumentName = argument.getArgumentName()
-            if (argumentName != null && argumentName.asName.asString() != "value") return@registerProvider null
-
-            val entry = argument.getStrictParentOfType<KtAnnotationEntry>() ?: return@registerProvider null
-            val bindingContext = entry.analyze(BodyResolveMode.PARTIAL)
-            val resolvedCall = entry.getResolvedCall(bindingContext) ?: return@registerProvider null
-            val annotation = (resolvedCall.resultingDescriptor as? ConstructorDescriptor)?.containingDeclaration
-                             ?: return@registerProvider null
-            if (annotation.importableFqName?.asString() != SpringAnnotationsConstants.QUALIFIER) return@registerProvider null
-
-            val annotated = entry.getStrictParentOfType<KtModifierListOwner>() ?: return@registerProvider null
-            if (annotated is KtClassOrObject) {
-                object : PsiReferenceBase<KtStringTemplateExpression>(it) {
-                    override fun resolve() = entry
-                    override fun getVariants(): Array<Any> = arrayOf()
-                }
-            }
-            else {
-                KtSpringQualifierReference(it)
-            }
-        }
     }
 }
