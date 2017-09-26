@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.idea.facet.configureFacet
 import org.jetbrains.kotlin.idea.facet.getOrCreateFacet
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.idea.test.KotlinWithJdkAndRuntimeLightProjectDescriptor
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
 
@@ -381,9 +382,37 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
         assertTextAndRange("0", annotation.findAttributeValue("i")!!)
     }
 
+    fun testLiteralPosition() {
+        myFixture.addClass("""
+            import java.lang.annotation.ElementType;
+            import java.lang.annotation.Target;
+
+            @Target(ElementType.PARAMETER)
+            public @interface Anno1 {
+                String str();
+            }
+        """.trimIndent())
+
+        myFixture.configureByText("AnnotatedClass.kt", """
+            @Anno1(str = "someText")
+            class AnnotatedClass
+        """.trimIndent())
+
+        val (annotation) = myFixture.findClass("AnnotatedClass").expectAnnotations(1)
+        val memberValue = annotation.findAttributeValue("str")!!
+        assertTextAndRange("\"someText\"", memberValue)
+        val elementByText = myFixture.findElementByText("\"someText\"", PsiElement::class.java)
+        TestCase.assertEquals(elementByText.startOffset, memberValue.startOffset)
+        TestCase.assertEquals(elementByText.startOffsetInParent, memberValue.startOffsetInParent)
+    }
+
     private fun assertTextAndRange(expected: String, psiElement: PsiElement) {
         TestCase.assertEquals(expected, psiElement.text)
         TestCase.assertEquals(expected, psiElement.textRange.substring(psiElement.containingFile.text))
+        TestCase.assertEquals("sane textOffset for ${psiElement.javaClass}", psiElement.textRange.startOffset, psiElement.textOffset)
+        if (expected.isNotEmpty()) {
+            TestCase.assertTrue("sane startOffsetInParent for ${psiElement.javaClass}: ${psiElement.startOffsetInParent}", psiElement.startOffsetInParent >= 0)
+        }
     }
 
     private fun assertTextRangeAndValue(expected: String, value: Any?, psiElement: PsiElement) {
