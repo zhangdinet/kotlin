@@ -49,3 +49,8 @@ private inline fun <R> ifFailed(default: R, block: () -> R) = try {
     default
 }
 
+fun File.matchMaybeVersionedFile(baseName: String) =
+        name == baseName ||
+        name == baseName.removeSuffix(".jar") || // for classes dirs
+        Regex(Regex.escape(baseName.removeSuffix(".jar")) + "(-\\d.*)?\\.jar").matches(name)
+

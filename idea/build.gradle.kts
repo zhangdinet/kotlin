@@ -12,6 +12,7 @@ dependencies {
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:frontend.script"))
+    compile(project(":compiler:cli"))
     compile(project(":js:js.frontend"))
     compile(project(":js:js.serializer"))
     compile(project(":compiler:light-classes"))
@@ -40,7 +41,6 @@ dependencies {
     compile(preloadedDeps("markdown", "kotlinx-coroutines-core"))
 
     testCompile(projectDist(":kotlin-test:kotlin-test-junit"))
-    testCompile(project(":compiler:cli"))
     testCompile(project(":compiler.tests-common"))
     testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
     testCompile(project(":idea:idea-jvm")) { isTransitive = false }

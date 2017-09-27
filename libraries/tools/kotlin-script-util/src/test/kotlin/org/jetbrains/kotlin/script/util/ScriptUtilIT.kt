@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.script.util
 
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
@@ -24,7 +25,6 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.codegen.CompilationException
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -34,16 +34,14 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
 import org.jetbrains.kotlin.script.util.templates.BindingsScriptTemplateWithLocalResolving
 import org.jetbrains.kotlin.script.util.templates.StandardArgsScriptTemplateWithLocalResolving
 import org.jetbrains.kotlin.script.util.templates.StandardArgsScriptTemplateWithMavenResolving
-import org.jetbrains.kotlin.utils.PathUtil
-//import org.jetbrains.kotlin.utils.PathUtil.KOTLIN_JAVA_RUNTIME_JAR
 import org.jetbrains.kotlin.utils.PathUtil.getResourcePathForClass
 import org.junit.Assert
 import org.junit.Test
-import java.io.*
-import java.net.URI
-import java.util.jar.Manifest
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 import kotlin.reflect.KClass
-import kotlin.test.*
 
 const val KOTLIN_JAVA_RUNTIME_JAR = "kotlin-stdlib.jar"
 
@@ -207,11 +205,6 @@ private class NullOutputStream : OutputStream() {
 }
 
 private fun <T> Iterable<T>.anyOrNull(predicate: (T) -> Boolean) = if (any(predicate)) this else null
-
-private fun File.matchMaybeVersionedFile(baseName: String) =
-        name == baseName ||
-                name == baseName.removeSuffix(".jar") || // for classes dirs
-                name.startsWith(baseName.removeSuffix(".jar") + "-")
 
 private fun contextClasspath(keyName: String, classLoader: ClassLoader): List<File>? =
         ( classpathFromClassloader(classLoader)?.anyOrNull { it.matchMaybeVersionedFile(keyName) }
