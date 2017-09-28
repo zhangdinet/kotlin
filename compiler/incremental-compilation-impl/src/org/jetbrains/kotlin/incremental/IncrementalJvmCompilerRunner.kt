@@ -131,6 +131,10 @@ class IncrementalJvmCompilerRunner(
             is ChangesEither.Unknown -> return CompilationMode.Rebuild { "Could not get changes for java files" }
         }
 
+        if ((changedFiles.modified + changedFiles.removed).any { it.extension.toLowerCase() == "xml" }) {
+            return CompilationMode.Rebuild { "XML resource files were changed" }
+        }
+
         val dirtyFiles = getDirtyFiles(changedFiles)
         val lookupSymbols = HashSet<LookupSymbol>()
         lookupSymbols.addAll(affectedJavaSymbols)
