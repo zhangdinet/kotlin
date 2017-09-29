@@ -1,0 +1,21 @@
+plugins {
+    id 'maven-publish'
+}
+
+def artifactsToInstall = project(":kotlin-gradle-plugin")
+        .configurations.runtimeClasspath
+        .resolvedConfiguration.resolvedArtifacts
+        .findAll { !it.file.absoluteFile.toPath().startsWith(rootDir.absoluteFile.toPath()) }
+
+publishing {
+    publications {
+        artifactsToInstall.each { resolvedArtifact ->
+            "${resolvedArtifact.moduleVersion.id.group}${resolvedArtifact.moduleVersion.id.name.capitalize()}"(MavenPublication) {
+                artifact resolvedArtifact.file
+                groupId resolvedArtifact.moduleVersion.id.group
+                artifactId resolvedArtifact.moduleVersion.id.name
+                version resolvedArtifact.moduleVersion.id.version
+            }
+        }
+    }
+}

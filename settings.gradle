@@ -119,6 +119,7 @@ include ":kotlin-build-common",
         ":kotlin-gradle-plugin-api",
         ":kotlin-gradle-plugin",
         ":kotlin-gradle-plugin-integration-tests",
+        ":kotlin-gradle-plugin-integration-tests:install-dependencies",
         ":kotlin-allopen",
         ":kotlin-noarg",
         ":kotlin-sam-with-receiver",
@@ -189,6 +190,7 @@ project(':tools:kotlin-stdlib-gen').projectDir = "$rootDir/libraries/tools/kotli
 project(':kotlin-gradle-plugin-api').projectDir = "$rootDir/libraries/tools/kotlin-gradle-plugin-api" as File
 project(':kotlin-gradle-plugin').projectDir = "$rootDir/libraries/tools/kotlin-gradle-plugin" as File
 project(':kotlin-gradle-plugin-integration-tests').projectDir = "$rootDir/libraries/tools/kotlin-gradle-plugin-integration-tests" as File
+project(':kotlin-gradle-plugin-integration-tests:install-dependencies').projectDir = "$rootDir/libraries/tools/kotlin-gradle-plugin-integration-tests/install-dependencies" as File
 project(':kotlin-allopen').projectDir = "$rootDir/libraries/tools/kotlin-allopen" as File
 project(':kotlin-noarg').projectDir = "$rootDir/libraries/tools/kotlin-noarg" as File
 project(':kotlin-sam-with-receiver').projectDir = "$rootDir/libraries/tools/kotlin-sam-with-receiver" as File

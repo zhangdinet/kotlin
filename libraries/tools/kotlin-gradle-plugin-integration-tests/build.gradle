@@ -35,7 +35,9 @@ test.dependsOn(":kotlin-allopen:install",
                ":kotlin-test:kotlin-test-jvm:install",
                ":kotlin-gradle-subplugin-example:install",
                ":kotlin-stdlib-jre8:install",
-               ":examples:annotation-processor-example:install")
+               ":examples:annotation-processor-example:install",
+               // install runtime dependencies of kotlin-gradle-plugin to mavenLocal:
+               ":kotlin-gradle-plugin-integration-tests:install-dependencies:publishToMavenLocal")
 
 // Validate that all dependencies 'install' tasks are added to 'test' dependencies
 // Test dependencies are specified as paths to avoid forcing dependency resolution
