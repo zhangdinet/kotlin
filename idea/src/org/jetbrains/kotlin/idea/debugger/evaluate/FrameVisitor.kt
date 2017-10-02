@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.idea.debugger.evaluate
 
 import com.intellij.debugger.engine.evaluation.EvaluateExceptionUtil
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
+import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.sun.jdi.ClassType
 import com.sun.jdi.InvalidStackFrameException
 import com.sun.jdi.ObjectReference
@@ -27,29 +28,37 @@ import org.jetbrains.eval4j.jdi.asValue
 import org.jetbrains.eval4j.obj
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.inline.INLINE_FUN_VAR_SUFFIX
+import org.jetbrains.kotlin.codegen.inline.INLINE_TRANSFORMATION_SUFFIX
 import org.jetbrains.kotlin.codegen.inline.NUMBERED_FUNCTION_PREFIX
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
 import org.jetbrains.kotlin.idea.debugger.isInsideInlineFunctionBody
 import org.jetbrains.kotlin.idea.debugger.numberOfInlinedFunctions
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.org.objectweb.asm.Type
 
-class FrameVisitor(context: EvaluationContextImpl) {
-    private val scope = context.debugProcess.searchScope
-    private val frame = context.frameProxy
+class FrameVisitor(val context: EvaluationContextImpl) {
+    private val scope get() = context.debugProcess.searchScope
+    private val frame get() = context.frameProxy
 
     companion object {
         val OBJECT_TYPE = Type.getType(Any::class.java)
     }
 
     fun findValue(name: String, asmType: Type?, checkType: Boolean, failIfNotFound: Boolean): Value? {
-        if (frame == null) return null
+        val frame = this.frame ?: return null
 
         try {
             when (name) {
                 THIS_NAME -> {
-                    val thisValue = findThis(asmType)
+                    val thisValue = findThis(asmType, frame)
                     if (thisValue != null) {
                         return thisValue
                     }
@@ -78,11 +87,10 @@ class FrameVisitor(context: EvaluationContextImpl) {
                         return localVariable
                     }
 
-                    val capturedValName = getCapturedFieldName(name)
-                    val capturedVal = findCapturedLocalVariable(capturedValName, asmType, checkType)
-                    if (capturedVal != null) {
-                        return capturedVal
-                    }
+                    getCapturedFieldNames(name).asSequence()
+                            .mapNotNull { findCapturedLocalVariable(it, asmType, checkType) }
+                            .firstOrNull()
+                            ?.let { return it }
                 }
             }
 
@@ -97,8 +105,8 @@ class FrameVisitor(context: EvaluationContextImpl) {
         return if (shouldFail) throw EvaluateExceptionUtil.createEvaluateException(message) else null
     }
 
-    private fun findThis(asmType: Type?): Value? {
-        if (isInsideInlineFunctionBody(frame!!.visibleVariables())) {
+    private fun findThis(asmType: Type?, frame: StackFrameProxyImpl): Value? {
+        if (isInsideInlineFunctionBody(frame.visibleVariables())) {
             val number = numberOfInlinedFunctions(frame.visibleVariables())
             val inlineFunVar = findLocalVariableForInlineArgument("this_", number, asmType, true)
             if (inlineFunVar != null) {
@@ -138,6 +146,7 @@ class FrameVisitor(context: EvaluationContextImpl) {
     }
 
     private fun findLocalVariable(name: String, asmType: Type?, checkType: Boolean): Value? {
+        val frame = this.frame
         val localVariable = frame!!.visibleVariableByName(name) ?: return null
 
         val eval4jValue = frame.getValue(localVariable).asValue()
@@ -221,12 +230,15 @@ class FrameVisitor(context: EvaluationContextImpl) {
         return null
     }
 
-    private fun getCapturedFieldName(name: String) = when (name) {
-        RECEIVER_NAME -> AsmUtil.CAPTURED_RECEIVER_FIELD
-        THIS_NAME -> AsmUtil.CAPTURED_THIS_FIELD
-        AsmUtil.CAPTURED_RECEIVER_FIELD -> name
-        AsmUtil.CAPTURED_THIS_FIELD -> name
-        else -> "$$name"
+    private fun getCapturedFieldNames(name: String): List<String> = when (name) {
+        RECEIVER_NAME -> listOf(AsmUtil.CAPTURED_RECEIVER_FIELD)
+        THIS_NAME -> listOf(AsmUtil.CAPTURED_THIS_FIELD)
+        AsmUtil.CAPTURED_RECEIVER_FIELD -> listOf(name)
+        AsmUtil.CAPTURED_THIS_FIELD -> listOf(name)
+        else -> {
+            val simpleName = "$$name"
+            listOf(simpleName, simpleName + INLINE_TRANSFORMATION_SUFFIX)
+        }
     }
 
     private fun com.sun.jdi.Type?.isSubclass(superClassName: String): Boolean {
