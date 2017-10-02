@@ -3,6 +3,7 @@ package org.jetbrains.uast.test.kotlin
 import com.intellij.psi.PsiModifier
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
 import org.jetbrains.uast.*
@@ -68,6 +69,27 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
+    @Test fun testSAM() {
+        doTest("SAM") { _, file ->
+            assertNull(file.findElementByText<ULambdaExpression>("{ /* Not SAM */ }").functionalInterfaceType)
+
+            assertEquals("java.lang.Runnable",
+                         file.findElementByText<ULambdaExpression>("{/* Variable */}").functionalInterfaceType?.canonicalText)
+
+            assertEquals("java.lang.Runnable",
+                         file.findElementByText<ULambdaExpression>("{/* Assignment */}").functionalInterfaceType?.canonicalText)
+
+            assertEquals("java.lang.Runnable",
+                          file.findElementByText<ULambdaExpression>("{/* Type Cast */}").functionalInterfaceType?.canonicalText)
+
+            assertEquals("java.lang.Runnable",
+                         file.findElementByText<ULambdaExpression>("{/* Argument */}").functionalInterfaceType?.canonicalText)
+
+            assertEquals("java.lang.Runnable",
+                         file.findElementByText<ULambdaExpression>("{/* Return */}").functionalInterfaceType?.canonicalText)
+        }
+    }
+
     @Test fun testParameterPropertyWithAnnotation() {
         doTest("ParameterPropertyWithAnnotation") { _, file ->
             val test1 = file.classes.find { it.name == "Test1" }!!
@@ -95,6 +117,14 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
             setter2.uastParameters.first().annotations.single { it.qualifiedName == "MyAnnotation" }
 
             test2.fields.find { it.name == "bar" }!!.annotations.single { it.qualifiedName == "MyAnnotation" }
+        }
+    }
+
+    @Test fun testConvertTypeInAnnotation() {
+        doTest("TypeInAnnotation") { _, file ->
+            val index = file.psi.text.indexOf("Test")
+            val element = file.psi.findElementAt(index)!!.getParentOfType<KtUserType>(false)!!
+            assertNotNull(element.getUastParentOfType(UAnnotation::class.java))
         }
     }
 
