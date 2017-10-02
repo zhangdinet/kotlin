@@ -2,10 +2,19 @@ plugins {
     id 'maven-publish'
 }
 
-def artifactsToInstall = project(":kotlin-gradle-plugin")
-        .configurations.runtimeClasspath
-        .resolvedConfiguration.resolvedArtifacts
-        .findAll { !it.file.absoluteFile.toPath().startsWith(rootDir.absoluteFile.toPath()) }
+configurations { toInstall }
+
+dependencies {
+    toInstall "junit:junit:4.12"
+}
+
+def configurationsToInstall = [configurations.toInstall, project(":kotlin-gradle-plugin").configurations.runtimeClasspath]
+
+def artifactsToInstall = configurationsToInstall.collect { config ->
+    config.resolvedConfiguration
+            .resolvedArtifacts
+            .findAll { !it.file.absoluteFile.toPath().startsWith(rootDir.absoluteFile.toPath()) }
+}.flatten()
 
 publishing {
     publications {
