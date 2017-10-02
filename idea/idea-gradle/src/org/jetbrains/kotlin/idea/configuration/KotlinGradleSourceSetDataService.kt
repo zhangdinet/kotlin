@@ -213,7 +213,7 @@ private fun configureFacetByGradleModule(
 private fun getImplementedModuleName(moduleNode: DataNode<ModuleData>, sourceSetName: String?, project: Project): String? {
     val baseModuleName = moduleNode.implementedModule?.data?.internalName
     if (baseModuleName == null || sourceSetName == null) return baseModuleName
-    val delimiter = if(isQualifiedModuleNamesEnabled(project)) "." else "_"
+    val delimiter = if(isQualifiedModuleNamesEnabled()) "." else "_"
     return "$baseModuleName$delimiter$sourceSetName"
 }
 
