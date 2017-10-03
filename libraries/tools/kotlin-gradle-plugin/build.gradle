@@ -30,6 +30,10 @@ dependencies {
     compile project(':kotlin-gradle-plugin-api')
     compile project(path: ':kotlin-compiler-embeddable', configuration: "runtimeJar")
 
+    if (System.properties.'idea.active') {
+        compileOnly project(path: ':kotlin-compiler', configuration: 'fatJarContents')
+    }
+
     compile project(':kotlin-stdlib')
     compile project(':kotlin-android-extensions')
     compile project(':kotlin-build-common')
