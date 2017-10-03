@@ -22,6 +22,7 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -59,7 +60,7 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
     var compilerJarFile: File? = null
     var compilerClasspath: List<File>? = null
 
-    @get:Input
+    @get:InputFiles
     internal val computedCompilerClasspath: List<File>
         get() = compilerClasspath?.takeIf { it.isNotEmpty() }
                 ?: compilerJarFile?.let {
