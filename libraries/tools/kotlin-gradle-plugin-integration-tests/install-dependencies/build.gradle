@@ -2,13 +2,14 @@ plugins {
     id 'maven-publish'
 }
 
-configurations { toInstall }
+configurations { toInstall { transitive = true } }
 
 dependencies {
     toInstall "junit:junit:4.12"
 }
 
-def configurationsToInstall = [configurations.toInstall, project(":kotlin-gradle-plugin").configurations.runtimeClasspath]
+def configurationsToInstall = [configurations.toInstall,
+                               project(":kotlin-gradle-plugin").configurations.runtimeClasspath]
 
 def artifactsToInstall = configurationsToInstall.collect { config ->
     config.resolvedConfiguration
@@ -19,11 +20,12 @@ def artifactsToInstall = configurationsToInstall.collect { config ->
 publishing {
     publications {
         artifactsToInstall.each { resolvedArtifact ->
-            "${resolvedArtifact.moduleVersion.id.group}${resolvedArtifact.moduleVersion.id.name.capitalize()}"(MavenPublication) {
+            def id = resolvedArtifact.moduleVersion.id
+            "${id.group}${id.name.capitalize()}${id.version}"(MavenPublication) {
                 artifact resolvedArtifact.file
-                groupId resolvedArtifact.moduleVersion.id.group
-                artifactId resolvedArtifact.moduleVersion.id.name
-                version resolvedArtifact.moduleVersion.id.version
+                groupId id.group
+                artifactId id.name
+                version id.version
             }
         }
     }
