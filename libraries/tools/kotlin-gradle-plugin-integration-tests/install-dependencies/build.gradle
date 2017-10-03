@@ -26,7 +26,35 @@ publishing {
                 groupId id.group
                 artifactId id.name
                 version id.version
+                def pomFile = findPom(id.version, resolvedArtifact.file)
+                if (pomFile != null) {
+                    pom.withXml {
+                        asString().append(pomFile.text)
+                    }
+                }
             }
         }
     }
+}
+
+File findPom(def artifactVersion, File jar) {
+    def pomName = jar.name.replace(".jar", ".pom")
+
+    // Try to get POM from Gradle cache, which stores POM in a sibling directory to that of JAR:
+    if (jar.parentFile?.parentFile?.name == artifactVersion) {
+        File result = jar.parentFile.parentFile.listFiles().findResult { subDir ->
+            def pom = new File(subDir, pomName)
+            return pom.exists() ? pom : null
+        }
+        if (result != null) {
+            return result
+        }
+    }
+
+    def sameDirPom = new File(jar.parentFile, pomName)
+    if (sameDirPom.exists()) {
+        return sameDirPom
+    }
+
+    return null
 }
