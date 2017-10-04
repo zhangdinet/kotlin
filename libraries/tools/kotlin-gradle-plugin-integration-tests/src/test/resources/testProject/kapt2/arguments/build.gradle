@@ -12,6 +12,7 @@ apply plugin: "kotlin-kapt"
 
 repositories {
     mavenLocal()
+    jcenter()
 }
 
 dependencies {

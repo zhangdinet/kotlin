@@ -12,6 +12,7 @@ apply plugin: "kotlin"
 // APPLY_KAPT_PLUGIN
 
 repositories {
+    jcenter()
     mavenLocal()
 }
 
