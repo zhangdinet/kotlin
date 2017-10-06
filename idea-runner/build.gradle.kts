@@ -15,7 +15,7 @@ dependencies {
 
 
 val runIde by task<JavaExec> {
-    dependsOn(":dist", ":prepare:idea-plugin:idea-plugin", ":dist-plugin")
+    dependsOn(":dist", ":prepare:idea-plugin:idea-plugin", ":dist-plugin", ":kotlinx-serialization-compiler-plugin:dist")
 
     classpath = the<JavaPluginConvention>().sourceSets["main"].runtimeClasspath
 
@@ -24,6 +24,7 @@ val runIde by task<JavaExec> {
     workingDir = File(rootDir, "ideaSDK", "bin")
 
     val ideaPluginDir: File by rootProject.extra
+    val serialPluginDir: File by rootProject.extra
 
     jvmArgs(
             "-Xmx1250m",
@@ -37,7 +38,7 @@ val runIde by task<JavaExec> {
             "-Dapple.laf.useScreenMenuBar=true",
             "-Dapple.awt.graphics.UseQuartz=true",
             "-Dsun.io.useCanonCaches=false",
-            "-Dplugin.path=${ideaPluginDir.absolutePath}",
+            "-Dplugin.path=${ideaPluginDir.absolutePath}:${serialPluginDir.absolutePath}",
             "-Dkotlin.internal.mode.enabled=true",
             "-Didea.additional.classpath=../idea-kotlin-runtime/kotlin-runtime.jar,../idea-kotlin-runtime/kotlin-reflect.jar"
     )

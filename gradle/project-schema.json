@@ -1,7 +1,7 @@
 {
     ":": {
         "conventions": {
-            
+
         },
         "configurations": [
             "bootstrapCompile",
@@ -215,10 +215,10 @@
     },
     ":custom-dependencies": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -261,10 +261,10 @@
     },
     ":examples": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -451,10 +451,10 @@
     },
     ":js": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -1775,13 +1775,51 @@
     },
     ":kotlin-test": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
+        }
+    },
+    ":kotlinx-serialization-compiler-plugin": {
+        "conventions": {
+            "base": "org.gradle.api.plugins.BasePluginConvention",
+            "java": "org.gradle.api.plugins.JavaPluginConvention"
+        },
+        "configurations": [
+            "apiElements",
+            "archives",
+            "buildVersion",
+            "compile",
+            "compileClasspath",
+            "compileOnly",
+            "default",
+            "distJar",
+            "implementation",
+            "kapt",
+            "kaptTest",
+            "runtime",
+            "runtimeClasspath",
+            "runtimeElements",
+            "runtimeJar",
+            "runtimeOnly",
+            "testCompile",
+            "testCompileClasspath",
+            "testCompileOnly",
+            "testImplementation",
+            "testRuntime",
+            "testRuntimeClasspath",
+            "testRuntimeOnly"
+        ],
+        "extensions": {
+            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension",
+            "kotlin": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
+            "kapt": "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
+            "defaultArtifacts": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
+            "reporting": "org.gradle.api.reporting.ReportingExtension"
         }
     },
     ":noarg-ide-plugin": {
@@ -1823,10 +1861,10 @@
     },
     ":plugins": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -1834,10 +1872,10 @@
     },
     ":prepare": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -1882,10 +1920,10 @@
     },
     ":tools": {
         "conventions": {
-            
+
         },
         "configurations": [
-            
+
         ],
         "extensions": {
             "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
@@ -2739,7 +2777,7 @@
     },
     ":core:builtins": {
         "conventions": {
-            
+
         },
         "configurations": [
             "builtins"
@@ -2785,7 +2823,7 @@
     },
     ":custom-dependencies:protobuf-lite": {
         "conventions": {
-            
+
         },
         "configurations": [
             "default",
@@ -4157,7 +4195,7 @@
     },
     ":prepare:build.version": {
         "conventions": {
-            
+
         },
         "configurations": [
             "buildVersion"

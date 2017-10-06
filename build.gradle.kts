@@ -82,6 +82,7 @@ val distDir = "$rootDir/dist"
 val distKotlinHomeDir = "$distDir/kotlinc"
 val distLibDir = "$distKotlinHomeDir/lib"
 val ideaPluginDir = "$distDir/artifacts/Kotlin"
+val serialPluginDir = "$distDir/artifacts/Serialization"
 val ideaUltimatePluginDir = "$distDir/artifacts/KotlinUltimate"
 
 extra["distDir"] = distDir
@@ -89,6 +90,7 @@ extra["distKotlinHomeDir"] = distKotlinHomeDir
 extra["distLibDir"] = project.file(distLibDir)
 extra["libsDir"] = project.file(distLibDir)
 extra["ideaPluginDir"] = project.file(ideaPluginDir)
+extra["serialPluginDir"] = project.file(serialPluginDir)
 extra["ideaUltimatePluginDir"] = project.file(ideaUltimatePluginDir)
 extra["isSonatypeRelease"] = false
 
