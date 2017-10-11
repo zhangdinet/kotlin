@@ -102,6 +102,12 @@ public class NavigateToDecompiledLibraryTestGenerated extends AbstractNavigateTo
         doTest(fileName);
     }
 
+    @TestMetadata("PackagePartClass.kt")
+    public void testPackagePartClass() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackagePartClass.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("Property.kt")
     public void testProperty() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/Property.kt");

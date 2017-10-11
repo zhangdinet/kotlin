@@ -104,6 +104,12 @@ public class NavigateToLibrarySourceTestGenerated extends AbstractNavigateToLibr
             doTest(fileName);
         }
 
+        @TestMetadata("PackagePartClass.kt")
+        public void testPackagePartClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackagePartClass.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("Property.kt")
         public void testProperty() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/Property.kt");
@@ -200,6 +206,12 @@ public class NavigateToLibrarySourceTestGenerated extends AbstractNavigateToLibr
         @TestMetadata("OverloadedFunWithTypeParam.kt")
         public void testOverloadedFunWithTypeParam() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/OverloadedFunWithTypeParam.kt");
+            doWithJSModuleTest(fileName);
+        }
+
+        @TestMetadata("PackagePartClass.kt")
+        public void testPackagePartClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackagePartClass.kt");
             doWithJSModuleTest(fileName);
         }
 
