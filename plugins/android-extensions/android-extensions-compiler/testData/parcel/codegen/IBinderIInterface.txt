@@ -19,9 +19,10 @@ public final class User$Creator : java/lang/Object, android/os/Parcelable$Creato
           ALOAD (1)
           INVOKEVIRTUAL (android/os/Parcel, readInt, ()I)
           DUP
+          ISTORE (2)
           NEW
-          DUP_X1
-          SWAP
+          DUP
+          ILOAD (2)
           INVOKESPECIAL (java/util/ArrayList, <init>, (I)V)
         LABEL (L2)
           SWAP

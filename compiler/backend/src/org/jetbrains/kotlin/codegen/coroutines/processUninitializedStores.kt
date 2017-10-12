@@ -75,6 +75,11 @@ class UninitializedStoresProcessor(
         private val methodNode: MethodNode,
         private val shouldPreserveClassInitialization: Boolean
 ) {
+    companion object {
+        val AVOID_UNINITIALIZED_OBJECT_COPYING_CHECK_ANNOTATION_DESCRIPTOR =
+                "Lkotlin/internal/annotations/AvoidUninitializedObjectCopyingCheck;"
+    }
+
     // <init> method is "special", because it will invoke <init> from this class or from a base class for #0
     //
     // <clinit> method is "special", because <clinit> for singleton objects is generated as:
@@ -83,8 +88,12 @@ class UninitializedStoresProcessor(
     // and the newly created value is dropped.
     private val isInSpecialMethod = methodNode.name == "<init>" || methodNode.name == "<clinit>"
 
+    private val shouldCheckUninitializedObjectCopy = !methodNode.invisibleAnnotations.orEmpty()
+            .any { it.desc == AVOID_UNINITIALIZED_OBJECT_COPYING_CHECK_ANNOTATION_DESCRIPTOR }
+
     fun run() {
-        val interpreter = UninitializedNewValueMarkerInterpreter(methodNode.instructions)
+        val interpreter = UninitializedNewValueMarkerInterpreter(
+                methodNode.instructions, shouldCheckUninitializedObjectCopy)
 
         val frames = CustomFramesMethodAnalyzer(
                 "fake", methodNode, interpreter,
@@ -174,7 +183,7 @@ class UninitializedStoresProcessor(
         assert(insn.opcode == Opcodes.INVOKESPECIAL) { "Expected opcode Opcodes.INVOKESPECIAL for <init>, but ${insn.opcode} found" }
         val paramsCountIncludingReceiver = Type.getArgumentTypes((insn as MethodInsnNode).desc).size + 1
         val newValue = peek(paramsCountIncludingReceiver) as? UninitializedNewValue ?:
-                       if (isInSpecialMethod)
+                       if (isInSpecialMethod || !shouldCheckUninitializedObjectCopy)
                            return null
                        else
                            error("Expected value generated with NEW")
@@ -196,7 +205,10 @@ class UninitializedStoresProcessor(
 
     private fun AbstractInsnNode.isConstructorCall() = this is MethodInsnNode && this.name == "<init>"
 
-    private class UninitializedNewValueMarkerInterpreter(private val instructions: InsnList) : OptimizationBasicInterpreter() {
+    private class UninitializedNewValueMarkerInterpreter(
+            private val instructions: InsnList,
+            private val shouldCheckUninitializedObjectCopy: Boolean
+    ) : OptimizationBasicInterpreter() {
         val uninitializedValuesToRemovableUsages = hashMapOf<AbstractInsnNode, MutableSet<AbstractInsnNode>>()
         override fun newOperation(insn: AbstractInsnNode): BasicValue? {
             if (insn.opcode == Opcodes.NEW) {
@@ -234,6 +246,7 @@ class UninitializedStoresProcessor(
         }
 
         private fun checkUninitializedObjectCopy(newInsn: TypeInsnNode, usageInsn: AbstractInsnNode) {
+            if (!shouldCheckUninitializedObjectCopy) return
             when (usageInsn.opcode) {
                 Opcodes.DUP, Opcodes.ASTORE, Opcodes.ALOAD -> {}
                 else -> error("Unexpected copy instruction for ${newInsn.debugText}: ${usageInsn.debugText}")
