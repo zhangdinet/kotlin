@@ -104,9 +104,9 @@ public class NavigateToLibrarySourceTestGenerated extends AbstractNavigateToLibr
             doTest(fileName);
         }
 
-        @TestMetadata("PackagePartClass.kt")
-        public void testPackagePartClass() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackagePartClass.kt");
+        @TestMetadata("PackageNameFun.kt")
+        public void testPackageNameFun() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackageNameFun.kt");
             doTest(fileName);
         }
 
@@ -209,9 +209,9 @@ public class NavigateToLibrarySourceTestGenerated extends AbstractNavigateToLibr
             doWithJSModuleTest(fileName);
         }
 
-        @TestMetadata("PackagePartClass.kt")
-        public void testPackagePartClass() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackagePartClass.kt");
+        @TestMetadata("PackageNameFun.kt")
+        public void testPackageNameFun() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/navigation/usercode/PackageNameFun.kt");
             doWithJSModuleTest(fileName);
         }
 

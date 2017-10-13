@@ -3,10 +3,6 @@
 
 package testData.libraries
 
-class PackageNameClass
+val packageNameProp: Int = 1
 
-val packagePartProp: Int = 1
-
-fun packagePartFun() {
-}
-
+fun packageNameFun(): Int = 1

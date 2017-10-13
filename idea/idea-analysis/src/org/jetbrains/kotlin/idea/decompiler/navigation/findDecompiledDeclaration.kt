@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.BinaryModuleInfo
+import org.jetbrains.kotlin.idea.caches.resolve.IDEPackagePartProvider
 import org.jetbrains.kotlin.idea.caches.resolve.LOG
 import org.jetbrains.kotlin.idea.decompiler.KtDecompiledFile
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.DecompiledTextIndexer
@@ -115,7 +116,29 @@ private fun findCandidateDeclarationsInIndex(
     if (!DescriptorUtils.isTopLevelDeclaration(topLevelDeclaration)) return emptyList()
 
     val fqName = topLevelDeclaration.fqNameSafe.asString()
-    return when (topLevelDeclaration) {
+    val result = findTopLevelDeclarations(topLevelDeclaration, fqName, project, scope, referencedDescriptor)
+    if (result.isNotEmpty()) return result
+
+    val packageFqName = topLevelDeclaration.fqNameSafe.takeUnless { it.isRoot }?.parent() ?: return result
+    val packageParts = IDEPackagePartProvider(scope).findPackageParts(packageFqName.asString())
+    val renamedPackageNames = packageParts.mapTo(HashSet()) {
+        it.substringBeforeLast('/', "").replace('/', '.')
+    } - setOf(packageFqName.asString())
+
+    return renamedPackageNames.flatMap {
+        val renamedFqName = "$it.${topLevelDeclaration.name.asString()}"
+        findTopLevelDeclarations(topLevelDeclaration, renamedFqName, project, scope, referencedDescriptor)
+    }
+}
+
+private fun findTopLevelDeclarations(
+        baseDeclaration: DeclarationDescriptor,
+        fqName: String,
+        project: Project,
+        scope: GlobalSearchScope,
+        referencedDescriptor: DeclarationDescriptor
+): Collection<KtDeclaration?> {
+    return when (baseDeclaration) {
 
         is FunctionDescriptor -> KotlinTopLevelFunctionFqnNameIndex.getInstance().get(fqName, project, scope)
 
