@@ -240,6 +240,12 @@ allprojects {
         kotlinOptions {
             languageVersion = kotlinLanguageVersion
             apiVersion = kotlinLanguageVersion
+            freeCompilerArgs = listOf("-Xallow-kotlin-package")
+        }
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile> {
+        kotlinOptions {
             freeCompilerArgs = listOf("-Xallow-kotlin-package", "-Xnormalize-constructor-calls=enable")
         }
     }
