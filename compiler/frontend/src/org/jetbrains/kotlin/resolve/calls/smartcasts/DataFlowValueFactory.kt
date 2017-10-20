@@ -28,7 +28,8 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.before
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingContext.*
+import org.jetbrains.kotlin.resolve.BindingContext.BOUND_INITIALIZER_VALUE
+import org.jetbrains.kotlin.resolve.BindingContext.REFERENCE_TARGET
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.isSafeCall
@@ -155,7 +156,7 @@ object DataFlowValueFactory {
     class ExpressionIdentifierInfo(val expression: KtExpression, stableComplex: Boolean = false) : IdentifierInfo {
 
         override val kind = if (stableComplex) STABLE_COMPLEX_EXPRESSION else OTHER
-        
+
         override fun equals(other: Any?) = other is ExpressionIdentifierInfo && expression == other.expression
 
         override fun hashCode() = expression.hashCode()
@@ -325,6 +326,7 @@ object DataFlowValueFactory {
             bindingContext: BindingContext,
             accessElement: KtElement
     ): Boolean {
+        return true
         // All writers should be before access element, with the exception:
         // writer which is the same with declaration site does not count
         writers.mapNotNull { it.declaration }.forEach { writerDeclaration ->
