@@ -73,6 +73,7 @@ enum class LanguageFeature(
     ProhibitDataClassesOverridingCopy(KOTLIN_1_3),
     RestrictionOfWrongAnnotationsWithUseSiteTargetsOnTypes(KOTLIN_1_3),
     ProhibitInnerClassesOfGenericClassExtendingThrowable(KOTLIN_1_3),
+    VariableDeclarationInWhenSubject(KOTLIN_1_3),
 
     // Experimental features
 
