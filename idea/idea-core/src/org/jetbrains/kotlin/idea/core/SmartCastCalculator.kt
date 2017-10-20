@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.idea.util.getImplicitReceiversWithInstance
 import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoAfter
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoBefore
 import org.jetbrains.kotlin.resolve.calls.smartcasts.*
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
@@ -34,6 +33,8 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
+import org.jetbrains.kotlin.util.javaslang.component1
+import org.jetbrains.kotlin.util.javaslang.component2
 import java.util.*
 
 class SmartCastCalculator(
@@ -116,10 +117,10 @@ class SmartCastCalculator(
 
         val entityToInfo = HashMap<Any, SmartCastInfo>()
 
-        for ((dataFlowValue, types) in dataFlowInfo.completeTypeInfo.asMap().entries) {
+        for ((dataFlowValue, types) in dataFlowInfo.completeTypeInfo) {
             val entity = dataFlowValueToEntity.invoke(dataFlowValue)
             if (entity != null) {
-                entityToInfo[entity] = SmartCastInfo(types, false)
+                entityToInfo[entity] = SmartCastInfo(types.toJavaList(), false)
             }
         }
 
