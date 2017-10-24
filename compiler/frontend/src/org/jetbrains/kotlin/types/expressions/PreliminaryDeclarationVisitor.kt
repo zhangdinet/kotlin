@@ -28,13 +28,13 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 
 class PreliminaryDeclarationVisitor(
-        val declaration: KtDeclaration,
+        private val declaration: KtDeclaration,
         val languageVersionSettings: LanguageVersionSettings
 ): AssignedVariablesSearcher() {
 
-    override fun writers(variableDescriptor: VariableDescriptor): MutableSet<Writer> {
+    override fun writersInfo(variableDescriptor: VariableDescriptor): WritersInfo {
         lazyTrigger
-        return super.writers(variableDescriptor)
+        return super.writersInfo(variableDescriptor)
     }
 
     private val lazyTrigger by lazy {

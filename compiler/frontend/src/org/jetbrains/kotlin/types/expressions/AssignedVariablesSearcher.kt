@@ -16,46 +16,119 @@
 
 package org.jetbrains.kotlin.types.expressions
 
-import com.google.common.collect.LinkedHashMultimap
-import com.google.common.collect.SetMultimap
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.parents
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 abstract class AssignedVariablesSearcher: KtTreeVisitorVoid() {
 
-    data class Writer(val assignment: KtBinaryExpression, val declaration: KtDeclaration?)
+    private class DeclarationTreeNode(val declaration: KtDeclaration?) {
+        val children: MutableList<DeclarationTreeNode> = ContainerUtil.newSmartList()
+        val writersByName: MutableMap<Name, WritersInfo> = hashMapOf()
 
-    private val assignedNames: SetMultimap<Name, Writer> = LinkedHashMultimap.create()
+        fun updateInfoFromChildren() {
+            for (child in children) {
+                for ((name, childInfo) in child.writersByName) {
+                    val writerInfo = writersByName.getOrPut(name) { WritersInfo() }
+                    childInfo.assignmentWithMostEndOffset?.let {
+                        writerInfo.acceptAssignment(it)
+                        writerInfo.acceptInnerDeclarationWriter(child.declaration)
+                    }
 
-    open fun writers(variableDescriptor: VariableDescriptor): MutableSet<Writer> = assignedNames[variableDescriptor.name]
+                    childInfo.writerInnerDeclarationWithLeastStartOffset?.let(writerInfo::acceptInnerDeclarationWriter)
+                }
+            }
+        }
+    }
 
-    fun hasWriters(variableDescriptor: VariableDescriptor) = writers(variableDescriptor).isNotEmpty()
+    class WritersInfo {
+        var writerInnerDeclarationWithLeastStartOffset: KtDeclaration? = null
+            private set
 
+        var assignmentWithMostEndOffset: KtBinaryExpression? = null
+            private set
+
+        internal fun acceptAssignment(assignment: KtBinaryExpression) {
+            if (assignmentWithMostEndOffset.let { it == null || it.endOffset < assignment.endOffset }) {
+                assignmentWithMostEndOffset = assignment
+            }
+        }
+
+        internal fun acceptInnerDeclarationWriter(innerDeclaration: KtDeclaration?) {
+            if (innerDeclaration != null &&
+                writerInnerDeclarationWithLeastStartOffset.let { it == null || it.endOffset > innerDeclaration.endOffset }) {
+                writerInnerDeclarationWithLeastStartOffset = innerDeclaration
+            }
+        }
+
+        companion object {
+            val EMPTY = WritersInfo()
+        }
+
+        fun isEmpty() = assignmentWithMostEndOffset == null
+    }
+
+    private val declarationTreeNodes: MutableMap<KtDeclaration, DeclarationTreeNode> = hashMapOf()
+    private val rootDeclarationTreeNode = DeclarationTreeNode(null)
     private var currentDeclaration: KtDeclaration? = null
+    private var currentDeclarationTreeNode: DeclarationTreeNode = rootDeclarationTreeNode
+
+    open fun writersInfo(variableDescriptor: VariableDescriptor): WritersInfo {
+        val declaration = DescriptorToSourceUtils.descriptorToDeclaration(variableDescriptor) ?: return WritersInfo.EMPTY
+        val node = declaration.parents.firstNotNullResult { declarationTreeNodes[it] } ?: rootDeclarationTreeNode
+        return node.writersByName[variableDescriptor.name] ?: WritersInfo.EMPTY
+    }
+
+    fun hasWriters(variableDescriptor: VariableDescriptor) =
+            !writersInfo(variableDescriptor).isEmpty()
 
     override fun visitDeclaration(declaration: KtDeclaration) {
-        val previous = currentDeclaration
+
         if (declaration is KtDeclarationWithBody || declaration is KtClassOrObject || declaration is KtAnonymousInitializer) {
-            currentDeclaration = declaration
+            processDeclaration(declaration) {
+                super.visitDeclaration(declaration)
+            }
         }
-        super.visitDeclaration(declaration)
+        else {
+            super.visitDeclaration(declaration)
+        }
+
+    }
+
+    private inline fun processDeclaration(declaration: KtDeclaration, visitDeclaration: () -> Unit) {
+        val previous = currentDeclaration
+        val previousTreeNode = currentDeclarationTreeNode
+        currentDeclaration = declaration
+        currentDeclarationTreeNode = DeclarationTreeNode(declaration).also {
+            declarationTreeNodes[declaration] = it
+            previousTreeNode.children.add(it)
+        }
+
+        visitDeclaration()
+
+        currentDeclarationTreeNode.updateInfoFromChildren()
         currentDeclaration = previous
+        currentDeclarationTreeNode = previousTreeNode
     }
 
     override fun visitLambdaExpression(lambdaExpression: KtLambdaExpression) {
-        val previous = currentDeclaration
-        currentDeclaration = lambdaExpression.functionLiteral
-        super.visitLambdaExpression(lambdaExpression)
-        currentDeclaration = previous
+        processDeclaration(lambdaExpression.functionLiteral) {
+            super.visitLambdaExpression(lambdaExpression)
+        }
     }
 
     override fun visitBinaryExpression(binaryExpression: KtBinaryExpression) {
         if (binaryExpression.operationToken === KtTokens.EQ) {
             val left = KtPsiUtil.deparenthesize(binaryExpression.left)
             if (left is KtNameReferenceExpression) {
-                assignedNames.put(left.getReferencedNameAsName(), Writer(binaryExpression, currentDeclaration))
+                currentDeclarationTreeNode.writersByName.getOrPut(left.getReferencedNameAsName()) { WritersInfo() }
+                            .acceptAssignment(binaryExpression)
             }
         }
         super.visitBinaryExpression(binaryExpression)

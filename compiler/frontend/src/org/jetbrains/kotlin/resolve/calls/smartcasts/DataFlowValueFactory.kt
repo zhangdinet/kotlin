@@ -42,7 +42,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.expressions.AssignedVariablesSearcher.Writer
+import org.jetbrains.kotlin.types.expressions.AssignedVariablesSearcher.WritersInfo
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
 import org.jetbrains.kotlin.types.expressions.PreliminaryDeclarationVisitor
 import org.jetbrains.kotlin.types.isError
@@ -301,44 +301,29 @@ object DataFlowValueFactory {
 
     private fun hasNoWritersInClosures(
             variableContainingDeclaration: DeclarationDescriptor,
-            writers: Set<Writer>,
+            writersInfo: WritersInfo,
             bindingContext: BindingContext
     ): Boolean {
-        return writers.none { (_, writerDeclaration) ->
-            val writerDescriptor = writerDeclaration?.let {
-                ControlFlowInformationProvider.getDeclarationDescriptorIncludingConstructors(bindingContext, it)
-            }
-            writerDeclaration != null && variableContainingDeclaration != writerDescriptor
-        }
+        return writersInfo.writerInnerDeclarationWithLeastStartOffset == null
     }
 
     private fun isAccessedInsideClosureAfterAllWriters(
-            writers: Set<Writer>,
+            writersInfo: WritersInfo,
             accessElement: KtElement
     ): Boolean {
         val parent = ControlFlowInformationProvider.getElementParentDeclaration(accessElement) ?: return false
-        return writers.none { (assignment) -> !assignment.before(parent) }
+        val lastWriter = writersInfo.assignmentWithMostEndOffset ?: return true
+        return lastWriter.before(parent)
     }
 
     private fun isAccessedBeforeAllClosureWriters(
             variableContainingDeclaration: DeclarationDescriptor,
-            writers: Set<Writer>,
+            writersInfo: WritersInfo,
             bindingContext: BindingContext,
             accessElement: KtElement
     ): Boolean {
-        return true
-        // All writers should be before access element, with the exception:
-        // writer which is the same with declaration site does not count
-        writers.mapNotNull { it.declaration }.forEach { writerDeclaration ->
-            val writerDescriptor = ControlFlowInformationProvider.getDeclarationDescriptorIncludingConstructors(
-                    bindingContext, writerDeclaration)
-            // Access is after some writerDeclaration
-            if (variableContainingDeclaration != writerDescriptor && !accessElement.before(writerDeclaration)) {
-                return false
-            }
-        }
-        // Access is before all writers
-        return true
+        val firstClosureDeclaration = writersInfo.writerInnerDeclarationWithLeastStartOffset ?: return true
+        return accessElement.before(firstClosureDeclaration)
     }
 
     private fun propertyKind(propertyDescriptor: PropertyDescriptor, usageModule: ModuleDescriptor?): Kind {
@@ -374,16 +359,16 @@ object DataFlowValueFactory {
 
         // Analyze who writes variable
         // If there is no writer: stable
-        val writers = preliminaryVisitor.writers(variableDescriptor)
-        if (writers.isEmpty()) return STABLE_VARIABLE
+        val writersInfo = preliminaryVisitor.writersInfo(variableDescriptor)
+        if (writersInfo.isEmpty()) return STABLE_VARIABLE
 
         // If access element is inside closure: captured
         val variableContainingDeclaration = variableDescriptor.containingDeclaration
         if (isAccessedInsideClosure(variableContainingDeclaration, bindingContext, accessElement)) {
             // stable iff we have no writers in closures AND this closure is AFTER all writers
             return if (preliminaryVisitor.languageVersionSettings.supportsFeature(LanguageFeature.CapturedInClosureSmartCasts) &&
-                       hasNoWritersInClosures(variableContainingDeclaration, writers, bindingContext) &&
-                       isAccessedInsideClosureAfterAllWriters(writers, accessElement)) {
+                       hasNoWritersInClosures(variableContainingDeclaration, writersInfo, bindingContext) &&
+                       isAccessedInsideClosureAfterAllWriters(writersInfo, accessElement)) {
                 STABLE_VARIABLE
             }
             else {
@@ -392,7 +377,7 @@ object DataFlowValueFactory {
         }
 
         // Otherwise, stable iff considered position is BEFORE all writers except declarer itself
-        return if (isAccessedBeforeAllClosureWriters(variableContainingDeclaration, writers, bindingContext, accessElement))
+        return if (isAccessedBeforeAllClosureWriters(variableContainingDeclaration, writersInfo, bindingContext, accessElement))
             STABLE_VARIABLE
         else
             CAPTURED_VARIABLE
