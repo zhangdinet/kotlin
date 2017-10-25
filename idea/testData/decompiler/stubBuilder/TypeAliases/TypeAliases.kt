@@ -25,4 +25,10 @@ class TypeAliases {
     @Ann
     @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
     private typealias Parametrized<E, F> = Map<E, F>
+
+    fun delete(path: String, body: P<Unit>) {}
+    fun delete(body: P<Unit>) {}
 }
+
+typealias P<TSubject> = suspend (TSubject) -> Unit
+
