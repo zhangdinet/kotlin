@@ -26,9 +26,10 @@ class TypeAliases {
     @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
     private typealias Parametrized<E, F> = Map<E, F>
 
-    fun delete(path: String, body: P<Unit>) {}
-    fun delete(body: P<Unit>) {}
+    fun order(path: String) {}
+    fun order(body: Z) {}
 }
 
-typealias P<TSubject> = suspend (TSubject) -> Unit
+
+typealias Z = dependency.SomeClass // dependency.SomeClass is before (lexicography) kotlin.String, but test.Z is after
 
