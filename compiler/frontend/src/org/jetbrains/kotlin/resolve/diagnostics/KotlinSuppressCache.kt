@@ -33,14 +33,10 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.util.ExtensionProvider
+import java.util.*
 
 interface SuppressStringProvider {
     operator fun get(annotationDescriptor: AnnotationDescriptor): List<String>
-
-    companion object {
-        val EP_NAME: ExtensionPointName<SuppressStringProvider> =
-                ExtensionPointName.create<SuppressStringProvider>("org.jetbrains.kotlin.suppressStringProvider")
-    }
 }
 
 interface DiagnosticSuppressor {
@@ -55,7 +51,9 @@ interface DiagnosticSuppressor {
 abstract class KotlinSuppressCache {
     private val LOG = Logger.getInstance(DiagnosticsWithSuppression::class.java)
 
-    private val ADDITIONAL_SUPPRESS_STRING_PROVIDERS = ExtensionProvider.create(SuppressStringProvider.EP_NAME)
+    private val ADDITIONAL_SUPPRESS_STRING_PROVIDERS =
+            ServiceLoader.load(SuppressStringProvider::class.java, SuppressStringProvider::class.java.classLoader)
+
     private val DIAGNOSTIC_SUPPRESSORS = ExtensionProvider.create(DiagnosticSuppressor.EP_NAME)
 
     // The cache is weak: we're OK with losing it
@@ -167,7 +165,7 @@ abstract class KotlinSuppressCache {
     }
 
     private fun processAnnotation(builder: ImmutableSet.Builder<String>, annotationDescriptor: AnnotationDescriptor) {
-        for (suppressStringProvider in ADDITIONAL_SUPPRESS_STRING_PROVIDERS.get()) {
+        for (suppressStringProvider in ADDITIONAL_SUPPRESS_STRING_PROVIDERS) {
             builder.addAll(suppressStringProvider[annotationDescriptor])
         }
 
