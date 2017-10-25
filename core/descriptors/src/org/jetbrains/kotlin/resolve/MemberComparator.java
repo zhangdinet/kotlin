@@ -34,6 +34,21 @@ import static org.jetbrains.kotlin.resolve.DescriptorUtils.isEnumEntry;
 public class MemberComparator implements Comparator<DeclarationDescriptor> {
     public static final MemberComparator INSTANCE = new MemberComparator();
 
+    private static final DescriptorRenderer RENDERER = DescriptorRenderer.Companion.withOptions(
+            new Function1<DescriptorRendererOptions, Unit>() {
+                @Override
+                public Unit invoke(DescriptorRendererOptions options) {
+                    options.setWithDefinedIn(false);
+                    options.setVerbose(true);
+                    options.setAnnotationArgumentsRenderingPolicy(AnnotationArgumentsRenderingPolicy.UNLESS_EMPTY);
+                    options.setModifiers(DescriptorRendererModifier.ALL);
+                    return Unit.INSTANCE;
+                }
+            });
+
+    private MemberComparator() {
+    }
+
     public static class NameAndTypeMemberComparator implements Comparator<DeclarationDescriptor> {
         public static final NameAndTypeMemberComparator INSTANCE = new NameAndTypeMemberComparator();
 
@@ -90,21 +105,6 @@ public class MemberComparator implements Comparator<DeclarationDescriptor> {
 
             return 0;
         }
-    }
-
-    private static final DescriptorRenderer RENDERER = DescriptorRenderer.Companion.withOptions(
-            new Function1<DescriptorRendererOptions, Unit>() {
-                @Override
-                public Unit invoke(DescriptorRendererOptions options) {
-                    options.setWithDefinedIn(false);
-                    options.setVerbose(true);
-                    options.setAnnotationArgumentsRenderingPolicy(AnnotationArgumentsRenderingPolicy.UNLESS_EMPTY);
-                    options.setModifiers(DescriptorRendererModifier.ALL);
-                    return Unit.INSTANCE;
-                }
-            });
-
-    private MemberComparator() {
     }
 
     @Override
