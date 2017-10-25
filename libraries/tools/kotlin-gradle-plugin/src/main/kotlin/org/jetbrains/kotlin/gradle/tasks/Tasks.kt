@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.tasks.Input
@@ -164,7 +163,8 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
             val baseName = project.convention.findPlugin(BasePluginConvention::class.java)?.archivesBaseName
                     ?: project.name
             val suffix = if (sourceSetName == "main") "" else "_$sourceSetName"
-            return "$baseName$suffix"
+            val filteredBaseName = baseName.replace(invalidModuleNameCharacters, "_")
+            return "$filteredBaseName$suffix"
         }
 
     @Suppress("UNCHECKED_CAST")
@@ -240,7 +240,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 }
 
 open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), KotlinJvmCompile {
-    internal var parentKotlinOptionsImpl: KotlinJvmOptionsImpl? = null
+    open internal var parentKotlinOptionsImpl: KotlinJvmOptionsImpl? = null
     private val kotlinOptionsImpl = KotlinJvmOptionsImpl()
     override val kotlinOptions: KotlinJvmOptions
             get() = kotlinOptionsImpl
@@ -488,6 +488,8 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
         throwGradleExceptionIfError(exitCode)
     }
 }
+
+private val invalidModuleNameCharacters = "[\\\\/\\r\\n\\t]".toRegex()
 
 private fun Task.getGradleVersion(): ParsedGradleVersion? {
     val gradleVersion = project.gradle.gradleVersion
