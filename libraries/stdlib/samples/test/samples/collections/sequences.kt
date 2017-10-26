@@ -107,7 +107,7 @@ class Sequences {
             assertPrints(sequence.toList(), "[one, three, two]")
 
             // the resulting sequence is one-shot
-            assertFails { sequence.toList() }
+            assertFails("Consuming the sequence second time") { sequence.toList() }
         }
 
         @Sample

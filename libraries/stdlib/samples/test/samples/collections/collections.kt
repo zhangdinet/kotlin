@@ -82,7 +82,7 @@ class Collections {
 
             assertTrue(list == other, "Empty lists are equal")
             assertPrints(list, "[]")
-            assertFails { list[0] }
+            assertFails("Getting element from an empty list") { list[0] }
         }
 
         @Sample
