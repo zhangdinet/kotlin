@@ -3,11 +3,21 @@ apply { plugin("kotlin") }
 
 jvmTarget = "1.6"
 
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core", "jps-standalone")
+}
+
 dependencies {
     compile(projectDist(":kotlin-stdlib"))
     compile(project(":core:deserialization"))
-    compile(ideaSdkCoreDeps(*(rootProject.extra["ideaCoreSdkJars"] as Array<String>)))
-    compile(ideaSdkDeps("jps-model.jar", subdir = "jps"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijCoreJar())
+        compile(intellijCoreJarDependencies())
+        compile(intellijExtra("jps-standalone") { include("jps-model.jar") })
+    }
 }
 
 sourceSets {
