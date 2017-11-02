@@ -1,11 +1,20 @@
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core")
+}
+
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":js:js.ast"))
-    compile(ideaSdkCoreDeps("intellij-core"))
     compile(preloadedDeps("json-org"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijCoreJar())
+    }
 }
 
 sourceSets {
