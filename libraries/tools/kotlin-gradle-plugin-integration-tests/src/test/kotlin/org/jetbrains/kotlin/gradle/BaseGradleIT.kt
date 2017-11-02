@@ -360,7 +360,7 @@ abstract class BaseGradleIT {
 
     fun CompiledProject.assertTasksExecuted(tasks: Iterable<String>) {
         for (task in tasks) {
-            assertContains("Executing task '$task'")
+            assertContainsRegex("(Executing actions for task|Executing task) '$task'".toRegex())
         }
     }
 
@@ -425,6 +425,26 @@ abstract class BaseGradleIT {
             else
                 assertSameFiles(sources, compiledJavaSources.projectRelativePaths(this.project), "Compiled Java files differ:\n  ")
 
+    fun Project.resourcesDir(subproject: String? = null, sourceSet: String = "main") =
+            (subproject?.plus("/") ?: "") + "build/" +
+            (if (GradleVersion.version(chooseWrapperVersionOrFinishTest()) < GradleVersion.version("4.0"))
+                "classes/"
+            else "resources/") +
+            sourceSet + "/"
+
+    fun Project.classesDir(subproject: String? = null, sourceSet: String = "main", language: String = "kotlin") =
+            (subproject?.plus("/") ?: "") + "build/classes/" +
+            (if (GradleVersion.version(chooseWrapperVersionOrFinishTest()) >= GradleVersion.version("4.0"))
+                "$language/"
+            else "") +
+            sourceSet + "/"
+
+    fun CompiledProject.kotlinClassesDir(subproject: String? = null, sourceSet: String = "main") =
+            project.classesDir(subproject, sourceSet, language = "kotlin")
+
+    fun CompiledProject.javaClassesDir(subproject: String? = null, sourceSet: String = "main") =
+            project.classesDir(subproject, sourceSet, language = "java")
+
     private fun Project.createBuildCommand(wrapperDir: File, params: Array<out String>, options: BuildOptions): List<String> =
             createGradleCommand(wrapperDir, createGradleTailParameters(options, params))
 
@@ -461,6 +481,10 @@ abstract class BaseGradleIT {
                 if (options.withBuildCache) {
                     add("--build-cache")
                 }
+
+                // Workaround: override a console type set in the user machine gradle.properties (since Gradle 4.3):
+                add("--console=plain")
+
                 addAll(options.freeCommandLineArgs)
             }
 
