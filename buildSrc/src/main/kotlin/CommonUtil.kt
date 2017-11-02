@@ -12,7 +12,7 @@ import java.io.File
 inline fun <reified T : Task> Project.task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
 
 
-fun AbstractTask.dependsOnTaskIfExists(task: String, project: Project?, parentProject: Project?) {
+fun Task.dependsOnTaskIfExists(task: String, project: Project?, parentProject: Project?) {
     val thisTask = this
     val p = project ?: this.project
     p.afterEvaluate {
@@ -25,7 +25,7 @@ fun AbstractTask.dependsOnTaskIfExists(task: String, project: Project?, parentPr
     }
 }
 
-fun AbstractTask.dependsOnTaskIfExistsRec(task: String, project: Project? = null, parentProject: Project? = null) {
+fun Task.dependsOnTaskIfExistsRec(task: String, project: Project? = null, parentProject: Project? = null) {
     dependsOnTaskIfExists(task, project, parentProject)
     (project ?: this.project).subprojects.forEach {
         dependsOnTaskIfExistsRec(task, it, this.project)
