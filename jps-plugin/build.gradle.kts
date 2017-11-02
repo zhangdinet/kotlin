@@ -2,6 +2,10 @@ apply { plugin("kotlin") }
 
 val compilerModules: Array<String> by rootProject.extra
 
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core", "jps-standalone", "jps-build-test")
+}
+
 dependencies {
     compile(project(":kotlin-build-common"))
     compile(project(":core:descriptors"))
@@ -12,22 +16,26 @@ dependencies {
     compile(project(":compiler:frontend.java"))
     compile(projectRuntimeJar(":kotlin-preloader"))
     compile(project(":idea:idea-jps-common"))
-    compile(ideaSdkDeps("jps-builders", "jps-builders-6", subdir = "jps"))
     testCompile(project(":compiler:incremental-compilation-impl"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":compiler:incremental-compilation-impl"))
-    testCompile(ideaSdkDeps("openapi", "idea"))
-    testCompileOnly(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
     testCompile(commonDep("junit:junit"))
     testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":kotlin-build-common"))
     compilerModules.forEach {
         testRuntime(project(it))
     }
-    testRuntime(ideaSdkCoreDeps("*.jar"))
-    testRuntime(ideaSdkDeps("*.jar"))
-    testRuntime(ideaSdkDeps("*.jar", subdir = "jps/test"))
-    testRuntime(ideaSdkDeps("*.jar", subdir = "jps"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijExtra("jps-standalone") { include("jps-builders.jar", "jps-builders-6.jar") })
+        testCompile(intellij { include("openapi.jar", "idea.jar") })
+        testCompile(intellijExtra("jps-build-test"))
+        testRuntime(intellijCoreJar())
+        testRuntime(intellij())
+        testRuntime(intellijExtra("jps-standalone"))
+    }
 }
 
 sourceSets {
