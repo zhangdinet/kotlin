@@ -3,6 +3,10 @@ description = "Kotlin NoArg IDEA Plugin"
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setPlugins("gradle", "maven")
+}
+
 dependencies {
     compile(project(":kotlin-noarg-compiler-plugin"))
     compile(project(":compiler:util"))
@@ -13,11 +17,15 @@ dependencies {
     compile(project(":idea"))
     compile(project(":idea:idea-jps-common"))
     compile(project(":plugins:annotation-based-compiler-plugins-ide-support"))
-    compile(ideaSdkDeps("openapi", "idea"))
-    compile(ideaPluginDeps("maven", plugin = "maven"))
-    compile(ideaPluginDeps("gradle-tooling-api", "gradle", plugin = "gradle"))
 }
 
+afterEvaluate {
+    dependencies {
+        compile(intellij { include("openapi.jar", "idea.jar") })
+        compile(intellijPlugin("maven") { include("maven.jar") })
+        compile(intellijPlugin("gradle") { include("gradle-tooling-api-*.jar", "gradle.jar") })
+    }
+}
 
 sourceSets {
     "main" { projectDefault() }

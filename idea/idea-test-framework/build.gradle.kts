@@ -1,6 +1,8 @@
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin()
+
 dependencies {
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.script"))
@@ -10,7 +12,12 @@ dependencies {
     compile(project(":idea:idea-jps-common"))
     compile(project(":kotlin-test:kotlin-test-jvm"))
     compile(commonDep("junit:junit"))
-    compile(ideaSdkDeps("openapi", "idea"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellij { include("openapi.jar", "idea.jar") })
+    }
 }
 
 sourceSets {

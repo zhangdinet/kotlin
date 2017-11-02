@@ -3,15 +3,25 @@ description = "Kotlin Gradle Tooling support"
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setPlugins("gradle")
+}
+
 dependencies {
     compile(projectDist(":kotlin-stdlib"))
     compile(project(":compiler:cli-common"))
-    compile(ideaSdkDeps("gradle-tooling-api",
-                        "gradle-tooling-extension-api",
-                        "gradle",
-                        "gradle-core",
-                        "gradle-base-services-groovy",
-                        subdir = "plugins/gradle/lib"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijPlugin("gradle") {
+            include("gradle-tooling-api-*.jar",
+                    "gradle-tooling-extension-api.jar",
+                    "gradle.jar",
+                    "gradle-core-*.jar",
+                    "gradle-base-services-groovy-*.jar")
+        })
+    }
 }
 
 sourceSets {

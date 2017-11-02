@@ -3,6 +3,12 @@ import org.gradle.jvm.tasks.Jar
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setPlugins("android", "copyright", "coverage", "gradle", "Groovy", "IntelliLang",
+               "java-i18n", "junit", "maven", "properties", "testng")
+    setExtraDependencies("intellij-core")
+}
+
 dependencies {
     compile(project(":kotlin-stdlib"))
     compile(project(":core:descriptors"))
@@ -27,17 +33,7 @@ dependencies {
     compile(project(":idea:kotlin-gradle-tooling"))
     compile(project(":plugins:uast-kotlin"))
     compile(project(":plugins:uast-kotlin-idea"))
-//    compile(project(":kotlin-daemon-client")) { isTransitive = false }
     compile(project(":kotlin-script-util")) { isTransitive = false }
-
-    compile(ideaSdkCoreDeps("intellij-core", "util"))
-
-    compileOnly(ideaSdkDeps("openapi", "idea", "velocity", "boot", "gson", "swingx-core", "jsr305", "forms_rt"))
-
-    compile(ideaPluginDeps("IntelliLang", plugin = "IntelliLang"))
-    compile(ideaPluginDeps("copyright", plugin = "copyright"))
-    compile(ideaPluginDeps("properties", plugin = "properties"))
-    compile(ideaPluginDeps("java-i18n", plugin = "java-i18n"))
 
     compile(preloadedDeps("markdown", "kotlinx-coroutines-core"))
 
@@ -48,23 +44,6 @@ dependencies {
     testCompile(project(":idea:idea-gradle")) { isTransitive = false }
     testCompile(project(":idea:idea-maven")) { isTransitive = false }
     testCompile(commonDep("junit:junit"))
-
-    testCompileOnly(ideaPluginDeps("gradle-base-services", "gradle-tooling-extension-impl", "gradle-wrapper", plugin = "gradle"))
-    testCompileOnly(ideaPluginDeps("Groovy", plugin = "Groovy"))
-    testCompileOnly(ideaPluginDeps("maven", "maven-server-api", plugin = "maven"))
-
-    testCompileOnly(ideaSdkDeps("groovy-all", "velocity", "gson", "jsr305", "idea_rt"))
-
-    testRuntime(ideaSdkDeps("*.jar"))
-
-    testRuntime(ideaPluginDeps("*.jar", plugin = "junit"))
-    testRuntime(ideaPluginDeps("resources_en", plugin = "properties"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "gradle"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "Groovy"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "coverage"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "maven"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "android"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "testng"))
 
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
     testRuntime(projectDist(":kotlin-preloader"))
@@ -85,6 +64,24 @@ dependencies {
 
     (rootProject.extra["compilerModules"] as Array<String>).forEach {
         testCompile(project(it))
+    }
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijCoreJar())
+        compile(intellij { include("util.jar") })
+        compileOnly(intellij {
+            include("openapi.jar", "idea.jar", "velocity.jar", "boot.jar", "gson-*.jar",
+                    "swingx-core-*.jar", "jsr305.jar", "forms_rt.jar")
+        })
+        compile(intellijPlugins("IntelliLang", "copyright", "properties", "java-i18n"))
+        testCompileOnly(intellij { include("groovy-all-*.jar", "velocity.jar", "gson-*.jar", "jsr305.jar", "idea_rt.jar") })
+        testCompileOnly(intellijPlugin("gradle") { include("gradle-base-services-*.jar", "gradle-tooling-extension-impl.jar", "gradle-wrapper-*.jar") })
+        testCompileOnly(intellijPlugin("Groovy") { include("Groovy.jar") })
+        testCompileOnly(intellijPlugin("maven") { include("maven.jar", "maven-server-api.jar") })
+        testRuntime(intellij())
+        testRuntime(intellijPlugins("junit", "gradle", "Groovy", "coverage", "maven", "android", "testng"))
     }
 }
 
