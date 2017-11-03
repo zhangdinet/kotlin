@@ -3,14 +3,23 @@ description = "Kotlin Android Extensions Compiler"
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core")
+}
+
 dependencies {
-    compile(ideaSdkCoreDeps("intellij-core"))
     compile(project(":compiler:util"))
     compile(project(":compiler:plugin-api"))
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:backend"))
     compileOnly(project(":kotlin-android-extensions-runtime"))
+}
+
+afterEvaluate {
+    dependencies {
+        compile(intellijCoreJar())
+    }
 }
 
 sourceSets {

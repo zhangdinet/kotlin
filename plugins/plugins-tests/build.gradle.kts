@@ -1,6 +1,11 @@
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setExtraDependencies("jps-build-test")
+    setPlugins("android", "gradle", "junit")
+}
+
 dependencies {
     testCompile(project(":compiler:util"))
     testCompile(project(":compiler:backend"))
@@ -22,16 +27,19 @@ dependencies {
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":jps-plugin"))
     testCompile(commonDep("junit:junit"))
-    testCompileOnly(ideaSdkDeps("jps-builders"))
-    testCompile(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
-    testCompile(ideaPluginDeps("*.jar", plugin = "android", subdir = "lib/jps"))
     testRuntime(project(":jps-plugin"))
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
-    testRuntime(ideaSdkDeps("*.jar"))
-    testRuntime(ideaPluginDeps("idea-junit", "resources_en", plugin = "junit"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "gradle"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "android"))
     testRuntime(preloadedDeps("dx", subdir = "android-5.0/lib"))
+}
+
+afterEvaluate {
+    dependencies {
+        testCompileOnly(intellij { include("jps-builders.jar") })
+        testCompile(intellijExtra("jps-build-test"))
+        testRuntime(intellij())
+        testRuntime(intellijPlugin("junit") { include("idea-junit.jar", "resources_en.jar") })
+        testRuntime(intellijPlugins("gradle", "android"))
+    }
 }
 
 sourceSets {

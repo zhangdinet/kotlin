@@ -3,6 +3,8 @@ description = "Annotation Processor for Kotlin"
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin()
+
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":compiler:cli"))
@@ -11,8 +13,13 @@ dependencies {
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:plugin-api"))
     testCompile(projectTests(":compiler:tests-common"))
-    testCompile(ideaSdkDeps("idea", "idea_rt", "openapi"))
     testCompile(commonDep("junit:junit"))
+}
+
+afterEvaluate {
+    dependencies {
+        testCompile(intellij { include("idea.jar", "idea_rt.jar", "openapi.jar") })
+    }
 }
 
 sourceSets {
