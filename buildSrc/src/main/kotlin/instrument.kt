@@ -103,7 +103,7 @@ open class IntelliJInstrumentCodeTask : ConventionTask() {
         logger.info("input files are: ${originalClassesDirs?.joinToString("; ", transform = { "'${it.name}'${if (it.exists()) "" else " (does not exists)" }"})}")
         copyOriginalClasses()
 
-        val classpath = project.ideaSdkDeps("javac2.jar", "jdom.jar", "asm-all.jar", "jgoodies-forms.jar")
+        val classpath = project.intellij { include("javac2.jar", "jdom.jar", "asm-all.jar", "jgoodies-forms.jar") }
 
         ant.withGroovyBuilder {
             "taskdef"("name" to "instrumentIdeaExtensions",
@@ -113,7 +113,7 @@ open class IntelliJInstrumentCodeTask : ConventionTask() {
         }
 
         logger.info("Compiling forms and instrumenting code with nullability preconditions")
-        val instrumentNotNull = prepareNotNullInstrumenting(classpath)
+        val instrumentNotNull = prepareNotNullInstrumenting(classpath.asPath)
         instrumentCode(sourceDirs, instrumentNotNull)
     }
 
@@ -124,10 +124,10 @@ open class IntelliJInstrumentCodeTask : ConventionTask() {
         }
     }
 
-    private fun prepareNotNullInstrumenting(classpath: ConfigurableFileCollection): Boolean {
+    private fun prepareNotNullInstrumenting(classpath: String): Boolean {
         ant.withGroovyBuilder {
             "typedef"("name"  to "skip",
-                      "classpath" to classpath.asPath,
+                      "classpath" to classpath,
                       "loaderref" to LOADER_REF,
                       "classname" to FILTER_ANNOTATION_REGEXP_CLASS)
         }
