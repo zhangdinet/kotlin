@@ -71,7 +71,7 @@ dependencies {
     fatJarContents(commonDep("com.google.code.findbugs", "jsr305"))
     fatJarContents(commonDep("io.javaslang", "javaslang"))
     fatJarContents(preloadedDeps("json-org"))
-    fatJarContents(preloadedDeps("kotlinx-coroutines-core"))
+    fatJarContents(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-core")) { isTransitive = false }
 
     proguardLibraryJars(files(firstFromJavaHomeThatExists("lib/rt.jar", "../Classes/classes.jar"),
             firstFromJavaHomeThatExists("lib/jsse.jar", "../Classes/jsse.jar"),
