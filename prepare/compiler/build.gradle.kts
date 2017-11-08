@@ -70,7 +70,7 @@ dependencies {
     fatJarContents(protobufFull())
     fatJarContents(commonDep("com.google.code.findbugs", "jsr305"))
     fatJarContents(commonDep("io.javaslang", "javaslang"))
-    fatJarContents(preloadedDeps("json-org"))
+    fatJarContents(commonDep("org.json", "json"))
     fatJarContents(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-core")) { isTransitive = false }
 
     proguardLibraryJars(files(firstFromJavaHomeThatExists("lib/rt.jar", "../Classes/classes.jar"),

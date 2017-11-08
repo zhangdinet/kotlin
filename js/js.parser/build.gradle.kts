@@ -8,7 +8,7 @@ configureIntellijPlugin {
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":js:js.ast"))
-    compile(preloadedDeps("json-org"))
+    compile(commonDep("org.json", "json"))
 }
 
 afterEvaluate {
