@@ -457,6 +457,7 @@ configure<IdeaModel> {
     module {
         excludeDirs = files(
                 project.buildDir,
+                commonLocalDataDir,
                 ".gradle",
                 "dependencies",
                 "dist",
