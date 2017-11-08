@@ -1,5 +1,6 @@
 
 import org.gradle.jvm.tasks.Jar
+import org.jetbrains.intellij.IntelliJPluginExtension
 
 apply { plugin("kotlin") }
 
@@ -104,6 +105,9 @@ sourceSets {
 projectTest {
     dependsOnTaskIfExistsRec("dist", project = rootProject)
     workingDir = rootDir
+    afterEvaluate {
+        systemProperty("ideaSdk.path", the<IntelliJPluginExtension>().ideaDependency.classes.canonicalPath)
+    }
 }
 
 testsJar {}

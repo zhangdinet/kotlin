@@ -1,3 +1,4 @@
+import org.jetbrains.intellij.IntelliJPluginExtension
 
 apply { plugin("kotlin") }
 
@@ -55,4 +56,9 @@ projectTest {
     environment("ANDROID_EXTENSIONS_RUNTIME_CLASSES", getSourceSetsFrom(":kotlin-android-extensions-runtime")["main"].output.classesDirs.asPath)
     dependsOnTaskIfExistsRec("dist", project = rootProject)
     workingDir = rootDir
+    afterEvaluate {
+        val androidPluginPath = project.the<IntelliJPluginExtension>().pluginDependencies.find { it.id == "android" }?.jarFiles?.first()?.parentFile?.canonicalPath
+                                ?: throw GradleException("idea android plugin is not configured")
+        systemProperty("ideaSdk.androidPlugin.path", androidPluginPath)
+    }
 }
