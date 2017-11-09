@@ -37,7 +37,7 @@ class CodegenTestsOnAndroidRunner private constructor(private val pathManager: P
         val rootSuite = TestSuite("Root")
 
         downloadDependencies()
-        val emulator = Emulator(pathManager, Emulator.ARM)
+        val emulator = Emulator(pathManager, Emulator.X86)
         emulator.createEmulator()
 
         val gradleRunner = GradleRunner(pathManager)
