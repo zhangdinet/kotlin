@@ -54,6 +54,11 @@ class LazyTopDownAnalyzer(
     fun analyzeDeclarations(
             topDownAnalysisMode: TopDownAnalysisMode,
             declarations: Collection<PsiElement>,
+            /**
+             * DFA
+             *
+             * This parameter is actually used in LocalClassifierAnalyzer
+             */
             outerDataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY
     ): TopDownAnalysisContext {
         val c = TopDownAnalysisContext(topDownAnalysisMode, outerDataFlowInfo, declarationScopeProvider)
@@ -191,6 +196,15 @@ class LazyTopDownAnalyzer(
             declaration.accept(visitor)
         }
 
+        /**
+         * DFA
+         *
+         * Here we need DFI because we may have to resolve function body
+         * And if it is local function, then DFI matters
+         * And it *can* be local function, because LocalClassifierAnalyzer re-uses LazyTopDownAnalyzer
+         *
+         * Same for properties ofc
+         */
         createFunctionDescriptors(c, functions)
 
         createPropertyDescriptors(c, topLevelFqNames, properties)
@@ -212,6 +226,9 @@ class LazyTopDownAnalyzer(
 
         overloadResolver.checkOverloads(c)
 
+        /**
+         * DFA
+         */
         bodyResolver.resolveBodies(c)
 
         resolveImportsInAllFiles(c)
