@@ -127,6 +127,9 @@ extra["versions.kotlinx-coroutines-jdk8"] = "0.14.1"
 extra["versions.json"] = "20160807"
 extra["versions.native-platform"] = "0.14"
 
+val markdownVer =  "4054 - Kotlin 1.0.2-dev-566".replace(" ", "%20") // fixed here, was last with "status:SUCCESS,tag:forKotlin"
+extra["markdownParserRepo"] = "https://teamcity.jetbrains.com/guestAuth/repository/download/IntelliJMarkdownParser_Build/$markdownVer/([artifact]_[ext]/)[artifact](.[ext])"
+
 // the former "ideaSdk/core" dir contents without intellij-core.jar
 extra["IntellijCoreDependencies"] =
         listOf("annotations.jar",
@@ -272,6 +275,9 @@ allprojects {
     repositories {
         for (repo in (rootProject.extra["repos"] as List<String>)) {
             maven { setUrl(repo) }
+        }
+        ivy {
+            artifactPattern(rootProject.extra["markdownParserRepo"] as String)
         }
     }
     configureJvmProject(javaHome!!, jvmTarget!!)

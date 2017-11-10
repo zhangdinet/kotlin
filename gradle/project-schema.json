@@ -969,6 +969,7 @@
             "compileOnly",
             "default",
             "distJar",
+            "fatJarContents",
             "implementation",
             "kapt",
             "kaptTest",
@@ -2078,6 +2079,8 @@
             "compileClasspath",
             "compileOnly",
             "default",
+            "idea",
+            "ideaPlugins",
             "implementation",
             "kapt",
             "kaptTest",
@@ -2099,7 +2102,8 @@
             "kotlin": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
             "kapt": "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
             "defaultArtifacts": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
-            "reporting": "org.gradle.api.reporting.ReportingExtension"
+            "reporting": "org.gradle.api.reporting.ReportingExtension",
+            "intellij": "org.jetbrains.intellij.IntelliJPluginExtension"
         }
     },
     ":compiler:android-tests": {
@@ -3206,13 +3210,28 @@
             
         },
         "configurations": [
+            "archives",
             "default",
-            "relocated",
-            "shadow"
+            "relocatedProtobuf",
+            "relocatedProtobufSources"
         ],
         "extensions": {
-            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension",
-            "shadow": "com.github.jengelman.gradle.plugins.shadow.ShadowExtension"
+            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
+        }
+    },
+    ":custom-dependencies:protobuf-relocated": {
+        "conventions": {
+            
+        },
+        "configurations": [
+            "archives",
+            "baseProtobuf",
+            "baseProtobufSources",
+            "default",
+            "sources"
+        ],
+        "extensions": {
+            "ext": "org.gradle.api.plugins.ExtraPropertiesExtension"
         }
     },
     ":examples:annotation-processor-example": {
@@ -4474,6 +4493,8 @@
             "compileClasspath",
             "compileOnly",
             "default",
+            "idea",
+            "ideaPlugins",
             "implementation",
             "kapt",
             "kaptTest",
@@ -4494,7 +4515,8 @@
             "kotlin": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
             "kapt": "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
             "defaultArtifacts": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
-            "reporting": "org.gradle.api.reporting.ReportingExtension"
+            "reporting": "org.gradle.api.reporting.ReportingExtension",
+            "intellij": "org.jetbrains.intellij.IntelliJPluginExtension"
         }
     },
     ":plugins:annotation-based-compiler-plugins-ide-support": {
@@ -4973,6 +4995,8 @@
             "compileClasspath",
             "compileOnly",
             "default",
+            "idea",
+            "ideaPlugins",
             "implementation",
             "kapt",
             "kaptTest",
@@ -4993,7 +5017,8 @@
             "kotlin": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
             "kapt": "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
             "defaultArtifacts": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
-            "reporting": "org.gradle.api.reporting.ReportingExtension"
+            "reporting": "org.gradle.api.reporting.ReportingExtension",
+            "intellij": "org.jetbrains.intellij.IntelliJPluginExtension"
         }
     },
     ":kotlin-test:kotlin-test-js:kotlin-test-js-it": {
