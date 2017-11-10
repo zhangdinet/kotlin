@@ -1291,10 +1291,6 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
             // left argument is considered not-null if it's not-null also in right part or if we have jump in right part
             if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
                 dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings);
-                if (left instanceof KtBinaryExpressionWithTypeRHS) {
-                    dataFlowInfo = establishSubtypingForTypeRHS((KtBinaryExpressionWithTypeRHS) left, dataFlowInfo, context,
-                                                                components.languageVersionSettings);
-                }
             }
             DataFlowValue resultValue = DataFlowValueFactory.createDataFlowValue(expression, type, context);
             dataFlowInfo =
@@ -1321,28 +1317,6 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
                                                 dataFlowInfo,
                                                 loopBreakContinuePossible,
                                                 context.dataFlowInfo);
-    }
-
-    @NotNull
-    private static DataFlowInfo establishSubtypingForTypeRHS(
-            @NotNull KtBinaryExpressionWithTypeRHS left,
-            @NotNull DataFlowInfo dataFlowInfo,
-            @NotNull ExpressionTypingContext context,
-            @NotNull LanguageVersionSettings languageVersionSettings
-    ) {
-        IElementType operationType = left.getOperationReference().getReferencedNameElementType();
-        if (operationType == AS_SAFE) {
-            KtExpression underSafeAs = left.getLeft();
-            KotlinType underSafeAsType = context.trace.getType(underSafeAs);
-            if (underSafeAsType != null) {
-                DataFlowValue underSafeAsValue = createDataFlowValue(underSafeAs, underSafeAsType, context);
-                KotlinType targetType = context.trace.get(BindingContext.TYPE, left.getRight());
-                if (targetType != null) {
-                    return dataFlowInfo.establishSubtyping(underSafeAsValue, targetType, languageVersionSettings);
-                }
-            }
-        }
-        return dataFlowInfo;
     }
 
     @NotNull
