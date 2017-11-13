@@ -7,6 +7,8 @@ configureIntellijPlugin {
     setPlugins("android", "gradle", "junit")
 }
 
+val robolectricClasspath by configurations.creating
+
 dependencies {
     testCompile(project(":compiler:util"))
     testCompile(project(":compiler:backend"))
@@ -31,6 +33,7 @@ dependencies {
     testRuntime(project(":jps-plugin"))
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
     testRuntime(preloadedDeps("dx", subdir = "android-5.0/lib"))
+    robolectricClasspath(commonDep("org.robolectric", "robolectric"))
 }
 
 afterEvaluate {
@@ -60,5 +63,6 @@ projectTest {
         val androidPluginPath = project.the<IntelliJPluginExtension>().pluginDependencies.find { it.id == "android" }?.jarFiles?.first()?.parentFile?.canonicalPath
                                 ?: throw GradleException("idea android plugin is not configured")
         systemProperty("ideaSdk.androidPlugin.path", androidPluginPath)
+        systemProperty("robolectric.classpath", robolectricClasspath.asPath)
     }
 }
