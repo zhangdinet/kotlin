@@ -42,9 +42,8 @@ import kotlin.coroutines.experimental.processBareContinuationResume
 @SinceKotlin("1.1")
 @kotlin.internal.InlineOnly
 @Suppress("UNUSED_PARAMETER")
-// todo: this shall be ordinary function, but, unfortunately, bootstrap compiler does not have suspendCoroutineUninterceptedOrReturn and intercepted intrinsics
 public inline suspend fun <T> suspendCoroutineOrReturn(crossinline block: (Continuation<T>) -> Any?): T =
-        throw NotImplementedError("Implementation is intrinsic")
+        suspendCoroutineUninterceptedOrReturn { cont -> block(cont.intercepted()) }
 
 /**
  * Obtains the current continuation instance inside suspend functions and either suspends

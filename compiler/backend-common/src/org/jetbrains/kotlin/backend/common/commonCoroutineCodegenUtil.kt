@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
-val SUSPEND_COROUTINE_OR_RETURN_NAME = Name.identifier("suspendCoroutineOrReturn")
 val INTERCEPTED_NAME = Name.identifier("intercepted")
 val COROUTINE_SUSPENDED_NAME = Name.identifier("COROUTINE_SUSPENDED")
 
@@ -43,21 +42,6 @@ fun FunctionDescriptor.isBuiltInIntercepted(): Boolean {
                     .singleOrNull() as CallableDescriptor
     return DescriptorEquivalenceForOverrides.areEquivalent(original, this)
 }
-
-fun FunctionDescriptor.isBuiltInSuspendCoroutineOrReturn(): Boolean {
-    if (name != SUSPEND_COROUTINE_OR_RETURN_NAME) return false
-
-    val originalDeclaration = getBuiltInSuspendCoroutineOrReturn() ?: return false
-
-    return DescriptorEquivalenceForOverrides.areEquivalent(
-            originalDeclaration, this
-    )
-}
-
-fun FunctionDescriptor.getBuiltInSuspendCoroutineOrReturn() =
-        module.getPackage(COROUTINES_INTRINSICS_PACKAGE_FQ_NAME).memberScope
-                .getContributedFunctions(SUSPEND_COROUTINE_OR_RETURN_NAME, NoLookupLocation.FROM_BACKEND)
-                .singleOrNull()
 
 fun FunctionDescriptor.isBuiltInCoroutineContext() =
         (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe == COROUTINE_CONTEXT_FQ_NAME

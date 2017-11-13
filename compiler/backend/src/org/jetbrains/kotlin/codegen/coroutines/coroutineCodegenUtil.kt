@@ -172,7 +172,7 @@ private fun NewResolvedCallImpl<VariableDescriptor>.asDummyOldResolvedCall(bindi
 fun ResolvedCall<*>.isSuspendNoInlineCall() =
         resultingDescriptor.safeAs<FunctionDescriptor>()
                 ?.let {
-                    it.isSuspend && (!it.isInline || it.isBuiltInSuspendCoroutineOrReturnInJvm() || it.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm())
+                    it.isSuspend && (!it.isInline || it.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm())
                 } == true
 
 fun CallableDescriptor.isSuspendFunctionNotSuspensionView(): Boolean {
@@ -244,49 +244,6 @@ fun ModuleDescriptor.getContinuationOfTypeOrAny(kotlinType: KotlinType) =
                     arguments = listOf(kotlinType.asTypeProjection())
             )
         } ?: module.builtIns.nullableAnyType
-
-fun FunctionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm() =
-        getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineOrReturn() == true
-
-fun createMethodNodeForSuspendCoroutineOrReturn(
-        functionDescriptor: FunctionDescriptor,
-        typeMapper: KotlinTypeMapper
-): MethodNode {
-    assert(functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm()) {
-        "functionDescriptor must be kotlin.coroutines.intrinsics.suspendOrReturn"
-    }
-
-    val node =
-            MethodNode(
-                    Opcodes.ASM5,
-                    Opcodes.ACC_STATIC,
-                    "fake",
-                    typeMapper.mapAsmMethod(functionDescriptor).descriptor, null, null
-            )
-
-    node.visitVarInsn(Opcodes.ALOAD, 0)
-    node.visitVarInsn(Opcodes.ALOAD, 1)
-
-    node.visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            INTERNAL_COROUTINE_INTRINSICS_OWNER_INTERNAL_NAME,
-            NORMALIZE_CONTINUATION_METHOD_NAME,
-            Type.getMethodDescriptor(CONTINUATION_ASM_TYPE, CONTINUATION_ASM_TYPE),
-            false
-    )
-
-    node.visitMethodInsn(
-            Opcodes.INVOKEINTERFACE,
-            typeMapper.mapType(functionDescriptor.valueParameters[0]).internalName,
-            OperatorNameConventions.INVOKE.identifier,
-            "(${AsmTypes.OBJECT_TYPE})${AsmTypes.OBJECT_TYPE}",
-            true
-    )
-    node.visitInsn(Opcodes.ARETURN)
-    node.visitMaxs(2, 2)
-
-    return node
-}
 
 fun FunctionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm() =
         getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineUninterceptedOrReturn() == true
