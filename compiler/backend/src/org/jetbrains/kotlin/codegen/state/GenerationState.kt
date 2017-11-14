@@ -189,7 +189,7 @@ class GenerationState @JvmOverloads constructor(
 
         this.interceptedBuilderFactory = builderFactory
                 .wrapWith(
-                    { OptimizationClassBuilderFactory(it, disableOptimization, constructorCallNormalizationMode) },
+                    { OptimizationClassBuilderFactory(it, disableOptimization, constructorCallNormalizationMode, module) },
                     { BuilderFactoryForDuplicateSignatureDiagnostics(
                             it, this.bindingContext, diagnostics, this.moduleName,
                             shouldGenerate = { !shouldOnlyCollectSignatures(it) }

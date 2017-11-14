@@ -20,27 +20,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory;
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilderFactory;
 import org.jetbrains.kotlin.config.JVMConstructorCallNormalizationMode;
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 
 public class OptimizationClassBuilderFactory extends DelegatingClassBuilderFactory {
     private final boolean disableOptimization;
     private final JVMConstructorCallNormalizationMode constructorCallNormalizationMode;
+    private final ModuleDescriptor moduleDescriptor;
 
     public OptimizationClassBuilderFactory(
             ClassBuilderFactory delegate,
             boolean disableOptimization,
-            JVMConstructorCallNormalizationMode constructorCallNormalizationMode
+            JVMConstructorCallNormalizationMode constructorCallNormalizationMode,
+            ModuleDescriptor moduleDescriptor
     ) {
         super(delegate);
         this.disableOptimization = disableOptimization;
         this.constructorCallNormalizationMode = constructorCallNormalizationMode;
+        this.moduleDescriptor = moduleDescriptor;
     }
 
     @NotNull
     @Override
     public OptimizationClassBuilder newClassBuilder(@NotNull JvmDeclarationOrigin origin) {
         return new OptimizationClassBuilder(
-                getDelegate().newClassBuilder(origin), disableOptimization, constructorCallNormalizationMode
+                getDelegate().newClassBuilder(origin), disableOptimization, constructorCallNormalizationMode, moduleDescriptor
         );
     }
 }

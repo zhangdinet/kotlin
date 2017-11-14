@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.codegen.ClassBuilder;
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilder;
 import org.jetbrains.kotlin.config.JVMConstructorCallNormalizationMode;
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
@@ -28,15 +29,18 @@ public class OptimizationClassBuilder extends DelegatingClassBuilder {
     private final ClassBuilder delegate;
     private final boolean disableOptimization;
     private final JVMConstructorCallNormalizationMode constructorCallNormalizationMode;
+    private final ModuleDescriptor moduleDescriptor;
 
     public OptimizationClassBuilder(
             @NotNull ClassBuilder delegate,
             boolean disableOptimization,
-            JVMConstructorCallNormalizationMode constructorCallNormalizationMode
+            JVMConstructorCallNormalizationMode constructorCallNormalizationMode,
+            ModuleDescriptor moduleDescriptor
     ) {
         this.delegate = delegate;
         this.disableOptimization = disableOptimization;
         this.constructorCallNormalizationMode = constructorCallNormalizationMode;
+        this.moduleDescriptor = moduleDescriptor;
     }
 
     @NotNull
@@ -57,7 +61,7 @@ public class OptimizationClassBuilder extends DelegatingClassBuilder {
     ) {
         return new OptimizationMethodVisitor(
                 super.newMethod(origin, access, name, desc, signature, exceptions),
-                disableOptimization, constructorCallNormalizationMode,
+                disableOptimization, constructorCallNormalizationMode, moduleDescriptor,
                 access, name, desc, signature, exceptions
         );
     }
