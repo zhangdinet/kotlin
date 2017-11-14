@@ -1044,14 +1044,14 @@ public fun abs(n: Int): Int = if (n < 0) (-n or 0) else n
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.2")
-@InlineOnly
+@Suppress("NOTHING_TO_INLINE")
 public inline fun min(a: Int, b: Int): Int = minOf(a, b)
 
 /**
  * Returns the greater of two values.
  */
 @SinceKotlin("1.2")
-@InlineOnly
+@Suppress("NOTHING_TO_INLINE")
 public inline fun max(a: Int, b: Int): Int = maxOf(a, b)
 
 /**
@@ -1096,14 +1096,14 @@ public fun abs(n: Long): Long = if (n < 0) -n else n
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.2")
-@InlineOnly
+@Suppress("NOTHING_TO_INLINE")
 public inline fun min(a: Long, b: Long): Long = minOf(a, b)
 
 /**
  * Returns the greater of two values.
  */
 @SinceKotlin("1.2")
-@InlineOnly
+@Suppress("NOTHING_TO_INLINE")
 public inline fun max(a: Long, b: Long): Long = maxOf(a, b)
 
 /**
