@@ -1,3 +1,8 @@
+import org.gradle.plugins.ide.idea.model.IdeaModel
+
+plugins {
+    idea
+}
 
 apply { plugin("kotlin") }
 
@@ -20,4 +25,12 @@ sourceSets {
         java.srcDir("../js.inliner/src")
     }
     "test" {}
+}
+
+configure<IdeaModel> {
+    module {
+        excludeDirs = files(
+                "testData/out-min"
+        ).toSet()
+    }
 }
