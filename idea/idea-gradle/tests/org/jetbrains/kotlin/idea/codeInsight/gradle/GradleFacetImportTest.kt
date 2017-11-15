@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.framework.CommonLibraryKind
 import org.jetbrains.kotlin.idea.framework.JSLibraryKind
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
+import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -1057,7 +1058,7 @@ compileTestKotlin {
             include ':js-module'
         """)
         createProjectSubFile("local.properties", """
-            sdk.dir=/${StringUtil.escapeBackSlashes(File(homePath).parent + "/dependencies/androidSDK")}
+            sdk.dir=/${KotlinTestUtils.findAndroidSdk()}
         """)
         importProject()
 
@@ -1126,7 +1127,7 @@ compileTestKotlin {
             }
         """)
         createProjectSubFile("local.properties", """
-            sdk.dir=/${StringUtil.escapeBackSlashes(File(homePath).parent + "/dependencies/androidSDK")}
+            sdk.dir=/${KotlinTestUtils.findAndroidSdk()}
         """)
         createProjectSubFile("src/main/AndroidManifest.xml", """
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"

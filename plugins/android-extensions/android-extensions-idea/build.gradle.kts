@@ -52,6 +52,7 @@ testsJar {}
 projectTest {
     dependsOn(":kotlin-android-extensions-runtime:dist")
     workingDir = rootDir
+    systemProperty("android.sdk", androidSdkPath())
 }
 
 runtimeJar()

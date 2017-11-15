@@ -27,7 +27,7 @@ dependencies {
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common-jvm6"))
     testCompile(commonDep("junit:junit"))
-    testCompile(preloadedDeps("dx", subdir = "android-5.0/lib"))
+    testCompile(project(":custom-dependencies:android-sdk", configuration = "dxJar"))
 }
 
 afterEvaluate {

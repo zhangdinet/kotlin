@@ -32,7 +32,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testRuntime(project(":jps-plugin"))
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
-    testRuntime(preloadedDeps("dx", subdir = "android-5.0/lib"))
+    testRuntime(project(":custom-dependencies:android-sdk", configuration = "dxJar"))
     robolectricClasspath(commonDep("org.robolectric", "robolectric"))
 }
 
@@ -65,4 +65,6 @@ projectTest {
         systemProperty("ideaSdk.androidPlugin.path", androidPluginPath)
         systemProperty("robolectric.classpath", robolectricClasspath.asPath)
     }
+    systemProperty("android.jar", androidJarPath())
+    systemProperty("android.sdk", androidSdkPath())
 }
