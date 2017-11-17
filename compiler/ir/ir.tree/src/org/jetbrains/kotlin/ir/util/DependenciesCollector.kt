@@ -16,10 +16,7 @@
 
 package org.jetbrains.kotlin.ir.util
 
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 
@@ -55,7 +52,9 @@ class DependenciesCollector {
     fun addTopLevelDeclaration(symbol: IrSymbol) {
         val descriptor = symbol.descriptor
         val topLevelDeclaration = getTopLevelDeclaration(descriptor)
-        addTopLevelDescriptor(topLevelDeclaration)
+        if (topLevelDeclaration !is ModuleDescriptor) {
+            addTopLevelDescriptor(topLevelDeclaration)
+        }
     }
 
     private fun getTopLevelDeclaration(descriptor: DeclarationDescriptor): DeclarationDescriptor {
@@ -63,7 +62,14 @@ class DependenciesCollector {
         return when (containingDeclaration) {
             is PackageFragmentDescriptor -> descriptor
             is ClassDescriptor -> getTopLevelDeclaration(containingDeclaration)
-            else -> throw AssertionError("Package or class expected: $containingDeclaration")
+            else ->
+                if (descriptor is PropertyAccessorDescriptor && descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED && containingDeclaration is ModuleDescriptor) {
+                    //property accessors syntax for java getter/setters generate syntetic accessor in Module
+                    containingDeclaration
+                }
+                else {
+                    throw AssertionError("Package or class expected: $containingDeclaration")
+                }
         }
     }
 
