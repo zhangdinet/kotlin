@@ -6,5 +6,7 @@ public fun notNullWhenNotNull(/*0*/ x: kotlin.Int?): kotlin.Int?
 public fun nullWhenNull(/*0*/ x: kotlin.Int?): kotlin.Int?
     Returns(NOT_NULL) -> x != null
 
-public fun testNotNullWhenNotNull(/*0*/ x: kotlin.Int?): kotlin.Unit
-public fun testNullWhenNull(/*0*/ x: kotlin.Int?): kotlin.Unit
+public fun testA(/*0*/ x: kotlin.Int?): kotlin.Unit
+public fun testB(/*0*/ x: kotlin.Int?): kotlin.Unit
+public fun testC(/*0*/ x: kotlin.Int?): kotlin.Unit
+public fun testD(/*0*/ x: kotlin.Int?): kotlin.Unit

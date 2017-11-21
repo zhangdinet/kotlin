@@ -26,6 +26,16 @@ fun testBasicEquals(x: Int?) {
     else {
         <!DEBUG_INFO_SMARTCAST!>x<!>.inc()
     }
+}
+
+fun testBasicEqualsSpilling(x: Int?) {
+    x<!UNSAFE_CALL!>.<!>inc()
+
+    if (myEqualsNull(x)) {
+    }
+    else {
+        <!DEBUG_INFO_SMARTCAST!>x<!>.inc()
+    }
 
     x<!UNSAFE_CALL!>.<!>inc()
 }
@@ -38,6 +48,14 @@ fun testBasicNotEquals(x: Int?) {
     }
     else {
         x<!UNSAFE_CALL!>.<!>inc()
+    }
+}
+
+fun testBasicNotEqualsSpilling(x: Int?) {
+    x<!UNSAFE_CALL!>.<!>inc()
+
+    if (myEqualsNotNull(x)) {
+        <!DEBUG_INFO_SMARTCAST!>x<!>.inc()
     }
 
     x<!UNSAFE_CALL!>.<!>inc()
