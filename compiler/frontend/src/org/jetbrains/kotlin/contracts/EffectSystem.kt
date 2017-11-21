@@ -38,6 +38,19 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.smartcasts.ConditionalDataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 
+/**
+ * NB. All methods in this class are heavily relying on the fact that all passed expressions
+ * are properly resolved, and corresponding slices are written to the trace.
+ *
+ * Premature calls can lead to situation, when empty effect info is inferred and cached,
+ * effectively disabling all effect system-related features.
+ *
+ * List of used slices:
+ * - EXPRESSION_TYPE_INFO
+ * - CALL
+ * - RESOLVED_CALL
+ * - COMPILE_TIME_VALUE
+ */
 class EffectSystem(val languageVersionSettings: LanguageVersionSettings) {
 
     fun getDataFlowInfoForFinishedCall(
