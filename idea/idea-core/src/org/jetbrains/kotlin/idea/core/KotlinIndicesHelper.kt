@@ -46,7 +46,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DeprecationResolver
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
-import org.jetbrains.kotlin.resolve.scopes.collectSyntheticStaticFunctions
+import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesMetadata
 import org.jetbrains.kotlin.types.KotlinType
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -443,7 +443,8 @@ class KotlinIndicesHelper(
 
                     // SAM-adapter
                     val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java)
-                    syntheticScopes.collectSyntheticStaticFunctions(container.staticScope, descriptor.name, NoLookupLocation.FROM_IDE)
+                    syntheticScopes.provideSyntheticScope(container.staticScope, SyntheticScopesMetadata(needStaticFunctions = true))
+                            .getContributedFunctions(descriptor.name, NoLookupLocation.FROM_IDE)
                             .filterIsInstance<SamAdapterDescriptor<*>>()
                             .firstOrNull { it.baseDescriptorForSynthetic.original == descriptor.original }
                             ?.let { processor(it) }

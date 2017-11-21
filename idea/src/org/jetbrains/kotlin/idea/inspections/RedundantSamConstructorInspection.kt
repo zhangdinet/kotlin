@@ -45,8 +45,7 @@ import org.jetbrains.kotlin.resolve.calls.model.isReallySuccess
 import org.jetbrains.kotlin.resolve.calls.util.DelegatingCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
-import org.jetbrains.kotlin.resolve.scopes.collectSyntheticMemberFunctions
-import org.jetbrains.kotlin.resolve.scopes.collectSyntheticStaticFunctions
+import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesMetadata
 import org.jetbrains.kotlin.synthetic.SamAdapterExtensionFunctionDescriptor
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.keysToMapExceptNulls
@@ -188,23 +187,23 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
             val syntheticScopes = functionCall.getResolutionFacade().getFrontendService(SyntheticScopes::class.java)
 
             // SAM adapters for static functions
-            val contributedFunctions = syntheticScopes.collectSyntheticStaticFunctions(containingClass.staticScope)
+            val contributedFunctions = syntheticScopes.provideSyntheticScope(containingClass.staticScope, SyntheticScopesMetadata(needStaticFunctions = true))
+                    .getContributedDescriptors().filterIsInstance<SamAdapterDescriptor<*>>()
             for (staticFunWithSameName in contributedFunctions) {
-                if (staticFunWithSameName is SamAdapterDescriptor<*>) {
-                    if (isSamAdapterSuitableForCall(staticFunWithSameName, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
-                        return samConstructorCallArgumentMap.takeIf { canBeReplaced(functionCall, it) }?.values ?: emptyList()
-                    }
+                if (isSamAdapterSuitableForCall(staticFunWithSameName, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
+                    return samConstructorCallArgumentMap.takeIf { canBeReplaced(functionCall, it) }?.values ?: emptyList()
                 }
             }
 
             // SAM adapters for member functions
-            val syntheticExtensions = syntheticScopes.collectSyntheticMemberFunctions(
-                    listOf(containingClass.defaultType),
-                    functionResolvedCall.resultingDescriptor.name,
-                    NoLookupLocation.FROM_IDE)
+            val syntheticExtensions = syntheticScopes.provideSyntheticScope(
+                    containingClass.defaultType.memberScope,
+                    SyntheticScopesMetadata(needMemberFunctions = true)
+            ).getContributedFunctions(functionResolvedCall.resultingDescriptor.name,NoLookupLocation.FROM_IDE)
+                    .filterIsInstance<SamAdapterExtensionFunctionDescriptor>()
+
             for (syntheticExtension in syntheticExtensions) {
-                val samAdapter = syntheticExtension as? SamAdapterExtensionFunctionDescriptor ?: continue
-                if (isSamAdapterSuitableForCall(samAdapter, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
+                if (isSamAdapterSuitableForCall(syntheticExtension, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
                     return samConstructorCallArgumentMap.takeIf { canBeReplaced(functionCall, it) }?.values ?: emptyList()
                 }
             }

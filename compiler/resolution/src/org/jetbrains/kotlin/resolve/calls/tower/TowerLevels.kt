@@ -165,9 +165,11 @@ internal class MemberScopeTowerLevel(
     }
 
     override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
-        return collectMembers {
-            getContributedFunctions(name, location) + it.getInnerConstructors(name, location) +
-            syntheticScopes.collectSyntheticMemberFunctions(listOfNotNull(it), name, location)
+        return collectMembers { type ->
+            type.getInnerConstructors(name, location) + syntheticScopes.provideSyntheticScope(
+                    this,
+                    SyntheticScopesMetadata(needMemberFunctions = true)
+            ).getContributedFunctions(name, location)
         }
     }
 
@@ -193,8 +195,7 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
     override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
             .getContributedFunctionsAndConstructors(name,
                                                     location,
-                                                    scopeTower.syntheticScopes,
-                                                    qualifier.staticScope).map {
+                                                    scopeTower.syntheticScopes).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
@@ -222,8 +223,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
     override fun getFunctions(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver>
             = resolutionScope.getContributedFunctionsAndConstructors(name,
                                                                      location,
-                                                                     scopeTower.syntheticScopes,
-                                                                     resolutionScope).map {
+                                                                     scopeTower.syntheticScopes).map {
                 createCandidateDescriptor(it, dispatchReceiver = null)
             }
 
@@ -246,8 +246,15 @@ internal class SyntheticScopeBasedTowerLevel(
     override fun getVariables(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?): Collection<CandidateWithBoundDispatchReceiver> {
         if (extensionReceiver == null) return emptyList()
 
-        return syntheticScopes.collectSyntheticExtensionProperties(extensionReceiver.allTypes, name, location).map {
-            createCandidateDescriptor(it, dispatchReceiver = null)
+        val processedScopes = hashSetOf<ResolutionScope>()
+        return extensionReceiver.allTypes.flatMap { type ->
+            if (!processedScopes.add(type.memberScope)) emptyList()
+            else syntheticScopes.provideSyntheticScope(
+                    type.memberScope,
+                    SyntheticScopesMetadata(needExtensionProperties = true)
+            ).getContributedVariables(name, location).filterIsInstance<SyntheticPropertyDescriptor>().map { property ->
+                createCandidateDescriptor(property, dispatchReceiver = null)
+            }
         }
     }
 
@@ -311,12 +318,12 @@ private fun KotlinType?.getInnerConstructors(name: Name, location: LookupLocatio
 private fun ResolutionScope.getContributedFunctionsAndConstructors(
         name: Name,
         location: LookupLocation,
-        syntheticScopes: SyntheticScopes,
-        scope: ResolutionScope
+        syntheticScopes: SyntheticScopes
 ): Collection<FunctionDescriptor> {
-    val result = ArrayList<FunctionDescriptor>(getContributedFunctions(name, location))
+    val synthetic = syntheticScopes.provideSyntheticScope(this, SyntheticScopesMetadata(needStaticFunctions = true, needConstructors = true))
+    val result = ArrayList<FunctionDescriptor>(synthetic.getContributedFunctions(name, location))
 
-    val classifier = getContributedClassifier(name, location)
+    val classifier = synthetic.getContributedClassifier(name, location)
     val callableConstructors = when (classifier) {
         is TypeAliasDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
         is ClassDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
@@ -324,9 +331,6 @@ private fun ResolutionScope.getContributedFunctionsAndConstructors(
     }
 
     callableConstructors.filterTo(result) { it.dispatchReceiverParameter == null }
-
-    result.addAll(syntheticScopes.collectSyntheticStaticFunctions(scope, name, location))
-    result.addAll(syntheticScopes.collectSyntheticConstructors(scope, name, location))
 
     return result.toList()
 }

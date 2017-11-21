@@ -974,6 +974,12 @@ public class BlackBoxAgainstJavaCodegenTestGenerated extends AbstractBlackBoxAga
             doTest(fileName);
         }
 
+        @TestMetadata("publicField.kt")
+        public void testPublicField() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxAgainstJava/syntheticExtensions/publicField.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("setter.kt")
         public void testSetter() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxAgainstJava/syntheticExtensions/setter.kt");
