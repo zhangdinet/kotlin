@@ -29,12 +29,12 @@ fun intersectingInfo(x: Any?, y: Any?) {
     if ((isString(x) && y is String) || (!notIsString(x) && !notIsInt(y))) {
         <!DEBUG_INFO_SMARTCAST!>x<!>.length
         y.<!UNRESOLVED_REFERENCE!>length<!>
-        y.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        y.<!NONE_APPLICABLE!>inc<!>()
     }
     else {
         x.<!UNRESOLVED_REFERENCE!>length<!>
         y.<!UNRESOLVED_REFERENCE!>length<!>
-        y.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        y.<!NONE_APPLICABLE!>inc<!>()
     }
 }
 
@@ -47,13 +47,13 @@ fun intersectingInfo2(x: Any?, y: Any?) {
         (!notIsString(x) && isString(y) && y is Int) ||
         (x is String && !notIsInt(y) && x is Int)) {
         <!DEBUG_INFO_SMARTCAST!>x<!>.length
-        x.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        x.<!NONE_APPLICABLE!>inc<!>()
         y.<!UNRESOLVED_REFERENCE!>length<!>
-        y.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        y.<!NONE_APPLICABLE!>inc<!>()
     }
     x.<!UNRESOLVED_REFERENCE!>length<!>
-    x.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+    x.<!NONE_APPLICABLE!>inc<!>()
     y.<!UNRESOLVED_REFERENCE!>length<!>
-    y.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+    y.<!NONE_APPLICABLE!>inc<!>()
 }
 

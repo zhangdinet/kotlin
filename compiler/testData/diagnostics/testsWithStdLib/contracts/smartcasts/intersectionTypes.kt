@@ -26,7 +26,7 @@ fun testDeMorgan(x: Any?) {
     }
     else {
         x.<!UNRESOLVED_REFERENCE!>length<!>
-        x.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        x.<!NONE_APPLICABLE!>inc<!>()
     }
 }
 
@@ -34,7 +34,7 @@ fun testDeMorgan2(x: Any?) {
         // x !is String || x !is Int
     if (notIsString(x) || notIsInt(x)) {
         x.<!UNRESOLVED_REFERENCE!>length<!>
-        x.<!UNRESOLVED_REFERENCE_WRONG_RECEIVER!>inc<!>()
+        x.<!NONE_APPLICABLE!>inc<!>()
     }
     else {
         <!DEBUG_INFO_SMARTCAST!>x<!>.length
