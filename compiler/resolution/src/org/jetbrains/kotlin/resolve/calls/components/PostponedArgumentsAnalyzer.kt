@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.resolve.calls.components
 
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilder
-import org.jetbrains.kotlin.resolve.calls.inference.addSubsystemForArgument
+import org.jetbrains.kotlin.resolve.calls.inference.addSubsystemFromArgument
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
 import org.jetbrains.kotlin.resolve.calls.inference.model.LambdaArgumentConstraintPosition
@@ -57,21 +57,21 @@ class PostponedArgumentsAnalyzer(
         val parameters = lambda.parameters.map(::substitute)
         val expectedType = lambda.returnType.takeIf { c.canBeProper(it) }?.let(::substitute)
 
-        val resultArguments = resolutionCallbacks.analyzeAndGetLambdaResultArguments(lambda.atom, lambda.isSuspend, receiver, parameters, expectedType)
+        val returnArguments = resolutionCallbacks.analyzeAndGetLambdaReturnArguments(lambda.atom, lambda.isSuspend, receiver, parameters, expectedType)
 
-        resultArguments.forEach { c.addSubsystemForArgument(it) }
+        returnArguments.forEach { c.addSubsystemFromArgument(it) }
 
         val diagnosticHolder = KotlinDiagnosticsHolder.SimpleHolder()
 
-        val subResolvedKtPrimitives = resultArguments.map {
+        val subResolvedKtPrimitives = returnArguments.map {
             checkSimpleArgument(c.getBuilder(), it, lambda.returnType.let(::substitute), diagnosticHolder, isReceiver = false)
         }
 
-        if (resultArguments.isEmpty()) {
+        if (returnArguments.isEmpty()) {
             val unitType = lambda.returnType.builtIns.unitType
             c.getBuilder().addSubtypeConstraint(lambda.returnType.let(::substitute), unitType, LambdaArgumentConstraintPosition(lambda))
         }
 
-        lambda.setAnalyzedResults(resultArguments, subResolvedKtPrimitives, diagnosticHolder.getDiagnostics())
+        lambda.setAnalyzedResults(returnArguments, subResolvedKtPrimitives, diagnosticHolder.getDiagnostics())
     }
 }
