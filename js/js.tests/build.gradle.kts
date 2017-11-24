@@ -12,7 +12,9 @@ node {
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin()
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core")
+}
 
 val antLauncherJar by configurations.creating
 
@@ -43,7 +45,9 @@ dependencies {
 
 afterEvaluate {
     dependencies {
-        testCompile(intellij { include("openapi.jar", "idea.jar", "idea_rt.jar") })
+        testCompileOnly(intellijCoreJar())
+        testCompileOnly(intellij { include("openapi.jar", "idea.jar", "idea_rt.jar", "util.jar") })
+        testRuntime(intellij())
     }
 }
 

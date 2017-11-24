@@ -19,6 +19,7 @@ val usedIntellijPlugins = arrayOf(
 
 configureIntellijPlugin {
     setPlugins(*usedIntellijPlugins)
+    setExtraDependencies("intellij-core")
 }
 
 dependencies {
@@ -44,6 +45,7 @@ dependencies {
 
 afterEvaluate {
     dependencies {
+        compileOnly(intellijCoreJar())
         testRuntime(intellij())
         testRuntime(intellijPlugins(*usedIntellijPlugins))
     }
