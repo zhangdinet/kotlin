@@ -13,7 +13,8 @@ dependencies {
 
 afterEvaluate {
     dependencies {
-        compile(intellijPlugin("android") { include("**/android-jps-plugin.jar") })
+        compileOnly(intellij { include("openapi.jar", "jps-builders.jar") })
+        compileOnly(intellijPlugin("android") { include("**/android-jps-plugin.jar") })
     }
 }
 

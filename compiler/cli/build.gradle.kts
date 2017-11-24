@@ -28,8 +28,8 @@ dependencies {
 
 afterEvaluate {
     dependencies {
-        compile(intellijCoreJar())
-        compile(intellijCoreJarDependencies())
+        compileOnly(intellijCoreJar())
+        compileOnly(intellijCoreJarDependencies())
     }
 }
 

@@ -3,12 +3,22 @@ description = "Kotlin SamWithReceiver Compiler Plugin"
 
 apply { plugin("kotlin") }
 
+configureIntellijPlugin {
+    setExtraDependencies("intellij-core")
+}
+
 dependencies {
     compileOnly(project(":compiler:frontend"))
     compileOnly(project(":compiler:frontend.java"))
     compileOnly(project(":compiler:plugin-api"))
     runtime(projectRuntimeJar(":kotlin-compiler"))
     runtime(projectDist(":kotlin-stdlib"))
+}
+
+afterEvaluate {
+    dependencies {
+        compileOnly(intellijCoreJar())
+    }
 }
 
 sourceSets {

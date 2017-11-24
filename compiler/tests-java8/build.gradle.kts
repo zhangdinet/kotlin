@@ -11,6 +11,13 @@ dependencies {
     testCompile(projectTests(":compiler"))
 }
 
+afterEvaluate {
+    dependencies {
+        testCompileOnly(intellijCoreJar())
+        testRuntime(intellij())
+    }
+}
+
 sourceSets {
     "main" {}
     "test" { projectDefault() }
