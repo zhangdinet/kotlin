@@ -1,4 +1,3 @@
-// IGNORE_BACKEND: JS
 // ^ see KT-21041
 
 open class Base(val callback: () -> String)
