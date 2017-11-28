@@ -58,6 +58,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.BinaryFileStubBuilders
 import com.intellij.psi.util.JavaClassSupers
 import com.intellij.util.io.URLUtil
+import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.LightClassGenerationSupport
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForFacade
@@ -517,7 +518,7 @@ class KotlinCoreEnvironment private constructor(
                     ?: PathUtil.pathUtilJar.takeIf { it.hasConfigFile(configFilePath) }
                     // hack for load extensions when compiler run directly from project directory (e.g. in tests)
                     ?: File("idea/src").takeIf { it.hasConfigFile(configFilePath) }
-                    ?: throw IllegalStateException("Unable to find extension point configuration $configFilePath")
+                    ?: throw IllegalStateException("Unable to find extension point configuration $configFilePath (cp:\n  ${(Thread.currentThread().contextClassLoader as? UrlClassLoader)?.urls?.joinToString("\n  ") { it.file }})")
 
             CoreApplicationEnvironment.registerExtensionPointAndExtensions(pluginRoot, configFilePath, Extensions.getRootArea())
         }
