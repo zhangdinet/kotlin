@@ -31,9 +31,7 @@ afterEvaluate {
     }
 }
 
-projectTest {
-    workingDir = rootDir
-}
+projectTest()
 
 runtimeJar()
 sourcesJar()

@@ -114,7 +114,7 @@ done
             environment: Map<String, Any?>? = null,
             suppressOutput: Boolean = false
     ): Class<*>? =
-            compileScriptImpl("libraries/tools/kotlin-script-util/src/test/resources/scripts/" + scriptFileName,
+            compileScriptImpl("src/test/resources/scripts/" + scriptFileName,
                               KotlinScriptDefinitionFromAnnotatedTemplate(scriptTemplate, environment), suppressOutput)
 
     private fun compileScriptImpl(
