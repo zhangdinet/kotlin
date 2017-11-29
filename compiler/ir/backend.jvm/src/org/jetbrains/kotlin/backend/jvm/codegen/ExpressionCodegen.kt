@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.keysToMap
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type.VOID_TYPE
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 import java.util.*
 
@@ -520,13 +521,17 @@ class ExpressionCodegen(
 
 
     override fun visitWhen(expression: IrWhen, data: BlockInfo): StackValue {
-        val resultType = expression.asmType
-        genIfWithBranches(expression.branches[0], data, resultType, expression.branches.drop(1))
-        return expression.onStack
+        val branch = expression.branches[0]
+        val result = branch.result
+        //TODO: looks very HACKLY
+        val resultType = if (result is IrTypeOperatorCall && result.operator == IrTypeOperator.IMPLICIT_COERCION_TO_UNIT) VOID_TYPE else expression.asmType
+
+        genIfWithBranches(branch, data, resultType, expression.branches.drop(1))
+        return onStack(resultType)
     }
 
 
-    fun genIfWithBranches(branch: IrBranch, data: BlockInfo, type: Type, otherBranches: List<IrBranch>) {
+    private fun genIfWithBranches(branch: IrBranch, data: BlockInfo, type: Type, otherBranches: List<IrBranch>) {
         val elseLabel = Label()
         val condition = branch.condition
         val thenBranch = branch.result
