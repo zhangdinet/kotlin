@@ -41,8 +41,8 @@ import kotlin.concurrent.write
 // WARNING: not thread safe, assuming external synchronization
 
 open class GenericReplCompiler(disposable: Disposable,
-                               protected val scriptDefinition: KotlinScriptDefinition,
-                               protected val compilerConfiguration: CompilerConfiguration,
+                               scriptDefinition: KotlinScriptDefinition,
+                               private val compilerConfiguration: CompilerConfiguration,
                                messageCollector: MessageCollector
 ) : ReplCompiler {
 
@@ -78,7 +78,7 @@ open class GenericReplCompiler(disposable: Disposable,
             val analysisResult = compilerState.analyzerEngine.analyzeReplLine(psiFile, codeLine)
             AnalyzerWithCompilerReport.reportDiagnostics(analysisResult.diagnostics, errorHolder)
             val scriptDescriptor = when (analysisResult) {
-                is ReplCodeAnalyzer.ReplLineAnalysisResult.WithErrors -> return ReplCompileResult.Error(errorHolder.renderedDiagnostics)
+                is ReplCodeAnalyzer.ReplLineAnalysisResult.WithErrors -> return ReplCompileResult.Error(errorHolder.renderMessage())
                 is ReplCodeAnalyzer.ReplLineAnalysisResult.Successful -> analysisResult.scriptDescriptor
                 else -> error("Unexpected result ${analysisResult::class.java}")
             }
