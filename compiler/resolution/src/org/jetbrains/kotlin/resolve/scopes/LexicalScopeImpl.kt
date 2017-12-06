@@ -23,13 +23,23 @@ class LexicalScopeImpl @JvmOverloads constructor(
         parent: HierarchicalScope,
         override val ownerDescriptor: DeclarationDescriptor,
         override val isOwnerDescriptorAccessibleByLabel: Boolean,
-        override val implicitReceiver: ReceiverParameterDescriptor?,
+        implicitReceiver: ReceiverParameterDescriptor?,
         override val kind: LexicalScopeKind,
         redeclarationChecker: LocalRedeclarationChecker = LocalRedeclarationChecker.DO_NOTHING,
         initialize: LexicalScopeImpl.InitializeHandler.() -> Unit = {}
 ): LexicalScope, LexicalScopeStorage(parent, redeclarationChecker) {
 
+    override val implicitReceiver: ReceiverParameterDescriptor?
+
     init {
+        if (ownerDescriptor is ScriptDescriptor && ownerDescriptor.isReplSnippet) {
+            // Do not allow 'this' in scripts
+            this.implicitReceiver = null
+        }
+        else {
+            this.implicitReceiver = implicitReceiver
+        }
+
         InitializeHandler().initialize()
     }
 
