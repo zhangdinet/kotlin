@@ -87,14 +87,12 @@ class JavaSyntheticPropertiesScope(
         doGetDescriptors()
     }
 
-    private fun doGetOwnerClass(type: KotlinType) = type.constructor.declarationDescriptor as? ClassDescriptor
-
     private fun doGetDescriptors(): List<VariableDescriptor> =
             super.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS, MemberScope.ALL_NAME_FILTER)
                     .filterIsInstance<FunctionDescriptor>()
-                    .mapNotNull {
-                        val propertyName = SyntheticJavaPropertyDescriptor.propertyNameByGetMethodName(it.name) ?: return@mapNotNull null
-                        getContributedVariables(propertyName, NoLookupLocation.FROM_SYNTHETIC_SCOPE).singleOrNull()
+                    .flatMap {
+                        val propertyName = SyntheticJavaPropertyDescriptor.propertyNameByGetMethodName(it.name) ?: return@flatMap emptyList<VariableDescriptor>()
+                        getContributedVariables(propertyName, NoLookupLocation.FROM_SYNTHETIC_SCOPE)
                     }
 
     private fun doGetProperty(name: Name): PropertyDescriptor? {
