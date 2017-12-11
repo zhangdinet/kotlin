@@ -71,10 +71,12 @@ private class SamAdapterFunctionsScope(
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = functions(name)
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
-        return super.getContributedDescriptors(kindFilter, nameFilter) +
-            if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) emptyList()
-            else descriptors()
+        return filterDescriptors(kindFilter, nameFilter) + super.getContributedDescriptors(kindFilter, nameFilter)
     }
+
+    private fun filterDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
+            if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) descriptors().filter { nameFilter(it.name) }
+            else emptyList()
 
     private class MyFunctionDescriptor(
             containingDeclaration: DeclarationDescriptor,

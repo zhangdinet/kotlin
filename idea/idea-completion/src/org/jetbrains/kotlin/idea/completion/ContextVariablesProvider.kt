@@ -45,7 +45,7 @@ class RealContextVariablesProvider(
     private fun collectVariables(): Collection<VariableDescriptor> {
         val descriptorFilter = DescriptorKindFilter.VARIABLES exclude DescriptorKindExclude.Extensions // we exclude extensions by performance reasons
         return referenceVariantsHelper.getReferenceVariants(contextElement, CallTypeAndReceiver.DEFAULT, descriptorFilter, nameFilter = { true })
-                .map { it as VariableDescriptor }
+                .mapNotNull { it as? VariableDescriptor }
     }
 
     override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, TypeSubstitutor>> {

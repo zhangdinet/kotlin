@@ -412,7 +412,7 @@ class ReferenceVariantsHelper(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             for (extension in receiverTypes.flatMap {
                 val synthetic = syntheticScopes.provideSyntheticScope(it.memberScope, SyntheticScopesMetadata(needExtensionProperties = true))
-                synthetic.getContributedDescriptors().cast<Collection<PropertyDescriptor>>()
+                synthetic.getContributedDescriptors().filterIsInstance<PropertyDescriptor>()
             }) {
                 process(extension)
             }

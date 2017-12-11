@@ -174,10 +174,12 @@ class JavaSyntheticPropertiesScope(
     }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
-        return super.getContributedDescriptors(kindFilter, nameFilter) +
-               if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) descriptors()
-               else emptyList()
+        return filterDescriptors(kindFilter, nameFilter) + super.getContributedDescriptors(kindFilter, nameFilter)
     }
+
+    private fun filterDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
+            if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) descriptors().filter { nameFilter(it.name) }
+            else emptyList()
 
     private class MyPropertyDescriptor(
             containingDeclaration: DeclarationDescriptor,
