@@ -20,6 +20,8 @@
 
 package kotlin.text
 
+import kotlin.*
+
 /**
  * Returns a string representation of this [Byte] value in the specified [radix].
  *
