@@ -58,14 +58,13 @@ private class SamAdapterSyntheticConstructorsScope(
     }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
-        if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
             val contributedDescriptors = super.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER)
             val contributedDescriptor = contributedDescriptors.singleOrNull()
-            return super.getContributedDescriptors(kindFilter, nameFilter) +
-                   if (contributedDescriptor is ConstructorDescriptor)
-                       listOfNotNull(getSyntheticConstructor(contributedDescriptor))
-                   else
-                       processClassifierDescriptors(contributedDescriptors, kindFilter, nameFilter)
+            if (contributedDescriptor is ConstructorDescriptor)
+                return super.getContributedDescriptors(kindFilter, nameFilter) + listOfNotNull(getSyntheticConstructor(contributedDescriptor))
+            else
+                return super.getContributedDescriptors(kindFilter, nameFilter) + processClassifierDescriptors(contributedDescriptors)
         }
         else {
             return super.getContributedDescriptors(kindFilter, nameFilter)
@@ -73,13 +72,11 @@ private class SamAdapterSyntheticConstructorsScope(
     }
 
     private fun processClassifierDescriptors(
-            contributedDescriptors: Collection<DeclarationDescriptor>,
-            kindFilter: DescriptorKindFilter,
-            nameFilter: (Name) -> Boolean
+            contributedDescriptors: Collection<DeclarationDescriptor>
     ): List<DeclarationDescriptor> {
         return contributedDescriptors
                        .filterIsInstance<ClassifierDescriptor>()
-                       .flatMap { getAllSamConstructors(it) } + super.getContributedDescriptors(kindFilter, nameFilter)
+                       .flatMap { getAllSamConstructors(it) }
     }
 
     private fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? {
