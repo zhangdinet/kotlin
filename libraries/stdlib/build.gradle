@@ -28,6 +28,8 @@ sourceSets {
     }
     main {
         java {
+            srcDir "${rootDir}/core/builtins/src"
+            srcDir "jvm/runtime"
             srcDir 'src'
         }
     }
@@ -64,7 +66,6 @@ task originalStdlibJar(type: Jar) {
 jar {
     manifestAttributes(manifest, project, 'Main')
     from("${rootDir}/dist/builtins")
-    from sourceSets.builtins.output
     from sourceSets.experimental.output
 }
 
@@ -74,7 +75,6 @@ task distJar(type: Jar) {
     manifestAttributes(manifest, project, 'Main')
     from("${rootDir}/dist/builtins")
     from sourceSets.annotations.output
-    from sourceSets.builtins.output
     from sourceSets.main.output
     from sourceSets.experimental.output
 }
@@ -87,7 +87,6 @@ task builtinsJar(type: Jar) {
 
 sourcesJar {
     from "${rootDir}/core/builtins/native"
-    from sourceSets.builtins.kotlin
 }
 
 artifacts {
@@ -132,6 +131,7 @@ compileBuiltinsKotlin {
     }
 }
 compileKotlin {
+    dependsOn ":core:builtins:serialize"
     dependsOn(":prepare:build.version:writeStdlibVersion")
     kotlinOptions {
         freeCompilerArgs = [
@@ -140,6 +140,7 @@ compileKotlin {
                 "-Xmultifile-parts-inherit",
                 "-Xnormalize-constructor-calls=enable",
                 "-Xdump-declarations-to=${buildDir}/stdlib-declarations.json",
+                "-cp", "${rootDir}/dist/builtins",
                 "-module-name", project.name
         ]
     }
