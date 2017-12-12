@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.utils.newLinkedHashSetWithExpectedSize
 import org.jetbrains.kotlin.utils.sure
 import java.util.*
 
-class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: TypeSubstitutor) : MemberScope {
+class SubstitutingScope(val workerScope: MemberScope, val givenSubstitutor: TypeSubstitutor) : MemberScope {
 
     private val substitutor = givenSubstitutor.substitution.wrapWithCapturingSubstitution().buildSubstitutor()
 

@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeFirstWord
+import org.jetbrains.kotlin.utils.Printer
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -76,14 +77,14 @@ interface SyntheticJavaPropertyDescriptor : SyntheticPropertyDescriptor {
     }
 }
 
-class JavaSyntheticPropertiesScope(
+open class JavaSyntheticPropertiesScope(
         storageManager: StorageManager,
         override val wrappedScope: ResolutionScope
 ) : SyntheticResolutionScope() {
     private val variables = storageManager.createMemoizedFunction<Name, Collection<VariableDescriptor>> {
         super.getContributedVariables(it, NoLookupLocation.FROM_SYNTHETIC_SCOPE) + listOfNotNull(doGetProperty(it))
     }
-    private val descriptors = storageManager.createLazyValue {
+    protected val descriptors = storageManager.createLazyValue {
         doGetDescriptors()
     }
 
@@ -294,13 +295,51 @@ class JavaSyntheticPropertiesScope(
     }
 }
 
+private class JavaSyntheticPropertiesMemberScopeForSubstitution(
+        override val wrappedScope: JavaSyntheticPropertiesScope
+) :
+        SyntheticResolutionScope(),
+        MemberScope {
+    private val originalScope = wrappedScope.wrappedScope as MemberScope
+
+    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        return super.getContributedVariables(name, location).filterIsInstance<PropertyDescriptor>()
+    }
+
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+        return super.getContributedFunctions(name, location).filterIsInstance<SimpleFunctionDescriptor>()
+    }
+
+    override fun getFunctionNames(): Set<Name> {
+        return originalScope.getFunctionNames()
+    }
+
+    override fun getVariableNames(): Set<Name> {
+        return super.getContributedDescriptors(DescriptorKindFilter.VARIABLES, nameFilter = MemberScope.ALL_NAME_FILTER).map { it.name }.toSet()
+    }
+
+    override fun getClassifierNames(): Set<Name>? {
+        return originalScope.getClassifierNames()
+    }
+
+    override fun printScopeStructure(p: Printer) {
+        originalScope.printScopeStructure(p)
+    }
+}
+
 class JavaSyntheticPropertiesProvider(private val storageManager: StorageManager) : SyntheticScopeProvider {
-    private val makeSynthetic = storageManager.createMemoizedFunction<ResolutionScope, ResolutionScope> {
+    private val makeSynthetic = storageManager.createMemoizedFunction<ResolutionScope, JavaSyntheticPropertiesScope> {
         JavaSyntheticPropertiesScope(storageManager, it)
     }
 
     override fun provideSyntheticScope(scope: ResolutionScope, metadata: SyntheticScopesMetadata): ResolutionScope {
         if (!metadata.needExtensionProperties) return scope
+        // Instead of decorating substituted scope, substitute decorated scope
+        if (scope is SubstitutingScope) {
+            val unsubstitutedScope = scope.workerScope
+            val synthetic = JavaSyntheticPropertiesMemberScopeForSubstitution(makeSynthetic(unsubstitutedScope))
+            return SubstitutingScope(synthetic, scope.givenSubstitutor)
+        }
         return makeSynthetic(scope)
     }
 }
