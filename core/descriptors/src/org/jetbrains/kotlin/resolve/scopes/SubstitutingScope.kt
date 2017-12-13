@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.utils.newLinkedHashSetWithExpectedSize
 import org.jetbrains.kotlin.utils.sure
 import java.util.*
 
-class SubstitutingScope(val workerScope: MemberScope, val givenSubstitutor: TypeSubstitutor) : MemberScope {
+class SubstitutingScope(override val workerScope: MemberScope, val givenSubstitutor: TypeSubstitutor) : AbstractMemberScopeAdapter() {
 
     private val substitutor = givenSubstitutor.substitution.wrapWithCapturingSubstitution().buildSubstitutor()
 
@@ -78,10 +78,6 @@ class SubstitutingScope(val workerScope: MemberScope, val givenSubstitutor: Type
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
                                            nameFilter: (Name) -> Boolean) = _allDescriptors
-
-    override fun getFunctionNames() = workerScope.getFunctionNames()
-    override fun getVariableNames() = workerScope.getVariableNames()
-    override fun getClassifierNames() = workerScope.getClassifierNames()
 
     override fun definitelyDoesNotContainName(name: Name) = workerScope.definitelyDoesNotContainName(name)
 

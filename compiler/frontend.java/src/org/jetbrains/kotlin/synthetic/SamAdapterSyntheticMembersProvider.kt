@@ -39,21 +39,21 @@ private class SamAdapterFunctionsScope(
         storageManager: StorageManager,
         private val samResolver: SamConversionResolver,
         private val deprecationResolver: DeprecationResolver,
-        override val wrappedScope: ResolutionScope
-) : SyntheticResolutionScope() {
+        override val workerScope: ResolutionScope
+) : AbstractResolutionScopeAdapter() {
     private val functions = storageManager.createMemoizedFunction<Name, Collection<FunctionDescriptor>> {
-        wrappedScope.getContributedFunctions(it, NoLookupLocation.FROM_SYNTHETIC_SCOPE) + doGetFunctions(it)
+        workerScope.getContributedFunctions(it, NoLookupLocation.FROM_SYNTHETIC_SCOPE) + doGetFunctions(it)
     }
     private val descriptors = storageManager.createLazyValue {
         doGetDescriptors()
     }
 
-    private fun doGetDescriptors() = wrappedScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS, MemberScope.ALL_NAME_FILTER)
+    private fun doGetDescriptors() = workerScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS, MemberScope.ALL_NAME_FILTER)
             .filterIsInstance<FunctionDescriptor>()
             .flatMap { getContributedFunctions(it.name, NoLookupLocation.FROM_SYNTHETIC_SCOPE) }
 
     private fun doGetFunctions(name: Name) =
-            wrappedScope.getContributedFunctions(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE).mapNotNull {
+            workerScope.getContributedFunctions(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE).mapNotNull {
                 wrapFunction(it)
             }
 

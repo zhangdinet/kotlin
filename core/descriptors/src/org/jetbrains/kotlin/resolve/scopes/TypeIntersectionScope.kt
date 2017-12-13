@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.resolve.selectMostSpecificInEachOverridableGroup
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.Printer
 
-class TypeIntersectionScope private constructor(override val workerScope: ChainedMemberScope) : AbstractScopeAdapter() {
+class TypeIntersectionScope private constructor(override val workerScope: ChainedMemberScope) : AbstractMemberScopeAdapter() {
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
             super.getContributedFunctions(name, location).selectMostSpecificInEachOverridableGroup { this }
 

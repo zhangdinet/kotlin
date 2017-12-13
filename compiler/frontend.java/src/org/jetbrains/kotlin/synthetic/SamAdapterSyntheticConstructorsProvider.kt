@@ -46,8 +46,8 @@ private class SamAdapterSyntheticConstructorsScope(
         private val storageManager: StorageManager,
         private val samResolver: SamConversionResolver,
         private val lookupTracker: LookupTracker,
-        override val wrappedScope: ResolutionScope
-) : SyntheticResolutionScope() {
+        override val workerScope: ResolutionScope
+) : AbstractResolutionScopeAdapter() {
     private val samConstructorForClassifier =
             storageManager.createMemoizedFunction<JavaClassDescriptor, SamConstructorDescriptor> { classifier ->
                 SingleAbstractMethodUtils.createSamConstructorFunction(classifier.containingDeclaration, classifier, samResolver)
@@ -77,7 +77,7 @@ private class SamAdapterSyntheticConstructorsScope(
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
         if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
-            val contributedDescriptors = wrappedScope.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER)
+            val contributedDescriptors = workerScope.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER)
             val contributedDescriptor = contributedDescriptors.singleOrNull()
             if (contributedDescriptor is ConstructorDescriptor)
                 return super.getContributedDescriptors(kindFilter, nameFilter) + listOfNotNull(getSyntheticConstructor(contributedDescriptor))

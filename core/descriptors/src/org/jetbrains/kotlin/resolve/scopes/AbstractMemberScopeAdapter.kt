@@ -27,12 +27,12 @@ import org.jetbrains.kotlin.utils.Printer
 /**
  * Introduces a simple wrapper for internal scope.
  */
-abstract class AbstractScopeAdapter : MemberScope {
-    protected abstract val workerScope: MemberScope
+abstract class AbstractMemberScopeAdapter : AbstractResolutionScopeAdapter(), MemberScope {
+    abstract override val workerScope: MemberScope
 
     fun getActualScope(): MemberScope =
-            if (workerScope is AbstractScopeAdapter)
-                (workerScope as AbstractScopeAdapter).getActualScope()
+            if (workerScope is AbstractMemberScopeAdapter)
+                (workerScope as AbstractMemberScopeAdapter).getActualScope()
             else
                 workerScope
 

@@ -84,9 +84,9 @@ interface SyntheticJavaPropertyDescriptor : SyntheticPropertyDescriptor {
 open class JavaSyntheticPropertiesScope(
         storageManager: StorageManager,
         private val lookupTracker: LookupTracker,
-        override val wrappedScope: ResolutionScope,
+        override val workerScope: ResolutionScope,
         private val provider: JavaSyntheticPropertiesProvider
-) : SyntheticResolutionScope() {
+) : AbstractResolutionScopeAdapter() {
     private val properties = storageManager.createMemoizedFunction<Name, SyntheticPropertyHolder> {
         doGetProperty(it)
     }
@@ -217,12 +217,12 @@ open class JavaSyntheticPropertiesScope(
     }
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
-        return listOfNotNull(getSyntheticPropertyAndRecordLookups(name, location)) + wrappedScope.getContributedVariables(name, location)
+        return listOfNotNull(getSyntheticPropertyAndRecordLookups(name, location)) + workerScope.getContributedVariables(name, location)
     }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
-        if (!kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) return wrappedScope.getContributedDescriptors(kindFilter, nameFilter)
-        return filterDescriptors(kindFilter, nameFilter) + wrappedScope.getContributedDescriptors(kindFilter, nameFilter)
+        if (!kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) return workerScope.getContributedDescriptors(kindFilter, nameFilter)
+        return filterDescriptors(kindFilter, nameFilter) + workerScope.getContributedDescriptors(kindFilter, nameFilter)
     }
 
     private fun filterDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
@@ -351,34 +351,20 @@ open class JavaSyntheticPropertiesScope(
 }
 
 private class JavaSyntheticPropertiesMemberScopeForSubstitution(
-        override val wrappedScope: JavaSyntheticPropertiesScope
+        override val workerScope: MemberScope,
+        private val propertiesScope: JavaSyntheticPropertiesScope
 ) :
-        SyntheticResolutionScope(),
-        MemberScope {
-    private val originalScope = wrappedScope.wrappedScope as MemberScope
-
+        AbstractMemberScopeAdapter() {
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-        return wrappedScope.getContributedVariables(name, location).filterIsInstance<PropertyDescriptor>()
+        return propertiesScope.getContributedVariables(name, location).filterIsInstance<PropertyDescriptor>()
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
-        return wrappedScope.getContributedFunctions(name, location).filterIsInstance<SimpleFunctionDescriptor>()
-    }
-
-    override fun getFunctionNames(): Set<Name> {
-        return originalScope.getFunctionNames()
+        return propertiesScope.getContributedFunctions(name, location).filterIsInstance<SimpleFunctionDescriptor>()
     }
 
     override fun getVariableNames(): Set<Name> {
-        return wrappedScope.getContributedDescriptors(DescriptorKindFilter.VARIABLES, nameFilter = MemberScope.ALL_NAME_FILTER).map { it.name }.toSet()
-    }
-
-    override fun getClassifierNames(): Set<Name>? {
-        return originalScope.getClassifierNames()
-    }
-
-    override fun printScopeStructure(p: Printer) {
-        originalScope.printScopeStructure(p)
+        return propertiesScope.getContributedDescriptors(DescriptorKindFilter.VARIABLES, nameFilter = MemberScope.ALL_NAME_FILTER).map { it.name }.toSet()
     }
 }
 
@@ -395,7 +381,7 @@ class JavaSyntheticPropertiesProvider(
         // Instead of decorating substituted scope, substitute decorated scope
         if (scope is SubstitutingScope) {
             val unsubstitutedScope = scope.workerScope
-            val synthetic = JavaSyntheticPropertiesMemberScopeForSubstitution(makeSynthetic(unsubstitutedScope))
+            val synthetic = JavaSyntheticPropertiesMemberScopeForSubstitution(unsubstitutedScope, makeSynthetic(unsubstitutedScope))
             return SubstitutingScope(synthetic, scope.givenSubstitutor)
         }
         return makeSynthetic(scope)
