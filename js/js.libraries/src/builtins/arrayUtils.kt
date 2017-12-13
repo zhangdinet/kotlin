@@ -17,16 +17,16 @@
 // a package is omitted to get declarations directly under the module
 
 @PublishedApi
-external internal fun <T> Array(size: Int): Array<T>
+internal external fun <T> Array(size: Int): Array<T>
 
 @JsName("newArray")
-fun <T> newArray(size: Int, initValue: T) = fillArrayVal(Array<T>(size), initValue)
+internal fun <T> newArray(size: Int, initValue: T) = fillArrayVal(Array<T>(size), initValue)
 
 @JsName("newArrayF")
-inline fun <T> arrayWithFun(size: Int, init: (Int) -> T) = fillArrayFun(Array<T>(size), init)
+internal inline fun <T> arrayWithFun(size: Int, init: (Int) -> T) = fillArrayFun(Array<T>(size), init)
 
 @JsName("fillArray")
-inline fun <T> fillArrayFun(array: Array<T>, init: (Int) -> T): Array<T> {
+internal inline fun <T> fillArrayFun(array: Array<T>, init: (Int) -> T): Array<T> {
     for (i in 0..array.size - 1) {
         array[i] = init(i)
     }
@@ -34,7 +34,7 @@ inline fun <T> fillArrayFun(array: Array<T>, init: (Int) -> T): Array<T> {
 }
 
 @JsName("booleanArray")
-fun booleanArray(size: Int, init: dynamic): Array<Boolean> {
+internal fun booleanArray(size: Int, init: dynamic): Array<Boolean> {
     val result: dynamic = Array<Boolean>(size)
     result.`$type$` = "BooleanArray"
     return when (init) {
@@ -45,11 +45,11 @@ fun booleanArray(size: Int, init: dynamic): Array<Boolean> {
 }
 
 @JsName("booleanArrayF")
-inline fun booleanArrayWithFun(size: Int, init: (Int) -> Boolean): Array<Boolean> = fillArrayFun(booleanArray(size, false), init)
+internal inline fun booleanArrayWithFun(size: Int, init: (Int) -> Boolean): Array<Boolean> = fillArrayFun(booleanArray(size, false), init)
 
 @JsName("charArray")
 @Suppress("UNUSED_PARAMETER")
-fun charArray(size: Int, init: dynamic): Array<Char> {
+internal fun charArray(size: Int, init: dynamic): Array<Char> {
     val result = js("new Uint16Array(size)")
     result.`$type$` = "CharArray"
     return when (init) {
@@ -59,7 +59,7 @@ fun charArray(size: Int, init: dynamic): Array<Char> {
 }
 
 @JsName("charArrayF")
-inline fun charArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> {
+internal inline fun charArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> {
     val array = charArray(size, null)
     for (i in 0..array.size - 1) {
         val value = init(i)
@@ -69,7 +69,7 @@ inline fun charArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> {
 }
 
 @JsName("untypedCharArrayF")
-inline fun untypedCharArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> {
+internal inline fun untypedCharArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> {
     val array = Array<Char>(size)
     for (i in 0..array.size - 1) {
         val value = init(i)
@@ -79,7 +79,7 @@ inline fun untypedCharArrayWithFun(size: Int, init: (Int) -> Char): Array<Char> 
 }
 
 @JsName("longArray")
-fun longArray(size: Int, init: dynamic): Array<Long> {
+internal fun longArray(size: Int, init: dynamic): Array<Long> {
     val result: dynamic = Array<Long>(size)
     result.`$type$` = "LongArray"
     return when (init) {
@@ -90,7 +90,7 @@ fun longArray(size: Int, init: dynamic): Array<Long> {
 }
 
 @JsName("longArrayF")
-inline fun longArrayWithFun(size: Int, init: (Int) -> Long): Array<Long> = fillArrayFun(longArray(size, false), init)
+internal inline fun longArrayWithFun(size: Int, init: (Int) -> Long): Array<Long> = fillArrayFun(longArray(size, false), init)
 
 private fun <T> fillArrayVal(array: Array<T>, initValue: T): Array<T> {
     for (i in 0..array.size - 1) {

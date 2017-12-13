@@ -16,7 +16,7 @@
 
 package kotlin
 
-public class Enum<T : Enum<T>> : Comparable<Enum<T>> {
+internal class Enum<T : Enum<T>> : Comparable<Enum<T>> {
     @JsName("name$") private var _name: String = ""
     @JsName("ordinal$") private var _ordinal: Int = 0
 
