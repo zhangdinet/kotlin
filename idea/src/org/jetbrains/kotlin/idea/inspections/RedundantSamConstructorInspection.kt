@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.resolve.calls.model.isReallySuccess
 import org.jetbrains.kotlin.resolve.calls.util.DelegatingCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
-import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesMetadata
+import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesRequirements
 import org.jetbrains.kotlin.synthetic.SamAdapterExtensionFunctionDescriptor
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.keysToMapExceptNulls
@@ -187,7 +187,7 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
             val syntheticScopes = functionCall.getResolutionFacade().getFrontendService(SyntheticScopes::class.java)
 
             // SAM adapters for static functions
-            val contributedFunctions = syntheticScopes.provideSyntheticScope(containingClass.staticScope, SyntheticScopesMetadata(needStaticFunctions = true))
+            val contributedFunctions = syntheticScopes.provideSyntheticScope(containingClass.staticScope, SyntheticScopesRequirements(needStaticFunctions = true))
                     .getContributedDescriptors().filterIsInstance<SamAdapterDescriptor<*>>()
             for (staticFunWithSameName in contributedFunctions) {
                 if (isSamAdapterSuitableForCall(staticFunWithSameName, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
@@ -198,7 +198,7 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
             // SAM adapters for member functions
             val syntheticExtensions = syntheticScopes.provideSyntheticScope(
                     containingClass.defaultType.memberScope,
-                    SyntheticScopesMetadata(needMemberFunctions = true)
+                    SyntheticScopesRequirements(needMemberFunctions = true)
             ).getContributedFunctions(functionResolvedCall.resultingDescriptor.name,NoLookupLocation.FROM_IDE)
                     .filterIsInstance<SamAdapterExtensionFunctionDescriptor>()
 

@@ -57,7 +57,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.isReallySuccess
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
-import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesMetadata
+import org.jetbrains.kotlin.resolve.scopes.SyntheticScopesRequirements
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
@@ -99,7 +99,7 @@ class ConflictingExtensionPropertyInspection : AbstractKotlinInspection() {
         val extensionReceiverType = descriptor.extensionReceiverParameter?.type ?: return null
         return scopes.provideSyntheticScope(
                 extensionReceiverType.memberScope,
-                SyntheticScopesMetadata(needExtensionProperties = true)
+                SyntheticScopesRequirements(needExtensionProperties = true)
         ).getContributedVariables(descriptor.name, NoLookupLocation.FROM_IDE).firstIsInstanceOrNull()
     }
 

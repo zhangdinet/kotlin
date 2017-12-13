@@ -20,6 +20,8 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
+import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.incremental.record
 import org.jetbrains.kotlin.load.java.components.SamConversionResolver
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassConstructorDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
@@ -30,9 +32,20 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.*
 import org.jetbrains.kotlin.storage.StorageManager
 
+val SAM_LOOKUP_NAME = Name.special("<SAM-CONSTRUCTOR>")
+
+internal fun recordSamLookupsToClassifier(lookupTracker: LookupTracker, classifier: ClassifierDescriptor, location: LookupLocation) {
+    if (classifier !is JavaClassDescriptor || classifier.kind != ClassKind.INTERFACE) return
+    // TODO: We should also record SAM lookups even when the interface is not SAM
+    if (!SingleAbstractMethodUtils.isSamType(classifier.defaultType)) return
+
+    lookupTracker.record(location, classifier, SAM_LOOKUP_NAME)
+}
+
 private class SamAdapterSyntheticConstructorsScope(
         private val storageManager: StorageManager,
         private val samResolver: SamConversionResolver,
+        private val lookupTracker: LookupTracker,
         override val wrappedScope: ResolutionScope
 ) : SyntheticResolutionScope() {
     private val samConstructorForClassifier =
@@ -54,12 +67,17 @@ private class SamAdapterSyntheticConstructorsScope(
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         val classifier = getContributedClassifier(name, location) ?: return super.getContributedFunctions(name, location)
+        recordSamLookupsToClassifier(classifier, location)
         return getAllSamConstructors(classifier) + super.getContributedFunctions(name, location)
+    }
+
+    private fun recordSamLookupsToClassifier(classifier: ClassifierDescriptor, location: LookupLocation) {
+        recordSamLookupsToClassifier(lookupTracker, classifier, location)
     }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
         if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
-            val contributedDescriptors = super.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER)
+            val contributedDescriptors = wrappedScope.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER)
             val contributedDescriptor = contributedDescriptors.singleOrNull()
             if (contributedDescriptor is ConstructorDescriptor)
                 return super.getContributedDescriptors(kindFilter, nameFilter) + listOfNotNull(getSyntheticConstructor(contributedDescriptor))
@@ -131,14 +149,15 @@ private class SamAdapterSyntheticConstructorsScope(
 
 class SamAdapterSyntheticConstructorsProvider(
         private val storageManager: StorageManager,
-        private val samResolver: SamConversionResolver
+        private val samResolver: SamConversionResolver,
+        private val lookupTracker: LookupTracker
 ) : SyntheticScopeProvider {
     private val makeSynthetic = storageManager.createMemoizedFunction<ResolutionScope, ResolutionScope> {
-        SamAdapterSyntheticConstructorsScope(storageManager, samResolver, it)
+        SamAdapterSyntheticConstructorsScope(storageManager, samResolver, lookupTracker, it)
     }
 
-    override fun provideSyntheticScope(scope: ResolutionScope, metadata: SyntheticScopesMetadata): ResolutionScope {
-        if (!metadata.needConstructors) return scope
+    override fun provideSyntheticScope(scope: ResolutionScope, requirements: SyntheticScopesRequirements): ResolutionScope {
+        if (!requirements.needConstructors) return scope
         return makeSynthetic(scope)
     }
 }

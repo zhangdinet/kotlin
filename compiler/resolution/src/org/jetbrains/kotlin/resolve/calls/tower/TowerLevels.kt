@@ -168,7 +168,7 @@ internal class MemberScopeTowerLevel(
         return collectMembers { type ->
             type.getInnerConstructors(name, location) + syntheticScopes.provideSyntheticScope(
                     this,
-                    SyntheticScopesMetadata(needMemberFunctions = true)
+                    SyntheticScopesRequirements(needMemberFunctions = true)
             ).getContributedFunctions(name, location)
         }
     }
@@ -236,6 +236,7 @@ internal class ImportingScopeBasedTowerLevel(
         importingScope: ImportingScope
 ): ScopeBasedTowerLevel(scopeTower, importingScope)
 
+// TODO: Find a way to remove this empty tower level
 internal class SyntheticScopeBasedTowerLevel(
         scopeTower: ImplicitScopeTower,
         private val syntheticScopes: SyntheticScopes
@@ -251,7 +252,7 @@ internal class SyntheticScopeBasedTowerLevel(
             if (!processedScopes.add(type.memberScope)) emptyList()
             else syntheticScopes.provideSyntheticScope(
                     type.memberScope,
-                    SyntheticScopesMetadata(needExtensionProperties = true)
+                    SyntheticScopesRequirements(needExtensionProperties = true)
             ).getContributedVariables(name, location).filterIsInstance<SyntheticPropertyDescriptor>().map { property ->
                 createCandidateDescriptor(property, dispatchReceiver = null)
             }
@@ -320,7 +321,7 @@ private fun ResolutionScope.getContributedFunctionsAndConstructors(
         location: LookupLocation,
         syntheticScopes: SyntheticScopes
 ): Collection<FunctionDescriptor> {
-    val synthetic = syntheticScopes.provideSyntheticScope(this, SyntheticScopesMetadata(needStaticFunctions = true, needConstructors = true))
+    val synthetic = syntheticScopes.provideSyntheticScope(this, SyntheticScopesRequirements(needStaticFunctions = true, needConstructors = true))
     val result = ArrayList<FunctionDescriptor>(synthetic.getContributedFunctions(name, location))
 
     val classifier = synthetic.getContributedClassifier(name, location)

@@ -26,11 +26,9 @@ import org.jetbrains.kotlin.load.java.components.SamConversionResolver
 import org.jetbrains.kotlin.load.java.sam.SingleAbstractMethodUtils
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DeprecationResolver
-import org.jetbrains.kotlin.resolve.calls.inference.wrapWithCapturingSubstitution
 import org.jetbrains.kotlin.resolve.scopes.*
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.types.checker.findCorrespondingSupertype
 import kotlin.properties.Delegates
 
 interface SamAdapterExtensionFunctionDescriptor : FunctionDescriptor, SyntheticMemberDescriptor<FunctionDescriptor> {
@@ -44,18 +42,18 @@ private class SamAdapterFunctionsScope(
         override val wrappedScope: ResolutionScope
 ) : SyntheticResolutionScope() {
     private val functions = storageManager.createMemoizedFunction<Name, Collection<FunctionDescriptor>> {
-        super.getContributedFunctions(it, NoLookupLocation.FROM_SYNTHETIC_SCOPE) + doGetFunctions(it)
+        wrappedScope.getContributedFunctions(it, NoLookupLocation.FROM_SYNTHETIC_SCOPE) + doGetFunctions(it)
     }
     private val descriptors = storageManager.createLazyValue {
         doGetDescriptors()
     }
 
-    private fun doGetDescriptors() = super.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS, MemberScope.ALL_NAME_FILTER)
+    private fun doGetDescriptors() = wrappedScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS, MemberScope.ALL_NAME_FILTER)
             .filterIsInstance<FunctionDescriptor>()
             .flatMap { getContributedFunctions(it.name, NoLookupLocation.FROM_SYNTHETIC_SCOPE) }
 
     private fun doGetFunctions(name: Name) =
-            super.getContributedFunctions(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE).mapNotNull {
+            wrappedScope.getContributedFunctions(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE).mapNotNull {
                 wrapFunction(it)
             }
 
@@ -71,6 +69,7 @@ private class SamAdapterFunctionsScope(
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = functions(name)
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
+        if (!kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) return super.getContributedDescriptors(kindFilter, nameFilter)
         return filterDescriptors(kindFilter, nameFilter) + super.getContributedDescriptors(kindFilter, nameFilter)
     }
 
@@ -104,7 +103,7 @@ private class SamAdapterFunctionsScope(
                                                       sourceFunction.original.source)
                 descriptor.baseDescriptorForSynthetic = sourceFunction
 
-                val sourceTypeParams = (sourceFunction.typeParameters).toMutableList()
+                val sourceTypeParams = sourceFunction.typeParameters.toMutableList()
 
                 val typeParameters = ArrayList<TypeParameterDescriptor>(sourceTypeParams.size)
                 val typeSubstitutor = DescriptorSubstitutor.substituteTypeParameters(sourceTypeParams, TypeSubstitution.EMPTY, descriptor, typeParameters)
@@ -161,20 +160,6 @@ private class SamAdapterFunctionsScope(
             return descriptor
         }
     }
-
-    private fun FunctionDescriptor.substituteForReceiverType(type: KotlinType): FunctionDescriptor? {
-        val containingClass = containingDeclaration as? ClassDescriptor ?: return null
-        val correspondingSupertype = findCorrespondingSupertype(type, containingClass.defaultType)
-                                     ?: findCorrespondingSupertype(containingClass.defaultType, type)
-                                     ?: return null
-
-        return substitute(
-                TypeConstructorSubstitution
-                        .create(correspondingSupertype)
-                        .wrapWithCapturingSubstitution(needApproximation = true)
-                        .buildSubstitutor()
-        )
-    }
 }
 
 class SamAdapterSyntheticMembersProvider(
@@ -186,8 +171,8 @@ class SamAdapterSyntheticMembersProvider(
         SamAdapterFunctionsScope(storageManager, samResolver, deprecationResolver, it)
     }
 
-    override fun provideSyntheticScope(scope: ResolutionScope, metadata: SyntheticScopesMetadata): ResolutionScope {
-        if (!metadata.needMemberFunctions) return scope
+    override fun provideSyntheticScope(scope: ResolutionScope, requirements: SyntheticScopesRequirements): ResolutionScope {
+        if (!requirements.needMemberFunctions) return scope
         return makeSynthetic(scope)
     }
 }

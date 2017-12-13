@@ -45,4 +45,12 @@ interface ResolutionScope {
     fun recordLookup(name: Name, location: LookupLocation) {
         getContributedFunctions(name, location)
     }
+
+    open class Empty : ResolutionScope {
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptyList()
+        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptyList()
+        override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
+                emptyList()
+    }
 }

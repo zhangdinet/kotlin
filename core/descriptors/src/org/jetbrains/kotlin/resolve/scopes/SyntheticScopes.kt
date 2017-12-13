@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-data class SyntheticScopesMetadata(
+data class SyntheticScopesRequirements(
         val needExtensionProperties: Boolean = false,
         val needMemberFunctions: Boolean = false,
         val needStaticFunctions: Boolean = false,
@@ -30,35 +30,30 @@ data class SyntheticScopesMetadata(
 )
 
 interface SyntheticScopeProvider {
-    fun provideSyntheticScope(scope: ResolutionScope, metadata: SyntheticScopesMetadata): ResolutionScope
+    fun provideSyntheticScope(scope: ResolutionScope, requirements: SyntheticScopesRequirements): ResolutionScope
 }
 
 interface SyntheticScopes {
     val scopeProviders: Collection<SyntheticScopeProvider>
 
-    fun provideSyntheticScope(scope: ResolutionScope, metadata: SyntheticScopesMetadata): ResolutionScope {
-        var result = scope
-        for (provider in scopeProviders) {
-            result = provider.provideSyntheticScope(result, metadata)
-        }
-        return result
-    }
+    fun provideSyntheticScope(scope: ResolutionScope, requirements: SyntheticScopesRequirements): ResolutionScope =
+            scopeProviders.fold(scope) { prevScope, provider->
+                provider.provideSyntheticScope(prevScope, requirements)
+            }
 
     object Empty : SyntheticScopes {
         override val scopeProviders: Collection<SyntheticScopeProvider> = emptyList()
     }
 }
 
+// TODO: Find a way to remove it
 fun SyntheticScopes.collectSyntheticConstructors(constructor: ConstructorDescriptor): Collection<ConstructorDescriptor> {
-    val scope = object : ResolutionScope {
-        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> = emptyList()
-        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> = emptyList()
+    val scope = object : ResolutionScope.Empty() {
         override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
                 listOf(constructor)
     }
-    val syntheticScope = provideSyntheticScope(scope, SyntheticScopesMetadata(needConstructors = true))
-    return syntheticScope.getContributedDescriptors().cast()
+    val syntheticScope = provideSyntheticScope(scope, SyntheticScopesRequirements(needConstructors = true))
+    return syntheticScope.getContributedDescriptors().filterIsInstance<ConstructorDescriptor>()
 }
 
 interface SyntheticPropertyDescriptor: PropertyDescriptor
