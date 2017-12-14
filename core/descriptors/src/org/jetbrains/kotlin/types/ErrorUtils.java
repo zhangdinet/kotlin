@@ -175,6 +175,14 @@ public class ErrorUtils {
             return createErrorClass(name.asString());
         }
 
+        @Nullable
+        @Override
+        public DescriptorWithDeprecation<ClassifierDescriptor> getContributedClassifierWithDeprecationStatus(
+                @NotNull Name name, @NotNull LookupLocation location
+        ) {
+            return null;
+        }
+
         @NotNull
         @Override
         // TODO: Convert to Kotlin or add @JvmWildcard to MemberScope declarations
@@ -251,6 +259,14 @@ public class ErrorUtils {
         @Override
         public ClassifierDescriptor getContributedClassifier(@NotNull Name name, @NotNull LookupLocation location) {
             throw new IllegalStateException(debugMessage+", required name: " + name);
+        }
+
+        @Nullable
+        @Override
+        public DescriptorWithDeprecation<ClassifierDescriptor> getContributedClassifierWithDeprecationStatus(
+                @NotNull Name name, @NotNull LookupLocation location
+        ) {
+            throw new IllegalStateException(debugMessage + ", required name: " + name);
         }
 
         @NotNull

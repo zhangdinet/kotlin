@@ -16,7 +16,9 @@
 
 package org.jetbrains.kotlin.resolve.scopes
 
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.DescriptorWithDeprecation
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.resolve.scopes.utils.takeSnapshot
 import org.jetbrains.kotlin.util.collectionUtils.getFirstClassifierDiscriminateHeaders
 import org.jetbrains.kotlin.util.collectionUtils.getFromAllScopes
 import org.jetbrains.kotlin.utils.Printer
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class LexicalChainedScope @JvmOverloads constructor(
     parent: LexicalScope,
@@ -42,6 +45,25 @@ class LexicalChainedScope @JvmOverloads constructor(
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         getFirstClassifierDiscriminateHeaders(memberScopes) { it.getContributedClassifier(name, location) }
+
+    override fun getContributedClassifierWithDeprecationStatus(name: Name, location: LookupLocation): DescriptorWithDeprecation<ClassifierDescriptor>? {
+        val (firstClassifier, isFirstDeprecated) = memberScopes.firstNotNullResult {
+            it.getContributedClassifierWithDeprecationStatus(name, location)
+        } ?: return null
+
+        if (!isFirstDeprecated) return DescriptorWithDeprecation.createNonDeprecated(firstClassifier)
+
+        // Slow-path: try to find the same classifier, but without deprecation
+        val allCandidatesAreDeprecated = memberScopes
+            .mapNotNull { it.getContributedClassifierWithDeprecationStatus(name, location) }
+            .filter { it.descriptor == firstClassifier }
+            .all { it.isDeprecated }
+
+        return if (allCandidatesAreDeprecated)
+            DescriptorWithDeprecation.createDeprecated(firstClassifier)
+        else
+            DescriptorWithDeprecation.createNonDeprecated(firstClassifier)
+    }
 
     override fun getContributedVariables(name: Name, location: LookupLocation) =
         getFromAllScopes(memberScopes) { it.getContributedVariables(name, location) }

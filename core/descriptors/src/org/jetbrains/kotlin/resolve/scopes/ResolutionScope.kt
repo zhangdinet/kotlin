@@ -16,16 +16,15 @@
 
 package org.jetbrains.kotlin.resolve.scopes
 
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 
 interface ResolutionScope {
 
     fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor?
+    fun getContributedClassifierWithDeprecationStatus(name: Name, location: LookupLocation): DescriptorWithDeprecation<ClassifierDescriptor>? =
+        getContributedClassifier(name, location)?.let { DescriptorWithDeprecation.createNonDeprecated(it) }
 
     fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor>
 
