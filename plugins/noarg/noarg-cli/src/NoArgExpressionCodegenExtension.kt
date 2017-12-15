@@ -34,6 +34,8 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 
 class NoArgExpressionCodegenExtension(val invokeInitializers: Boolean = false) : ExpressionCodegenExtension {
     override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) = with(codegen) {
+        if (codegen.state.classBuilderMode == ClassBuilderMode.LIGHT_CLASSES) return
+
         if (shouldGenerateNoArgConstructor()) {
             generateNoArgConstructor()
         }

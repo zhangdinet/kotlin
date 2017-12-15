@@ -72,20 +72,23 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
 
         val propertiesToSerialize = getPropertiesToSerialize(codegen, parcelableClass)
 
-        val parcelClassType = ParcelableResolveExtension.resolveParcelClassType(parcelableClass.module)
-        val parcelAsmType = codegen.typeMapper.mapType(parcelClassType)
-
         val parcelerObject = parcelableClass.companionObjectDescriptor?.takeIf {
             TypeUtils.getAllSupertypes(it.defaultType).any { it.isParceler }
         }
 
         with (parcelableClass) {
             writeDescribeContentsFunction(codegen, propertiesToSerialize)
-            writeWriteToParcel(codegen, propertiesToSerialize, parcelAsmType, parcelerObject)
+            writeWriteToParcel(codegen, propertiesToSerialize, PARCEL_TYPE, parcelerObject)
         }
 
-        writeCreatorAccessField(codegen, parcelableClass)
-        writeCreatorClass(codegen, parcelableClass, parcelClassType, parcelAsmType, parcelerObject, propertiesToSerialize)
+        writeCreatorAccessField(codegen)
+
+        if (codegen.state.classBuilderMode != ClassBuilderMode.LIGHT_CLASSES) {
+            val parcelClassType = ParcelableResolveExtension.resolveParcelClassType(parcelableClass.module)
+                                  ?: error("Can't resolve 'android.os.Parcel' class")
+
+            writeCreatorClass(codegen, parcelableClass, parcelClassType, PARCEL_TYPE, parcelerObject, propertiesToSerialize)
+        }
     }
 
     private fun getCompanionClassType(containerAsmType: Type, parcelerObject: ClassDescriptor): Pair<Type, String> {
@@ -228,12 +231,11 @@ open class ParcelableCodegenExtension : ExpressionCodegenExtension {
         }
     }
 
-    private fun writeCreatorAccessField(codegen: ImplementationBodyCodegen, parcelableClass: ClassDescriptor) {
-        val parcelableAsmType = codegen.typeMapper.mapType(parcelableClass.defaultType)
-        val creatorAsmType = Type.getObjectType(parcelableAsmType.internalName + "\$Creator")
+    private fun writeCreatorAccessField(codegen: ImplementationBodyCodegen) {
+        val creatorType = Type.getObjectType("android/os/Parcelable\$Creator")
 
         codegen.v.newField(JvmDeclarationOrigin.NO_ORIGIN, ACC_STATIC or ACC_PUBLIC or ACC_FINAL, "CREATOR",
-                           creatorAsmType.descriptor, null, null)
+                           creatorType.descriptor, null, null)
     }
 
     private fun writeCreatorClass(
