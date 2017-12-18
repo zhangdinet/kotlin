@@ -22,6 +22,9 @@ dependencies {
     compile(commonDep("org.jline", "jline"))
     compile(files("${System.getProperty("java.home")}/../lib/tools.jar"))
 
+    // Used in REPL code insight
+    compileOnly(project(":idea:idea-core"))
+
     testCompile(project(":compiler:backend"))
     testCompile(project(":compiler:cli"))
     testCompile(project(":compiler:tests-common"))
