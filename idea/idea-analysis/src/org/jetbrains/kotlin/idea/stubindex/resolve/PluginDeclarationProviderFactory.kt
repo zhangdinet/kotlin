@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.idea.stubindex.resolve
 
-import com.intellij.openapi.components.service
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
@@ -59,7 +59,7 @@ class PluginDeclarationProviderFactory(
 
     private fun packageExists(name: FqName): Boolean {
         return if (moduleInfo is ModuleSourceInfo)
-            project.service<PerModulePackageCacheService>().packageExists(name, moduleInfo)
+            ServiceManager.getService(project, PerModulePackageCacheService::class.java).packageExists(name, moduleInfo)
         else
             PackageIndexUtil.packageExists(name, indexedFilesScope, project)
     }
@@ -95,7 +95,7 @@ class PluginDeclarationProviderFactory(
         val packageExists = PackageIndexUtil.packageExists(fqName, indexedFilesScope, project)
         val spiPackageExists = subpackagesIndex.packageExists(fqName)
         val oldPackageExists = oldPackageExists(fqName)
-        val cachedPackageExists = moduleSourceInfo?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
+        val cachedPackageExists = moduleSourceInfo?.let { ServiceManager.getService(project, PerModulePackageCacheService::class.java).packageExists(fqName, it) }
         val moduleModificationCount = moduleSourceInfo?.createModificationTracker()?.modificationCount
 
         val common = """
