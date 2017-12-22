@@ -43,6 +43,7 @@ val projectsToShadow = listOf(
         ":idea:formatter",
         ":core:descriptors",
         ":core:descriptors.jvm",
+        ":core:deserialization",
         ":compiler:frontend",
         ":compiler:frontend.java",
         ":compiler:frontend.script",
