@@ -302,6 +302,13 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
 
     override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer)
 
+    protected open fun clearOutputsBeforeNonIncrementalBuild() {
+        logger.kotlinDebug { "Removing all kotlin classes in $destinationDir" }
+
+        destinationDir.deleteRecursively()
+        destinationDir.mkdirs()
+    }
+
     override fun callCompiler(args: K2JVMCompilerArguments, sourceRoots: SourceRoots, changedFiles: ChangedFiles) {
         sourceRoots as SourceRoots.ForJvm
 
@@ -327,9 +334,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         }
 
         if (!incremental) {
-            logger.kotlinDebug { "Removing all kotlin classes in $destinationDir" }
-            destinationDir.deleteRecursively()
-            destinationDir.mkdirs()
+            clearOutputsBeforeNonIncrementalBuild()
         }
 
         try {
