@@ -56,11 +56,11 @@ public class PluginStartupComponent implements ApplicationComponent {
 
         try {
             // API added in 15.0.2
-            UpdateChecker.INSTANCE.getExcludedFromUpdateCheckPlugins().add("org.jetbrains.kotlin");
+            UpdateChecker.INSTANCE.getExcludedFromUpdateCheckPlugins().add("org.jetbrains.kotlin.clion");
         }
         catch (Throwable throwable) {
             LOG.debug("Excluding Kotlin plugin updates using old API", throwable);
-            UpdateChecker.getDisabledToUpdatePlugins().add("org.jetbrains.kotlin");
+            UpdateChecker.getDisabledToUpdatePlugins().add("org.jetbrains.kotlin.clion");
         }
         EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new DocumentAdapter() {
             @Override

@@ -6,7 +6,11 @@ jvmTarget = "1.6"
 dependencies {
     compile(projectDist(":kotlin-stdlib"))
     compile(project(":core:deserialization"))
-    compile(ideaSdkCoreDeps(*(rootProject.extra["ideaCoreSdkJars"] as Array<String>)))
+    if (!isClionBuild()) {
+        compile(ideaSdkCoreDeps(*(rootProject.extra["ideaCoreSdkJars"] as Array<String>)))
+    } else {
+        compile(clionSdkDeps("openapi", "util", "annotations", "log4j", "trove4j", "guava"))
+    }
 }
 
 sourceSets {

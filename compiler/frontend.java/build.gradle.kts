@@ -8,6 +8,10 @@ dependencies {
     compile(project(":core:descriptors.jvm"))
     compile(project(":compiler:util"))
     compile(project(":compiler:frontend"))
+
+    if (isClionBuild()) {
+        compile(ideaSdkCoreDeps("asm-all"))
+    }
 }
 
 sourceSets {

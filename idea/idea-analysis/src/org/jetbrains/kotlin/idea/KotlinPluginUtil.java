@@ -28,7 +28,7 @@ import java.util.Arrays;
 
 public class KotlinPluginUtil {
 
-    public static final PluginId KOTLIN_PLUGIN_ID = PluginId.getId("org.jetbrains.kotlin");
+    public static final PluginId KOTLIN_PLUGIN_ID = PluginId.getId("org.jetbrains.kotlin.clion");
 
     @NotNull
     public static String getPluginVersion() {

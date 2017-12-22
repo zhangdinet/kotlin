@@ -76,3 +76,5 @@ fun Project.generator(fqName: String) = task<JavaExec> {
     main = fqName
     workingDir = rootDir
 }
+
+fun Project.isClionBuild(): Boolean = System.getProperty("build.for.clion") == "true"

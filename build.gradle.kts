@@ -82,11 +82,13 @@ val distKotlinHomeDir = "$distDir/kotlinc"
 val distLibDir = "$distKotlinHomeDir/lib"
 val ideaPluginDir = "$distDir/artifacts/Kotlin"
 val ideaUltimatePluginDir = "$distDir/artifacts/KotlinUltimate"
+val clionPluginDir = "$distDir/artifacts/KotlinCLion"
 
 extra["distDir"] = distDir
 extra["distKotlinHomeDir"] = distKotlinHomeDir
 extra["distLibDir"] = project.file(distLibDir)
 extra["libsDir"] = project.file(distLibDir)
+extra["clionPluginDir"] = project.file(clionPluginDir)
 extra["ideaPluginDir"] = project.file(ideaPluginDir)
 extra["ideaUltimatePluginDir"] = project.file(ideaUltimatePluginDir)
 extra["isSonatypeRelease"] = false
@@ -303,6 +305,12 @@ task<Copy>("ideaPlugin") {
     dependsOnTaskIfExistsRec("idea-plugin")
     shouldRunAfter(":prepare:idea-plugin:idea-plugin")
     into("$ideaPluginDir/lib")
+}
+
+task<Copy>("clionPlugin") {
+    dependsOn(":prepare:clion-plugin:clionPlugin")
+    shouldRunAfter(":prepare:clion-plugin:clionPlugin")
+    into("$clionPluginDir/lib")
 }
 
 tasks {

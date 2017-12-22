@@ -11,7 +11,11 @@ dependencies {
     compileOnly(project(":js:js.serializer"))
     compileOnly(project(":js:js.frontend"))
     compileOnly(project(":kotlin-reflect-api"))
-    compileOnly(ideaSdkDeps("util"))
+    if (!isClionBuild()) {
+        compileOnly(ideaSdkDeps("util"))
+    } else {
+        compileOnly(clionSdkDeps("util"))
+    }
     testCompileOnly(project(":compiler:cli-common"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(commonDep("junit:junit"))

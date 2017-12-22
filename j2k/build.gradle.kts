@@ -11,7 +11,6 @@ dependencies {
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:light-classes"))
     compile(project(":compiler:util"))
-//    compile(ideaSdkCoreDeps("intellij-core", "util"))
     testCompile(project(":idea"))
     testCompile(project(":idea:idea-test-framework"))
     testCompile(project(":compiler:light-classes"))

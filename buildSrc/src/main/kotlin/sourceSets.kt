@@ -1,9 +1,11 @@
 @file:Suppress("unused") // usages in build scripts are not tracked properly
 
-import org.gradle.api.*
+import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.the
 //import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 inline fun Project.sourceSets(crossinline body: SourceSetsBuilder.() -> Unit) =

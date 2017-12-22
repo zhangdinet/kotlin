@@ -11,6 +11,11 @@ dependencies {
     compile(project(":compiler:resolution"))
     compile(projectDist(":kotlin-script-runtime"))
     compile(commonDep("io.javaslang","javaslang"))
+
+    if (isClionBuild()) {
+        compile(preloadedDeps("java-api", "java-impl"))
+        compile(clionSdkDeps("extensions", "clion"))
+    }
 }
 
 sourceSets {

@@ -2,7 +2,6 @@
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
@@ -64,6 +63,18 @@ fun Project.ideaUltimatePluginDeps(vararg artifactBaseNames: String, plugin: Str
         ideaUltimateSdkDeps(*artifactBaseNames, subdir = "plugins/$plugin/$subdir")
 
 fun Project.kotlinDep(artifactBaseName: String, version: String): String = "org.jetbrains.kotlin:kotlin-$artifactBaseName:$version"
+
+fun Project.sdkDeps(vararg artifactBaseNames: String, subdir: String, sdkName: String): ConfigurableFileCollection =
+        preloadedDeps(*artifactBaseNames, baseDir = File(rootDir, sdkName), subdir = subdir)
+
+fun Project.pluginDeps(vararg artifactBaseNames: String, plugin: String, subdir: String, sdkName: String): ConfigurableFileCollection =
+        preloadedDeps(*artifactBaseNames, baseDir = File(rootDir, sdkName), subdir = "plugins/$plugin/$subdir")
+
+fun Project.clionSdkDeps(vararg artifactBaseNames: String, subdir: String = "lib"): ConfigurableFileCollection =
+        sdkDeps(*artifactBaseNames, subdir = subdir, sdkName = "clionSDK")
+
+fun Project.clionPluginDeps(vararg artifactBaseNames: String, plugin: String, subdir: String = "lib"): ConfigurableFileCollection =
+        pluginDeps(*artifactBaseNames, plugin = plugin, subdir = subdir, sdkName = "clionSDK")
 
 fun DependencyHandler.projectDist(name: String): ProjectDependency = project(name, configuration = "distJar").apply { isTransitive = false }
 fun DependencyHandler.projectTests(name: String): ProjectDependency = project(name, configuration = "tests-jar")

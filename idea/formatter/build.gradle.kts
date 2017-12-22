@@ -2,9 +2,14 @@
 apply { plugin("kotlin") }
 
 dependencies {
-    compile(project(":compiler:util"))
     compile(project(":compiler:frontend"))
-    compile(ideaSdkDeps("openapi"))
+
+    if (!isClionBuild()) {
+        compile(ideaSdkDeps("openapi"))
+    } else {
+        compile(clionSdkDeps("openapi"))
+        compile(preloadedDeps("java-api", "java-impl"))
+    }
 }
 
 sourceSets {

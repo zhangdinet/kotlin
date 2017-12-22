@@ -7,7 +7,12 @@ dependencies {
     compile(project(":compiler:frontend.java"))
     compile(project(":js:js.frontend"))
     compile(project(":js:js.serializer"))
-    compile(ideaSdkCoreDeps("annotations", "guava", "intellij-core"))
+
+    if (!isClionBuild()) {
+        compile(ideaSdkCoreDeps("annotations", "guava", "intellij-core"))
+    } else {
+        compile(clionSdkDeps("annotations", "guava", "clion"))
+    }
 }
 
 sourceSets {

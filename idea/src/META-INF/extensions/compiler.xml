@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>org.jetbrains.kotlin</id>
+    <id>org.jetbrains.kotlin.clion</id>
 
     <extensionPoints>
         <extensionPoint qualifiedName="org.jetbrains.kotlin.diagnosticSuppressor"

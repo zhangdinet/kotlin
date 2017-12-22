@@ -17,7 +17,10 @@ dependencies {
 }
 
 sourceSets {
-    "main" { projectDefault() }
+    "main" {
+        projectDefault()
+        java.srcDirs("../idea-repl/src")
+    }
     "test" { none() }
 }
 
