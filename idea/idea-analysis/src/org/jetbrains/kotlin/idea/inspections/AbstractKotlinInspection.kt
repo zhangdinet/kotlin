@@ -40,7 +40,6 @@ abstract class AbstractKotlinInspection: LocalInspectionTool(), CustomSuppressab
 
         val project = element.project
         return KotlinCacheService.getInstance(project).getSuppressionCache().isSuppressed(element, suppressionKey, toSeverity(defaultLevel))
-
     }
 
     protected open val suppressionKey: String get() = this.shortName.removePrefix("Kotlin")

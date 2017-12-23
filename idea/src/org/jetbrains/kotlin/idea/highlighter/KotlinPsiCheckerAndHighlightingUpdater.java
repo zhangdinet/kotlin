@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.idea.highlighter;
 
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
 import org.jetbrains.kotlin.psi.KtParameter;
 
@@ -28,7 +27,8 @@ public class KotlinPsiCheckerAndHighlightingUpdater extends KotlinPsiChecker {
         PsiElement grandParent = parameter.getParent().getParent();
         if (grandParent instanceof KtNamedFunction) {
             KtNamedFunction function = (KtNamedFunction) grandParent;
-            return UnusedSymbolInspection.Companion.isEntryPoint(function);
+            //todo: fix
+            //return UnusedSymbolInspection.Companion.isEntryPoint(function);
         }
         return false;
     }

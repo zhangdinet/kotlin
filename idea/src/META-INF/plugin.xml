@@ -1721,7 +1721,8 @@
                      language="kotlin"
     />
 
-    <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection"
+    <!--todo: fix -->
+    <!--<localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection"
                      displayName="Unused symbol"
                      groupPath="Kotlin"
                      groupName="Redundant constructs"
@@ -1729,7 +1730,7 @@
                      level="WARNING"
                      runForWholeFile="true"
                      language="kotlin"
-    />
+    />-->
 
     <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.UnusedReceiverParameterInspection"
                      displayName="Unused receiver parameter"

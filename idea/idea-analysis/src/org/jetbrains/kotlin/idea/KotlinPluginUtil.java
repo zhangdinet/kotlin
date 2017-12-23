@@ -22,7 +22,6 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.configuration.KotlinModuleTypeManager;
 
 import java.util.Arrays;
 
@@ -42,11 +41,13 @@ public class KotlinPluginUtil {
     }
 
     public static boolean isAndroidGradleModule(@NotNull Module module) {
-        return KotlinModuleTypeManager.getInstance().isAndroidGradleModule(module);
+        //return KotlinModuleTypeManager.getInstance().isAndroidGradleModule(module);
+        return false; //todo:
     }
 
     public static boolean isGradleModule(@NotNull Module module) {
-        return KotlinModuleTypeManager.getInstance().isGradleModule(module);
+        //return KotlinModuleTypeManager.getInstance().isGradleModule(module);
+        return false; //todo:
     }
 
     public static boolean isMavenModule(@NotNull Module module) {
