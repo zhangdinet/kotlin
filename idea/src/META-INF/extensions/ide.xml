@@ -40,9 +40,6 @@
                                  order="last"
                                  implementation="org.jetbrains.kotlin.idea.core.script.StandardScriptDefinitionContributor"/>
 
-        <scriptDefinitionContributor id="ConsoleScriptDefinitionContributor"
-                                 implementation="org.jetbrains.kotlin.console.ConsoleScriptDefinitionContributor"/>
-
         <idePlatformSupport implementation="org.jetbrains.kotlin.caches.resolve.JvmPlatformSupport"/>
         <idePlatformSupport implementation="org.jetbrains.kotlin.caches.resolve.JsPlatformSupport"/>
         <idePlatformSupport implementation="org.jetbrains.kotlin.caches.resolve.CommonPlatformSupport"/>

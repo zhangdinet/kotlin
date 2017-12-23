@@ -128,6 +128,9 @@
         <clearBuildState implementation="org.jetbrains.kotlin.idea.compiler.configuration.ClearBuildManagerState"/>
         <facetValidatorCreator implementation="org.jetbrains.kotlin.idea.facet.KotlinLibraryValidatorCreator"/>
 
+        <scriptDefinitionContributor id="ConsoleScriptDefinitionContributor"
+                                     implementation="org.jetbrains.kotlin.console.ConsoleScriptDefinitionContributor"/>
+
         <gradleFrameworkSupport implementation="org.jetbrains.kotlin.gradle.kdsl.frameworkSupport.GradleJavaFrameworkSupportProvider" />
         <gradleFrameworkSupport implementation="org.jetbrains.kotlin.gradle.kdsl.frameworkSupport.GradleKotlinDSLKotlinJavaFrameworkSupportProvider" />
         <gradleFrameworkSupport implementation="org.jetbrains.kotlin.gradle.kdsl.frameworkSupport.GradleKotlinDSLKotlinJSFrameworkSupportProvider" />
