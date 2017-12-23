@@ -122,11 +122,12 @@ val jar = runtimeJar(task<ShadowJar>("shadowJar")) {
     dependsOn(preparePluginXml)
     dependsOn(prepareResources)
 
+    from(preparedResources)
     from(files("$rootDir/resources/kotlinManifest.properties"))
     from(packedJars)
     for (p in projectsToShadow) {
         dependsOn("$p:classes")
-        from(getSourceSetsFrom(p)["main"].output)
+        from(getSourceSetsFrom(p)["main"].output.minus(getSourceSetsFrom(":idea")["main"].resources))
     }
     archiveName = "kotlin-plugin.jar"
 }
