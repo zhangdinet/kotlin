@@ -34,16 +34,13 @@ abstract class AbstractKotlinInspection: LocalInspectionTool(), CustomSuppressab
     }
 
     override fun isSuppressedFor(element: PsiElement): Boolean {
-        if (SuppressManager.getInstance()!!.isSuppressedFor(element, id)) {
+        if (SuppressManager.getInstance()?.isSuppressedFor(element, id) == true) {
             return true
         }
 
         val project = element.project
-        if (KotlinCacheService.getInstance(project).getSuppressionCache().isSuppressed(element, suppressionKey, toSeverity(defaultLevel))) {
-            return true
-        }
+        return KotlinCacheService.getInstance(project).getSuppressionCache().isSuppressed(element, suppressionKey, toSeverity(defaultLevel))
 
-        return false
     }
 
     protected open val suppressionKey: String get() = this.shortName.removePrefix("Kotlin")
