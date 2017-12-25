@@ -7,6 +7,7 @@ dependencies {
     compileOnly(project(":compiler:frontend"))
     compileOnly(project(":compiler:frontend.java"))
     compileOnly(project(":compiler:plugin-api"))
+    compile(project(":plugins:annotation-based-compiler-plugins-ide-support"))
     runtime(projectRuntimeJar(":kotlin-compiler"))
     runtime(projectDist(":kotlin-stdlib"))
     runtime(projectDist(":kotlin-reflect"))
