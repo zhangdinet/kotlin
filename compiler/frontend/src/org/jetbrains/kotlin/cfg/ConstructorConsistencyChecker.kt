@@ -70,7 +70,7 @@ class ConstructorConsistencyChecker private constructor(
     private fun safeReferenceUsage(reference: KtReferenceExpression): Boolean {
         val descriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
         if (descriptor is PropertyDescriptor) {
-            if (!finalClass && descriptor.isOverridable) {
+            if (!finalClass && descriptor.isOverridable && descriptor.visibility != Visibilities.PRIVATE) {
                 trace.record(BindingContext.LEAKING_THIS, reference, LeakingThisDescriptor.NonFinalProperty(descriptor, classOrObject))
                 return true
             }
