@@ -32,6 +32,8 @@ import java.lang.Exception
 interface AnnotationBasedPluginModel : Serializable {
     val annotations: List<String>
     val presets: List<String>
+
+    val isEnabled get() = annotations.isNotEmpty() || presets.isNotEmpty()
 }
 
 @Suppress("unused")
@@ -41,7 +43,7 @@ abstract class AnnotationBasedPluginProjectResolverExtension<T : AnnotationBased
     }
 
     abstract val modelClass: Class<T>
-    abstract val userDataKey: Key<AnnotationBasedPluginModel>
+    abstract val userDataKey: Key<T>
 
     override fun getExtraProjectModelClasses() = setOf(modelClass)
 
@@ -62,21 +64,21 @@ abstract class AnnotationBasedPluginProjectResolverExtension<T : AnnotationBased
 }
 
 abstract class AnnotationBasedPluginModelBuilderService<T : AnnotationBasedPluginModel> : AbstractKotlinGradleModelBuilder() {
-    abstract val gradlePluginName: String
+    abstract val gradlePluginNames: List<String>
     abstract val extensionName: String
 
     abstract val modelClass: Class<T>
-    abstract fun createModel(annotations: List<String>, presets: List<String>): T
+    abstract fun createModel(annotations: List<String>, presets: List<String>, extension: Any?): T
 
     override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
         return ErrorMessageBuilder.create(project, e, "Gradle import errors")
-                .withDescription("Unable to build $gradlePluginName plugin configuration")
+                .withDescription("Unable to build $gradlePluginNames plugin configuration")
     }
 
     override fun canBuild(modelName: String?): Boolean = modelName == modelClass.name
 
     override fun buildAll(modelName: String?, project: Project): Any {
-        val plugin: Plugin<*>? = project.plugins.findPlugin(gradlePluginName)
+        val plugin: Plugin<*>? =  project.findPlugin(gradlePluginNames)
         val extension: Any? = project.extensions.findByName(extensionName)
 
         val annotations = mutableListOf<String>()
@@ -85,20 +87,33 @@ abstract class AnnotationBasedPluginModelBuilderService<T : AnnotationBasedPlugi
         if (plugin != null && extension != null) {
             annotations += extension.getList("myAnnotations")
             presets += extension.getList("myPresets")
+            return createModel(annotations, presets, extension)
         }
 
-        return createModel(annotations, presets)
+        return createModel(emptyList(), emptyList(), null)
     }
 
-    private fun Any.getList(fieldName: String, clazz: Class<*> = this.javaClass): List<String> {
+    private fun Project.findPlugin(names: List<String>): Plugin<*>? {
+        for (name in names) {
+            plugins.findPlugin(name)?.let { return it }
+        }
+
+        return null
+    }
+
+    private fun Any.getList(fieldName: String): List<String> {
+        @Suppress("UNCHECKED_CAST")
+        return getFieldValue(fieldName) as? List<String> ?: emptyList()
+    }
+
+    protected fun Any.getFieldValue(fieldName: String, clazz: Class<*> = this.javaClass): Any? {
         val field = clazz.declaredFields.firstOrNull { it.name == fieldName }
-                    ?: return getList(fieldName, clazz.superclass ?: return emptyList())
+                    ?: return getFieldValue(fieldName, clazz.superclass ?: return null)
 
         val oldIsAccessible = field.isAccessible
         try {
             field.isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            return field.get(this) as? List<String> ?: emptyList()
+            return field.get(this)
         } finally {
             field.isAccessible = oldIsAccessible
         }

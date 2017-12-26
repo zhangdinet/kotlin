@@ -27,13 +27,13 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 
-abstract class AbstractGradleImportHandler : GradleProjectImportHandler {
+abstract class AbstractGradleImportHandler<T : AnnotationBasedPluginModel> : GradleProjectImportHandler {
     abstract val compilerPluginId: String
     abstract val pluginName: String
     abstract val annotationOptionName: String
     abstract val pluginJarFileFromIdea: File
 
-    abstract val modelKey: Key<AnnotationBasedPluginModel>
+    abstract val modelKey: Key<T>
 
     override fun importBySourceSet(facet: KotlinFacet, sourceSetNode: DataNode<GradleSourceSetData>) {
         modifyCompilerArgumentsForPlugin(facet, getPluginSetupBySourceSet(sourceSetNode),
@@ -49,15 +49,17 @@ abstract class AbstractGradleImportHandler : GradleProjectImportHandler {
 
     protected open fun getAnnotationsForPreset(presetName: String): List<String> = emptyList()
 
+    protected open fun getAdditionalOptions(model: T): List<PluginOption> = emptyList()
+
     private fun getPluginSetupByModule(
             moduleNode: DataNode<ModuleData>
     ): AnnotationBasedCompilerPluginSetup? {
-        val pluginModel = moduleNode.getUserData(modelKey) ?: return null
+        val pluginModel = moduleNode.getUserData(modelKey)?.takeIf { it.isEnabled } ?: return null
         val annotations = pluginModel.annotations
         val presets = pluginModel.presets
 
         val allAnnotations = annotations + presets.flatMap { getAnnotationsForPreset(it) }
-        val options = allAnnotations.map { PluginOption(annotationOptionName, it) }
+        val options = allAnnotations.map { PluginOption(annotationOptionName, it) } + getAdditionalOptions(pluginModel)
 
         // For now we can't use plugins from Gradle cause they're shaded and may have an incompatible version.
         // So we use ones from the IDEA plugin.

@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.allopen.AllOpenCommandLineProcessor
 import org.jetbrains.kotlin.annotation.plugin.ide.AbstractGradleImportHandler
 import org.jetbrains.kotlin.utils.PathUtil
 
-class AllOpenGradleProjectImportHandler : AbstractGradleImportHandler() {
+class AllOpenGradleProjectImportHandler : AbstractGradleImportHandler<AllOpenModel>() {
     override val compilerPluginId = AllOpenCommandLineProcessor.PLUGIN_ID
     override val pluginName = "allopen"
     override val annotationOptionName = AllOpenCommandLineProcessor.ANNOTATION_OPTION.name
