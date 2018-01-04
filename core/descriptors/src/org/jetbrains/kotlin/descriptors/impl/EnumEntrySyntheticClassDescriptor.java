@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.incremental.components.LookupLocation;
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation;
 import org.jetbrains.kotlin.name.Name;
-import org.jetbrains.kotlin.resolve.DescriptorFactory;
 import org.jetbrains.kotlin.resolve.NonReportingOverrideStrategy;
 import org.jetbrains.kotlin.resolve.OverridingUtil;
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter;
@@ -43,7 +42,6 @@ import java.util.*;
 
 public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
     private final TypeConstructor typeConstructor;
-    private final ClassConstructorDescriptor primaryConstructor;
     private final MemberScope scope;
     private final NotNullLazyValue<Set<Name>> enumMemberNames;
     private final Annotations annotations;
@@ -85,10 +83,6 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
 
         this.scope = new EnumEntryScope(storageManager);
         this.enumMemberNames = enumMemberNames;
-
-        ClassConstructorDescriptorImpl primaryConstructor = DescriptorFactory.createPrimaryConstructorForObject(this, source);
-        primaryConstructor.setReturnType(getDefaultType());
-        this.primaryConstructor = primaryConstructor;
     }
 
     @NotNull
@@ -106,7 +100,7 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
     @NotNull
     @Override
     public Collection<ClassConstructorDescriptor> getConstructors() {
-        return Collections.singleton(primaryConstructor);
+        return Collections.emptyList();
     }
 
     @NotNull
@@ -167,7 +161,7 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
     @Nullable
     @Override
     public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
-        return primaryConstructor;
+        return null;
     }
 
     @NotNull
