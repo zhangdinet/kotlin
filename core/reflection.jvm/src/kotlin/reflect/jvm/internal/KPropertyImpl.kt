@@ -77,6 +77,7 @@ internal abstract class KPropertyImpl<out R> private constructor(
             }
             is JavaField -> jvmSignature.field
             is JavaMethodProperty -> null
+            is MappedKotlinProperty -> null
         }
     }
 
@@ -268,6 +269,19 @@ private fun KPropertyImpl.Accessor<*, *>.computeCallerForAccessor(isGetter: Bool
                     )
             if (isBound) FunctionCaller.BoundInstanceMethod(method, property.boundReceiver)
             else FunctionCaller.InstanceMethod(method)
+        }
+        is MappedKotlinProperty -> {
+            val signature =
+                    if (isGetter) jvmSignature.getterSignature
+                    else (jvmSignature.setterSignature ?: throw KotlinReflectionInternalError("No setter found for property $property"))
+            val accessor = property.container.findMethodBySignature(
+                    signature.substringBefore('('), signature.substring(signature.indexOf('(')), descriptor.isPublicInBytecode
+            ) ?: throw KotlinReflectionInternalError("No accessor found for property $property")
+
+            assert(!Modifier.isStatic(accessor.modifiers)) { "Mapped property cannot have a static accessor: $property" }
+
+            return if (isBound) FunctionCaller.BoundInstanceMethod(accessor, property.boundReceiver)
+            else FunctionCaller.InstanceMethod(accessor)
         }
     }
 }
