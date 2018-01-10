@@ -18,9 +18,11 @@ package org.jetbrains.kotlin.kapt3.stubs
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.sun.tools.javac.parser.Tokens
 import com.sun.tools.javac.tree.JCTree
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
 import org.jetbrains.kotlin.kapt3.KaptContext
+import org.jetbrains.kotlin.kapt3.util.isJava9OrLater
 import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import org.jetbrains.org.objectweb.asm.tree.FieldNode
 import org.jetbrains.org.objectweb.asm.tree.MethodNode
@@ -36,11 +38,21 @@ class KaptLineMappingCollector(private val kaptContext: KaptContext<*>) {
         private val METADATA_COMMENT_PREFIX = "@KaptMetadata "
 
         fun parseFileInfo(file: JCTree.JCCompilationUnit): FileInfo {
-            val comment = file.docComments
-                                      ?.getComment(file)?.text?.trim()
-                                      ?.takeIf { it.startsWith(METADATA_COMMENT_PREFIX) }
-                                      ?.drop(METADATA_COMMENT_PREFIX.length)
-                          ?: return FileInfo.EMPTY
+            fun getCommentTree(): Tokens.Comment? {
+                if (isJava9OrLater) {
+                    val packageElement = JCTree.JCCompilationUnit::class.java.getDeclaredMethod("getPackage").invoke(file) as JCTree?
+                    if (packageElement != null) {
+                        file.docComments.getComment(packageElement)?.let { return it }
+                    }
+                }
+
+                return file.docComments.getComment(file)
+            }
+
+            val comment = getCommentTree()?.text?.trim()
+                ?.takeIf { it.startsWith(METADATA_COMMENT_PREFIX) }
+                ?.drop(METADATA_COMMENT_PREFIX.length)
+                    ?: return FileInfo.EMPTY
 
             return FileInfo.parse(comment)
         }
