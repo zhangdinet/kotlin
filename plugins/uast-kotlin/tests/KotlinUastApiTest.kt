@@ -3,7 +3,10 @@ package org.jetbrains.uast.test.kotlin
 import com.intellij.psi.PsiModifier
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.kotlin.asJava.toLightAnnotation
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.cast
@@ -77,27 +80,6 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testSAM() {
-        doTest("SAM") { _, file ->
-            assertNull(file.findElementByText<ULambdaExpression>("{ /* Not SAM */ }").functionalInterfaceType)
-
-            assertEquals("java.lang.Runnable",
-                         file.findElementByText<ULambdaExpression>("{/* Variable */}").functionalInterfaceType?.canonicalText)
-
-            assertEquals("java.lang.Runnable",
-                         file.findElementByText<ULambdaExpression>("{/* Assignment */}").functionalInterfaceType?.canonicalText)
-
-            assertEquals("java.lang.Runnable",
-                          file.findElementByText<ULambdaExpression>("{/* Type Cast */}").functionalInterfaceType?.canonicalText)
-
-            assertEquals("java.lang.Runnable",
-                         file.findElementByText<ULambdaExpression>("{/* Argument */}").functionalInterfaceType?.canonicalText)
-
-            assertEquals("java.lang.Runnable",
-                         file.findElementByText<ULambdaExpression>("{/* Return */}").functionalInterfaceType?.canonicalText)
-        }
-    }
-
     @Test fun testParameterPropertyWithAnnotation() {
         doTest("ParameterPropertyWithAnnotation") { _, file ->
             val test1 = file.classes.find { it.name == "Test1" }!!
@@ -125,14 +107,6 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
             setter2.uastParameters.first().annotations.single { it.qualifiedName == "MyAnnotation3" }
 
             test2.fields.find { it.name == "bar" }!!.annotations.single { it.qualifiedName == "MyAnnotation5" }
-        }
-    }
-
-    @Test fun testConvertTypeInAnnotation() {
-        doTest("TypeInAnnotation") { _, file ->
-            val index = file.psi.text.indexOf("Test")
-            val element = file.psi.findElementAt(index)!!.getParentOfType<KtUserType>(false)!!
-            assertNotNull(element.getUastParentOfType(UAnnotation::class.java))
         }
     }
 
@@ -213,50 +187,4 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
             })
         }
     }
-
-    @Test
-    fun testSimpleAnnotated() {
-        doTest("SimpleAnnotated") { _, file ->
-            file.findElementByTextFromPsi<UField>("@SinceKotlin(\"1.0\")\n    val property: String = \"Mary\"").let { field ->
-                val annotation = field.annotations.assertedFind("kotlin.SinceKotlin") { it.qualifiedName }
-                Assert.assertEquals(annotation.findDeclaredAttributeValue("version")?.evaluateString(), "1.0")
-            }
-        }
-    }
-
-
-    fun UFile.checkUastSuperTypes(refText: String, superTypes: List<String>) {
-        findElementByTextFromPsi<UClass>(refText, false).let {
-            assertEquals("base classes", superTypes, it.uastSuperTypes.map { it.getQualifiedName() })
-        }
-    }
-
-
-    @Test
-    fun testSuperTypes() {
-        doTest("SuperCalls") { _, file ->
-            file.checkUastSuperTypes("B", listOf("A"))
-            file.checkUastSuperTypes("O", listOf("A"))
-            file.checkUastSuperTypes("innerObject ", listOf("A"))
-            file.checkUastSuperTypes("InnerClass", listOf("A"))
-            file.checkUastSuperTypes("object : A(\"textForAnon\")", listOf("A"))
-        }
-    }
-
-    @Test
-    fun testAnonymousSuperTypes() {
-        doTest("Anonymous") { _, file ->
-            file.checkUastSuperTypes("object : Runnable { override fun run() {} }", listOf("java.lang.Runnable"))
-            file.checkUastSuperTypes(
-                "object : Runnable, Closeable { override fun close() {} override fun run() {} }",
-                listOf("java.lang.Runnable", "java.io.Closeable")
-            )
-            file.checkUastSuperTypes(
-                "object : InputStream(), Runnable { override fun read(): Int = 0; override fun run() {} }",
-                listOf("java.io.InputStream", "java.lang.Runnable")
-            )
-        }
-    }
 }
-
-fun <T, R> Iterable<T>.assertedFind(value: R, transform: (T) -> R): T = find { transform(it) == value } ?: throw AssertionError("'$value' not found, only ${this.joinToString { transform(it).toString() }}")
