@@ -165,6 +165,7 @@ abstract class Symbols<out T: CommonBackendContext>(val context: T, private val 
     abstract val coroutineSuspendedGetter: IrSimpleFunctionSymbol
 
     val kFunctionImpl = symbolTable.referenceClass(context.reflectionTypes.kFunctionImpl)
+    val functionReference = symbolTable.referenceClass(context.getInternalClass("FunctionReference"))
 
     val kProperty0Impl = symbolTable.referenceClass(context.reflectionTypes.kProperty0Impl)
     val kProperty1Impl = symbolTable.referenceClass(context.reflectionTypes.kProperty1Impl)
