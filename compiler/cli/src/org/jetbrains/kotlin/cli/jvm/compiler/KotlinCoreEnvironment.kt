@@ -528,7 +528,9 @@ class KotlinCoreEnvironment private constructor(
                     ?: PathUtil.pathUtilJar.takeIf { it.hasConfigFile(configFilePath) }
                     // hack for load extensions when compiler run directly from project directory (e.g. in tests)
                     ?: File("idea/src").takeIf { it.hasConfigFile(configFilePath) }
-                    ?: throw IllegalStateException("Unable to find extension point configuration $configFilePath (cp:\n  ${(Thread.currentThread().contextClassLoader as? UrlClassLoader)?.urls?.joinToString("\n  ") { it.file }})")
+                    ?: throw IllegalStateException(
+                                "Unable to find extension point configuration $configFilePath " +
+                                "(cp:\n  ${(Thread.currentThread().contextClassLoader as? UrlClassLoader)?.urls?.joinToString("\n  ") { it.file }})")
 
             CoreApplicationEnvironment.registerExtensionPointAndExtensions(pluginRoot, configFilePath, Extensions.getRootArea())
         }

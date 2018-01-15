@@ -63,8 +63,8 @@ projectTest {
     dependsOn(*testDistProjects.map { "$it:dist" }.toTypedArray())
     workingDir = rootDir
     doFirst {
-        systemProperty("ant.classpath", antLauncherJar.asPath)
-        systemProperty("ant.launcher.class", "org.apache.tools.ant.Main")
+        systemProperty("kotlin.ant.classpath", antLauncherJar.asPath)
+        systemProperty("kotlin.ant.launcher.class", "org.apache.tools.ant.Main")
     }
 }
 
@@ -75,8 +75,8 @@ projectTest("quickTest") {
     workingDir = rootDir
     systemProperty("kotlin.js.skipMinificationTest", "true")
     doFirst {
-        systemProperty("ant.classpath", antLauncherJar.asPath)
-        systemProperty("ant.launcher.class", "org.apache.tools.ant.Main")
+        systemProperty("kotlin.ant.classpath", antLauncherJar.asPath)
+        systemProperty("kotlin.ant.launcher.class", "org.apache.tools.ant.Main")
     }
 }
 
