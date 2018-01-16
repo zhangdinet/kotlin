@@ -48,7 +48,7 @@ sourceSets {
 }
 
 projectTest {
-    dependsOnTaskIfExistsRec("dist", project = rootProject)
+    shouldRunAfter(":dist")
     workingDir = rootDir
     doFirst {
         systemProperty("idea.home.path", intellijRootDir().canonicalPath)
