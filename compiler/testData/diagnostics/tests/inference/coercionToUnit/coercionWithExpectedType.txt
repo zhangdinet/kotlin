@@ -1,0 +1,9 @@
+package
+
+public val a: () -> kotlin.Unit
+public val b: () -> kotlin.Unit
+public val c: () -> kotlin.Unit
+public fun d(): kotlin.Unit
+public fun e(): kotlin.Unit
+public fun f(): kotlin.Unit
+public fun </*0*/ T> materialize(): T
