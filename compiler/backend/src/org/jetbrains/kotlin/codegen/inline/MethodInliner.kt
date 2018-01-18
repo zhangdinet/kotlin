@@ -20,16 +20,20 @@ import org.jetbrains.kotlin.backend.jvm.codegen.IrExpressionLambda
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClosureCodegen
 import org.jetbrains.kotlin.codegen.StackValue
+import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.ApiVersionCallsPreprocessingMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.FixStackWithLabelNormalizationMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.common.InsnSequence
+import org.jetbrains.kotlin.codegen.optimization.common.asSequence
 import org.jetbrains.kotlin.codegen.optimization.common.isMeaningful
 import org.jetbrains.kotlin.codegen.optimization.fixStack.peek
 import org.jetbrains.kotlin.codegen.optimization.fixStack.top
+import org.jetbrains.kotlin.resolve.jvm.AsmTypes.OBJECT_TYPE
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.SmartSet
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
@@ -420,6 +424,8 @@ class MethodInliner(
 
         preprocessNodeBeforeInline(processingNode, labelOwner)
 
+        replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode)
+
         val sources = analyzeMethodNodeBeforeInline(processingNode)
 
         val toDelete = SmartSet.create<AbstractInsnNode>()
@@ -559,6 +565,38 @@ class MethodInliner(
         processingNode.tryCatchBlocks.removeIf { it.isMeaningless() }
 
         return processingNode
+    }
+
+    // Replace ALOAD 0
+    // with
+    //   ICONST fakeContinuationMarker
+    //   INVOKESTATIC InlineMarker.mark
+    //   ACONST_NULL
+    // iff this ALOAD 0 is continuation and passed as the last parameter to suspending function
+    private fun replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode: MethodNode) {
+        val lambdaInfo = inliningContext.lambdaInfo ?: return
+        if (!lambdaInfo.invokeMethodDescriptor.isSuspend) return
+        // Expected pattern here:
+        //     ALOAD 0
+        //     ICONST_0
+        //     INVOKESTATIC InlineMarker.mark
+        //     INVOKE* suspendingFunction(..., Continuation;)Ljava/lang/Object;
+        val aload0s = processingNode.instructions.asSequence().filter { it.opcode == Opcodes.ALOAD && it.safeAs<VarInsnNode>()?.`var` == 0 }
+        val continuationAload0s =
+            aload0s.filter { it.next?.next?.let(::isBeforeSuspendMarker) == true && isSuspendCall(it.next?.next?.next) }.toList()
+        val fakeContinuation = createFakeContinuationMethodNodeForInline()
+        for (toReplace in continuationAload0s) {
+            insertNodeBefore(fakeContinuation, processingNode, toReplace)
+            processingNode.instructions.remove(toReplace)
+        }
+    }
+
+    private fun isSuspendCall(invoke: AbstractInsnNode?): Boolean {
+        if (invoke !is MethodInsnNode) return false
+        // We can't have suspending constructors.
+        assert(invoke.opcode != Opcodes.INVOKESPECIAL)
+        if (Type.getReturnType(invoke.desc) != OBJECT_TYPE) return false
+        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == CONTINUATION_ASM_TYPE }
     }
 
     private fun preprocessNodeBeforeInline(node: MethodNode, labelOwner: LabelOwner) {

@@ -40,6 +40,7 @@ object InlineParameterChecker : DeclarationChecker {
                 }
 
                 if (inline && !parameter.hasModifier(KtTokens.NOINLINE_KEYWORD) &&
+                    !parameter.hasModifier(KtTokens.CROSSINLINE_KEYWORD) &&
                     parameterDescriptor?.type?.isSuspendFunctionType == true) {
                     context.trace.report(Errors.INLINE_SUSPEND_FUNCTION_TYPE_UNSUPPORTED.on(parameter))
                 }

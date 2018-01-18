@@ -291,6 +291,13 @@ internal fun insertNodeBefore(from: MethodNode, to: MethodNode, beforeNode: Abst
 
 internal fun createEmptyMethodNode() = MethodNode(API, 0, "fake", "()V", null, null)
 
+internal fun createFakeContinuationMethodNodeForInline(): MethodNode {
+    val methodNode = createEmptyMethodNode()
+    val v = InstructionAdapter(methodNode)
+    addFakeContinuationMarker(v)
+    return methodNode
+}
+
 internal fun firstLabelInChain(node: LabelNode): LabelNode {
     var curNode = node
     while (curNode.previous is LabelNode) {
