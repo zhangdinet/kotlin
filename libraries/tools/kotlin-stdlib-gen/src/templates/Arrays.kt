@@ -541,6 +541,7 @@ object ArrayOps : TemplateGroupBase() {
             """
         }
         returns("Unit")
+        suppress("ACTUAL_MISSING") // TODO: KT-21864
         body {
             "if (size > 1) java.util.Arrays.sort(this)"
         }
