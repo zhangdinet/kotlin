@@ -1,0 +1,91 @@
+description = 'Kotlin Standard Library for JVM'
+
+apply plugin: 'kotlin-platform-jvm'
+
+archivesBaseName = 'kotlin-stdlib-jvm'
+
+configureJvm6Project(project)
+configurePublishing(project)
+
+
+//def builtinsSrcDir = "${buildDir}/builtin-sources"
+//def builtinsSrcDir2 = "${buildDir}/builtin-sources-for-builtins"
+//def commonSrcDir = "${buildDir}/common-sources"
+//def commonTestSrcDir = "${buildDir}/common-test-sources"
+def builtinsDir = "${rootDir}/core/builtins"
+
+
+
+sourceSets {
+    main {
+        java {
+            srcDir "${rootDir}/core/builtins/src"
+            srcDir "${rootDir}/core/runtime.jvm/src"
+            exclude 'org/jetbrains/annotations/**'
+        }
+        kotlin {
+            srcDir "${rootDir}/core/builtins/src"
+            srcDir "${rootDir}/core/runtime.jvm/src"
+            exclude 'org/jetbrains/annotations/**'
+        }
+        java {
+            srcDir 'src'
+        }
+    }
+
+    test {
+        kotlin {
+//            srcDir commonTestSrcDir
+            srcDir '../test'
+        }
+    }
+}
+
+dependencies {
+    expectedBy project(":kotlin-stdlib-common")
+
+    compile group: 'org.jetbrains', name: 'annotations', version:'13.0'
+    compile fileTree("${rootDir}/dist/builtins")
+
+//    testCompile project(':kotlin-test:kotlin-test-junit')
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$bootstrapKotlinVersion"
+}
+
+
+//createPreprocessorTask(project, "Main", "${projectDir}/../src/kotlin", commonSrcDir)
+//createPreprocessorTask(project, "Test", "${projectDir}/../test", commonTestSrcDir)
+
+kotlin.experimental.coroutines "enable"
+
+compileKotlin {
+    dependsOn(":core:builtins:serialize")
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesMain")
+//    dependsOn(":prepare:build.version:writeStdlibVersion")
+    kotlinOptions {
+        freeCompilerArgs = [
+                "-version",
+                "-Xallow-kotlin-package",
+                "-Xmultifile-parts-inherit",
+                "-Xmulti-platform",
+                "-Xnormalize-constructor-calls=enable",
+                "-Xdump-declarations-to=${buildDir}/stdlib-declarations.json",
+                "-module-name", "kotlin-stdlib"
+        ]
+    }
+}
+
+
+jar {
+    manifestAttributes(manifest, project, 'Main')
+    from("${rootDir}/dist/builtins")
+}
+
+sourcesJar {
+    from "${rootDir}/core/builtins/native"
+}
+
+/*dist {
+    [mergedJar, sourcesJar].forEach {
+        from(it)
+    }
+}*/
