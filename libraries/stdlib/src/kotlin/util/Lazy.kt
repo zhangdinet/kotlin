@@ -105,7 +105,7 @@ public enum class LazyThreadSafetyMode {
 }
 
 
-private object UNINITIALIZED_VALUE
+internal object UNINITIALIZED_VALUE
 
 @JvmVersion
 private class SynchronizedLazyImpl<out T>(initializer: () -> T, lock: Any? = null) : Lazy<T>, Serializable {
@@ -165,7 +165,7 @@ internal class UnsafeLazyImpl<out T>(initializer: () -> T) : Lazy<T>, Serializab
     private fun writeReplace(): Any = InitializedLazyImpl(value)
 }
 
-private class InitializedLazyImpl<out T>(override val value: T) : Lazy<T>, Serializable {
+internal class InitializedLazyImpl<out T>(override val value: T) : Lazy<T>, Serializable {
 
     override fun isInitialized(): Boolean = true
 
