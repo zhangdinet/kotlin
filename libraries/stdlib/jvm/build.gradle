@@ -1,0 +1,115 @@
+description = 'Kotlin Standard Library for JVM'
+
+apply plugin: 'kotlin-platform-jvm'
+
+archivesBaseName = 'kotlin-stdlib'
+
+configureJvm6Project(project)
+configureDist(project)
+configurePublishing(project)
+
+sourceSets {
+    annotations {
+        if(!System.properties.'idea.active') {
+            java {
+                srcDir "${rootDir}/core/runtime.jvm/src"
+                include 'org/jetbrains/annotations/**'
+            }
+            kotlin {
+                exclude '**/*'
+            }
+        }
+    }
+    main {
+        java {
+            srcDir "${rootDir}/core/builtins/src"
+            srcDir 'runtime'
+            srcDir 'src'
+        }
+    }
+    test {
+        kotlin {
+            srcDir 'test'
+        }
+    }
+}
+
+dependencies {
+    expectedBy project(":kotlin-stdlib-common")
+
+    compile group: 'org.jetbrains', name: 'annotations', version:'13.0'
+    compile fileTree("${rootDir}/dist/builtins")
+
+    testCompile project(':kotlin-test:kotlin-test-junit')
+}
+
+
+kotlin.experimental.coroutines "enable"
+
+compileKotlin {
+    dependsOn(":core:builtins:serialize")
+    dependsOn(":prepare:build.version:writeStdlibVersion")
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesMain")
+    kotlinOptions {
+        freeCompilerArgs = [
+                "-version",
+                "-Xallow-kotlin-package",
+                "-Xmultifile-parts-inherit",
+                "-Xmulti-platform",
+                "-Xnormalize-constructor-calls=enable",
+                "-Xdump-declarations-to=${buildDir}/stdlib-declarations.json",
+                "-module-name", "kotlin-stdlib"
+        ]
+    }
+}
+
+compileTestKotlin {
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesTest")
+}
+
+
+jar {
+    manifestAttributes(manifest, project, 'Main')
+    from("${rootDir}/dist/builtins")
+}
+
+task distJar(type: Jar) {
+    baseName = 'dist-kotlin-stdlib'
+    version = null
+    manifestAttributes(manifest, project, 'Main')
+    from("${rootDir}/dist/builtins")
+    from sourceSets.annotations.output
+    from sourceSets.main.output
+}
+
+
+sourcesJar {
+    from "${rootDir}/core/builtins/native"
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+dist {
+    [distJar, sourcesJar].forEach {
+        from(it) {
+            rename('dist-', '')
+        }
+        // legacy
+        from(it) {
+            rename('dist-', '')
+            rename('kotlin-stdlib', 'kotlin-runtime')
+        }
+    }
+    from (configurations.compile) {
+        include 'annotations*.jar'
+    }
+}
+
+task dexMethodCount(type: DexMethodCount) {
+    from jar
+    ownPackages = ['kotlin']
+}
+check.dependsOn(dexMethodCount)
