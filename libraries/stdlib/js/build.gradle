@@ -4,7 +4,7 @@ plugins {
 
 description = 'Kotlin Standard Library for JS'
 
-apply plugin: 'kotlin2js'
+apply plugin: 'kotlin-platform-js'
 apply plugin: 'idea'
 
 configurePublishing(project)
@@ -12,8 +12,8 @@ configurePublishing(project)
 
 def builtinsSrcDir = "${buildDir}/builtin-sources"
 def builtinsSrcDir2 = "${buildDir}/builtin-sources-for-builtins"
-def commonSrcDir = "${buildDir}/common-sources"
-def commonTestSrcDir = "${buildDir}/common-test-sources"
+def commonSrcDir = "${projectDir}/../common/src/build/common-sources"
+
 def builtinsDir = "${rootDir}/core/builtins"
 def jsLibrariesDir = "${rootDir}/js/js.libraries"
 def jsSrcDir = "${jsLibrariesDir}/src"
@@ -40,14 +40,13 @@ sourceSets {
         kotlin {
             srcDir builtinsSrcDir
             srcDir jsSrcDir
+            srcDir 'src/generated'
             exclude "builtins"
-            srcDir commonSrcDir
         }
     }
 
     test {
         kotlin {
-            srcDir commonTestSrcDir
             srcDir jsTestSrcDir
         }
     }
@@ -57,6 +56,7 @@ configurations {
     merger
 }
 dependencies {
+    expectedBy project(":kotlin-stdlib-common")
     testCompile project(':kotlin-test:kotlin-test-js')
     merger project(":tools:kotlin-stdlib-js-merger")
 }
@@ -66,9 +66,6 @@ idea {
         excludeDirs = excludeDirs + files('node_modules')
     }
 }
-
-createPreprocessorTask(project, "Main", "${projectDir}/../src/kotlin", commonSrcDir)
-createPreprocessorTask(project, "Test", "${projectDir}/../test", commonTestSrcDir)
 
 task prepareComparableSource(type: Copy) {
     doFirst {
@@ -130,19 +127,21 @@ compileBuiltinsKotlin2Js {
 }
 
 compileKotlin2Js {
-    dependsOn preprocessSourcesMain, prepareBuiltinsSources
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesMain")
+    dependsOn prepareBuiltinsSources
     kotlinOptions {
         outputFile = "${buildDir}/classes/main/kotlin.js"
         sourceMap = true
         sourceMapPrefix = "./"
-        freeCompilerArgs += [ "-source-map-base-dirs", [builtinsSrcDir, jsSrcDir, commonSrcDir ].join(File.pathSeparator) ]
+        freeCompilerArgs += [ "-source-map-base-dirs", [builtinsSrcDir, jsSrcDir, commonSrcDir ].join(File.pathSeparator), "-Xmulti-platform" ]
     }
 }
 
 compileTestKotlin2Js {
-    dependsOn preprocessSourcesTest
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesTest")
     kotlinOptions {
         moduleKind = "plain"
+        freeCompilerArgs += ["-Xmulti-platform"]
     }
 }
 
@@ -215,7 +214,7 @@ task mergedJar(type: Jar, dependsOn: classes) {
     classifier = null
     manifestAttributes(manifest, project, 'Main')
 
-    // TODO: Use standard implementation title after js stdlib detector becomes more flexible
+    // TODO: Use standard implementation title after js stdlib detector becomes more flexible (KT-17655)
     Properties properties = new Properties()
     new File("${rootDir}/resources/kotlinManifest.properties").withInputStream {
         properties.load(it)
