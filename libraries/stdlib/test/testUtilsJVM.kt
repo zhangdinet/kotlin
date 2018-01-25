@@ -19,7 +19,7 @@ package test
 import kotlin.test.assertEquals
 
 @JvmVersion
-public fun assertTypeEquals(expected: Any?, actual: Any?) {
+public actual fun assertTypeEquals(expected: Any?, actual: Any?) {
     assertEquals(expected?.javaClass, actual?.javaClass)
 }
 
@@ -28,8 +28,8 @@ public fun assertTypeEquals(expected: Any?, actual: Any?) {
 private val isJava6 = System.getProperty("java.version").startsWith("1.6.")
 
 @kotlin.jvm.JvmVersion
-internal fun String.removeLeadingPlusOnJava6(): String =
-        if (isJava6) removePrefix("+") else this
+internal actual fun String.removeLeadingPlusOnJava6(): String =
+    if (isJava6) removePrefix("+") else this
 
 @kotlin.jvm.JvmVersion
-internal fun doubleTotalOrderEquals(a: Any?, b: Any?) = a == b
+internal actual fun doubleTotalOrderEquals(a: Double?, b: Double?) = (a as Any?) == b

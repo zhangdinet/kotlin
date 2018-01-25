@@ -20,6 +20,3 @@ public expect fun assertTypeEquals(expected: Any?, actual: Any?)
 
 internal expect fun String.removeLeadingPlusOnJava6(): String
 internal expect fun doubleTotalOrderEquals(a: Double?, b: Double?): Boolean
-
-// TODO
-internal expect class NumberFormatException : Throwable
