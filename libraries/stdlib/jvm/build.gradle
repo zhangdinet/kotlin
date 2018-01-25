@@ -2,21 +2,28 @@ description = 'Kotlin Standard Library for JVM'
 
 apply plugin: 'kotlin-platform-jvm'
 
-archivesBaseName = 'kotlin-stdlib-jvm'
+archivesBaseName = 'kotlin-stdlib'
 
 configureJvm6Project(project)
 configurePublishing(project)
 
 
-//def builtinsSrcDir = "${buildDir}/builtin-sources"
-//def builtinsSrcDir2 = "${buildDir}/builtin-sources-for-builtins"
-//def commonSrcDir = "${buildDir}/common-sources"
-//def commonTestSrcDir = "${buildDir}/common-test-sources"
 def builtinsDir = "${rootDir}/core/builtins"
 
 
 
 sourceSets {
+    annotations {
+        if(!System.properties.'idea.active') {
+            java {
+                srcDir "${rootDir}/core/runtime.jvm/src"
+                include 'org/jetbrains/annotations/**'
+            }
+            kotlin {
+                exclude '**/*'
+            }
+        }
+    }
     main {
         java {
             srcDir "${rootDir}/core/builtins/src"
@@ -35,8 +42,7 @@ sourceSets {
 
     test {
         kotlin {
-//            srcDir commonTestSrcDir
-            srcDir '../test'
+            srcDir 'test'
         }
     }
 }
@@ -47,20 +53,16 @@ dependencies {
     compile group: 'org.jetbrains', name: 'annotations', version:'13.0'
     compile fileTree("${rootDir}/dist/builtins")
 
-//    testCompile project(':kotlin-test:kotlin-test-junit')
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$bootstrapKotlinVersion"
+    testCompile project(':kotlin-test:kotlin-test-junit')
 }
 
-
-//createPreprocessorTask(project, "Main", "${projectDir}/../src/kotlin", commonSrcDir)
-//createPreprocessorTask(project, "Test", "${projectDir}/../test", commonTestSrcDir)
 
 kotlin.experimental.coroutines "enable"
 
 compileKotlin {
     dependsOn(":core:builtins:serialize")
+    dependsOn(":prepare:build.version:writeStdlibVersion")
     dependsOn(":kotlin-stdlib-common:preprocessSourcesMain")
-//    dependsOn(":prepare:build.version:writeStdlibVersion")
     kotlinOptions {
         freeCompilerArgs = [
                 "-version",
@@ -74,18 +76,55 @@ compileKotlin {
     }
 }
 
+compileTestKotlin {
+    dependsOn(":kotlin-stdlib-common:preprocessSourcesTest")
+}
+
 
 jar {
     manifestAttributes(manifest, project, 'Main')
     from("${rootDir}/dist/builtins")
 }
 
+task distJar(type: Jar) {
+    baseName = 'dist-kotlin-stdlib'
+    version = null
+    manifestAttributes(manifest, project, 'Main')
+    from("${rootDir}/dist/builtins")
+    from sourceSets.annotations.output
+    from sourceSets.main.output
+}
+
+
 sourcesJar {
     from "${rootDir}/core/builtins/native"
 }
 
-/*dist {
-    [mergedJar, sourcesJar].forEach {
-        from(it)
+
+dist {
+    [distJar, sourcesJar].forEach {
+        from(it) {
+            rename('dist-', '')
+        }
+        // legacy
+        from(it) {
+            rename('dist-', '')
+            rename('kotlin-stdlib', 'kotlin-runtime')
+        }
     }
-}*/
+    from (configurations.compile) {
+        include 'annotations*.jar'
+    }
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+
+task dexMethodCount(type: DexMethodCount) {
+    from jar
+    ownPackages = ['kotlin']
+}
+check.dependsOn(dexMethodCount)
