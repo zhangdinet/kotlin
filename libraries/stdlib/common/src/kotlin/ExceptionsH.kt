@@ -41,10 +41,13 @@ public expect open class IndexOutOfBoundsException : RuntimeException {
     constructor(message: String?)
 }
 
+@Suppress("NO_ACTUAL_FOR_EXPECT") // TODO: Introduce typealias in JVM
 public expect open class ConcurrentModificationException : RuntimeException {
     constructor()
     constructor(message: String?)
+    @Deprecated("The constructor is not supported on all platforms")
     constructor(message: String?, cause: Throwable?)
+    @Deprecated("The constructor is not supported on all platforms")
     constructor(cause: Throwable?)
 }
 
@@ -75,11 +78,13 @@ public expect open class AssertionError : Error {
     constructor(message: Any?)
 }
 
-public expect open class NoSuchElementException : Exception {
+public expect open class NoSuchElementException : RuntimeException {
     constructor()
     constructor(message: String?)
 }
 
+@Suppress("NO_ACTUAL_FOR_EXPECT")
+@Deprecated("This exception type is not supposed to be thrown or caught in common code.")
 public expect open class NoWhenBranchMatchedException : RuntimeException {
     constructor()
     constructor(message: String?)
@@ -87,7 +92,8 @@ public expect open class NoWhenBranchMatchedException : RuntimeException {
     constructor(cause: Throwable?)
 }
 
-public expect open class UninitializedPropertyAccessException : RuntimeException {
+@Deprecated("This exception type is not supposed to be thrown or caught in common code.")
+public expect class UninitializedPropertyAccessException : RuntimeException {
     constructor()
     constructor(message: String?)
     constructor(message: String?, cause: Throwable?)
