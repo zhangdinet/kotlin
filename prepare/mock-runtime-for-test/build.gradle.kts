@@ -50,7 +50,7 @@ tasks.withType<JavaCompile> {
 tasks.withType<KotlinCompile> {
     dependsOn(copySources)
     kotlinOptions {
-        freeCompilerArgs += listOf("-module-name", "kotlin-stdlib")
+        freeCompilerArgs += listOf("-module-name", "kotlin-stdlib", "-Xmulti-platform")
     }
 }
 
