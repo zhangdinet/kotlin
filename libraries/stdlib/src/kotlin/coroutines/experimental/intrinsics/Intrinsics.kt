@@ -15,6 +15,7 @@
  */
 
 @file:kotlin.jvm.JvmName("IntrinsicsKt")
+@file:kotlin.jvm.JvmMultifileClass
 
 package kotlin.coroutines.experimental.intrinsics
 

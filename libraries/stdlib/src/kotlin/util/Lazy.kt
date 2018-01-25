@@ -1,4 +1,5 @@
 @file:kotlin.jvm.JvmName("LazyKt")
+@file:kotlin.jvm.JvmMultifileClass
 
 package kotlin
 

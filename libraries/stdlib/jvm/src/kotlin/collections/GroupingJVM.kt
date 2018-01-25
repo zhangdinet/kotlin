@@ -1,3 +1,6 @@
+@file:JvmMultifileClass
+@file:JvmName("GroupingKt")
+
 package kotlin.collections
 
 
