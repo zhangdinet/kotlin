@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -15,12 +16,13 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.uast.*
+import org.jetbrains.uast.kotlin.declarations.KotlinUIdentifier
 import org.jetbrains.uast.kotlin.declarations.KotlinUMethod
 
 class KotlinUAnnotation(
         override val psi: KtAnnotationEntry,
         givenParent: UElement?
-) : KotlinAbstractUElement(givenParent), UAnnotation {
+) : KotlinAbstractUElement(givenParent), UAnnotation, UAnchorOwner {
 
     override val javaPsi = psi.toLightAnnotation()
 
@@ -32,6 +34,16 @@ class KotlinUAnnotation(
 
     override val qualifiedName: String?
         get() = resolvedAnnotation?.fqName?.asString()
+
+    override val uastAnchor by lazy {
+        KotlinUIdentifier(
+            javaPsi?.nameReferenceElement?.referenceNameElement,
+            sourcePsi.typeReference?.typeElement?.let {
+                (it as? KtUserType)?.referenceExpression?.getReferencedNameElement() ?: it.navigationElement
+            },
+            this
+        )
+    }
 
     override val attributeValues: List<UNamedExpression> by lz {
         resolvedCall?.valueArguments?.entries?.mapNotNull {
