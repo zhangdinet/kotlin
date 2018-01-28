@@ -2,6 +2,7 @@
 description = "Kotlin scripting support utilities"
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compile(project(":kotlin-stdlib"))
@@ -9,17 +10,17 @@ dependencies {
     compileOnly(project(":compiler:cli"))
     compileOnly(project(":compiler:daemon-common"))
     compile(project(":kotlin-daemon-client"))
-    compileOnly("com.jcabi:jcabi-aether:0.10.1")
+    compileOnly("com.jcabi:jcabi-aether:0.10.1") { isTransitive = false }
     compileOnly("org.sonatype.aether:aether-api:1.13.1")
     compileOnly("org.apache.maven:maven-core:3.0.3")
-    testCompileOnly(project(":compiler:cli"))
+    testCompile(project(":compiler:cli"))
     testCompile(project(":kotlin-test:kotlin-test-junit"))
-    testRuntime(project(":kotlin-reflect"))
+    testCompile(project(":kotlin-reflect"))
     testCompile(commonDep("junit:junit"))
-    testRuntime(projectRuntimeJar(":kotlin-compiler"))
-    testRuntime("com.jcabi:jcabi-aether:0.10.1")
-    testRuntime("org.sonatype.aether:aether-api:1.13.1")
-    testRuntime("org.apache.maven:maven-core:3.0.3")
+    testCompile(projectRuntimeJar(":kotlin-compiler"))
+    testCompile("com.jcabi:jcabi-aether:0.10.1") { isTransitive = false }
+    testCompile("org.sonatype.aether:aether-api:1.13.1")
+    testCompile("org.apache.maven:maven-core:3.0.3")
 }
 
 projectTest()

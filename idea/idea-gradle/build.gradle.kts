@@ -1,4 +1,5 @@
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
 
@@ -17,10 +18,10 @@ dependencies {
     compile(project(":js:js.frontend"))
 
     testCompile(projectTests(":idea"))
-    testCompile(project(":idea:idea-test-framework"))
+    testCompile(projectTests(":idea:idea-test-framework"))
     testCompile(ideaPluginDeps("gradle-wrapper", "gradle-base-services", "gradle-tooling-extension-impl", "gradle-tooling-api", "gradle", plugin = "gradle"))
     testCompile(ideaPluginDeps("Groovy", plugin = "Groovy"))
-    testCompileOnly(ideaSdkDeps("groovy-all", "idea_rt"))
+    testCompile(ideaSdkDeps("groovy-all", "idea_rt"))
 
     testRuntime(projectDist(":kotlin-reflect"))
     testRuntime(project(":idea:idea-jvm"))

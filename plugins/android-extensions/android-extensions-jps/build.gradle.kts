@@ -1,5 +1,6 @@
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compile(project(":compiler:util"))
@@ -9,7 +10,7 @@ dependencies {
 
     testCompile(projectTests(":jps-plugin"))
     testCompile(project(":compiler:tests-common"))
-    testCompileOnly(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
+    testCompile(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
     testRuntime(ideaPluginDeps("*.jar", plugin = "android"))
     testCompile(commonDep("junit:junit"))
     testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))

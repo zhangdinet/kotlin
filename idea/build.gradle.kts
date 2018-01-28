@@ -1,6 +1,7 @@
 import org.gradle.jvm.tasks.Jar
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compile(project(":kotlin-stdlib"))
@@ -27,6 +28,7 @@ dependencies {
     compile(project(":idea:kotlin-gradle-tooling"))
     compile(project(":plugins:uast-kotlin"))
     compile(project(":plugins:uast-kotlin-idea"))
+    compile(project(":compiler:daemon-common"))
 //    compile(project(":kotlin-daemon-client")) { isTransitive = false }
     compile(project(":kotlin-script-util")) { isTransitive = false }
 
@@ -43,17 +45,17 @@ dependencies {
 
     testCompile(project(":kotlin-test:kotlin-test-junit"))
     testCompile(projectTests(":compiler:tests-common"))
-    testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
+    testCompile(projectTests(":idea:idea-test-framework")) { isTransitive = false }
     testCompile(project(":idea:idea-jvm")) { isTransitive = false }
     testCompile(project(":idea:idea-gradle")) { isTransitive = false }
     testCompile(project(":idea:idea-maven")) { isTransitive = false }
     testCompile(commonDep("junit:junit"))
 
-    testCompileOnly(ideaPluginDeps("gradle-base-services", "gradle-tooling-extension-impl", "gradle-wrapper", plugin = "gradle"))
-    testCompileOnly(ideaPluginDeps("Groovy", plugin = "Groovy"))
-    testCompileOnly(ideaPluginDeps("maven", "maven-server-api", plugin = "maven"))
+    testCompile(ideaPluginDeps("gradle-base-services", "gradle-tooling-extension-impl", "gradle-wrapper", plugin = "gradle"))
+    testCompile(ideaPluginDeps("Groovy", plugin = "Groovy"))
+    testCompile(ideaPluginDeps("maven", "maven-server-api", plugin = "maven"))
 
-    testCompileOnly(ideaSdkDeps("groovy-all", "velocity", "gson", "jsr305", "idea_rt"))
+    testCompile(ideaSdkDeps("groovy-all", "velocity", "gson", "jsr305", "idea_rt"))
 
     testRuntime(ideaSdkDeps("*.jar"))
 

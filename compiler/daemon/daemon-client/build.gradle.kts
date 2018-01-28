@@ -2,6 +2,7 @@
 description = "Kotlin Daemon Client"
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 jvmTarget = "1.6"
 

@@ -1,4 +1,5 @@
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 val compilerModules: Array<String> by rootProject.extra
 
@@ -14,12 +15,12 @@ dependencies {
     compile(project(":idea:idea-jps-common"))
     compile(ideaSdkDeps("jps-builders", "jps-builders-6", subdir = "jps"))
     compile(ideaSdkDeps("jps-model.jar", subdir = "jps"))
-    testCompileOnly(project(":kotlin-reflect-api"))
+    testCompile(project(":kotlin-reflect-api"))
     testCompile(project(":compiler:incremental-compilation-impl"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":compiler:incremental-compilation-impl"))
     testCompile(ideaSdkDeps("openapi", "idea"))
-    testCompileOnly(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
+    testCompile(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
     testCompile(commonDep("junit:junit"))
     testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":kotlin-build-common"))

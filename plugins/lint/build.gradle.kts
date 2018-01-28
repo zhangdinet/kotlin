@@ -2,6 +2,7 @@
 apply {
     plugin("kotlin")
     plugin("java")
+    plugin("jps-compatible")
 }
 
 dependencies {
@@ -13,6 +14,7 @@ dependencies {
     compile(ideaPluginDeps("android", "android-common", "sdk-common", "sdklib", "sdk-tools", "repository", "lombok-ast", "kxml2", plugin = "android"))
     compile(ideaSdkCoreDeps("intellij-core", "util"))
     compile(ideaSdkDeps("guava"))
+    compile(project(":kotlin-android-extensions-runtime"))
 }
 
 sourceSets {

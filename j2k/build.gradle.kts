@@ -1,5 +1,6 @@
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 //plugins {
 //    kotlin("jvm")
@@ -13,7 +14,7 @@ dependencies {
     compile(project(":compiler:util"))
 //    compile(ideaSdkCoreDeps("intellij-core", "util"))
     testCompile(project(":idea"))
-    testCompile(project(":idea:idea-test-framework"))
+    testCompile(projectTests(":idea:idea-test-framework"))
     testCompile(project(":compiler:light-classes"))
     testCompile(projectDist(":kotlin-test:kotlin-test-junit"))
     testCompile(commonDep("junit:junit"))

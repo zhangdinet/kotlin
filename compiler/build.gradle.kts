@@ -3,6 +3,7 @@ import java.io.File
 import org.gradle.api.tasks.bundling.Jar
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 jvmTarget = "1.6"
 
@@ -43,16 +44,16 @@ dependencies {
         testCompile(projectDist(it))
     }
     testCompile(commonDep("junit:junit"))
-    testCompileOnly(projectDist(":kotlin-test:kotlin-test-jvm"))
-    testCompileOnly(projectDist(":kotlin-test:kotlin-test-junit"))
+    testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
+    testCompile(projectDist(":kotlin-test:kotlin-test-junit"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":generators:test-generator"))
     testCompile(project(":compiler:ir.ir2cfg"))
     testCompile(project(":compiler:ir.tree")) // used for deepCopyWithSymbols call that is removed by proguard from the compiler TODO: make it more straightforward
-    testCompileOnly(project(":kotlin-daemon-client"))
-    testCompileOnly(project(":kotlin-reflect-api"))
+    testCompile(project(":kotlin-daemon-client"))
+    testCompile(project(":kotlin-reflect-api"))
     otherCompilerModules.forEach {
-        testCompileOnly(project(it))
+        testCompile(project(it))
     }
     testCompile(ideaSdkDeps("openapi", "idea", "util", "asm-all", "commons-httpclient-3.1-patched"))
 

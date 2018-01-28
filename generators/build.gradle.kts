@@ -1,5 +1,6 @@
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compile(protobufFull())
@@ -13,7 +14,7 @@ dependencies {
     compile(project(":compiler:backend"))
     compile(project(":js:js.ast"))
     compile(project(":js:js.frontend"))
-    compile(project(":idea:idea-test-framework"))
+    compile(projectTests(":idea:idea-test-framework"))
     compile(projectDist(":kotlin-test:kotlin-test-jvm"))
     compile(projectTests(":kotlin-build-common"))
     compile(projectTests(":compiler:tests-common"))
@@ -38,7 +39,7 @@ dependencies {
     compile(projectTests(":generators:test-generator"))
     compile(ideaSdkDeps("jps-build-test", subdir = "jps/test"))
     compileOnly(project(":kotlin-reflect-api"))
-    testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
+    testCompile(projectTests(":idea:idea-test-framework")) { isTransitive = false }
     testCompile(project(":compiler:incremental-compilation-impl"))
     testCompile(commonDep("junit:junit"))
     testCompile(ideaSdkDeps("openapi", "idea"))
@@ -59,8 +60,11 @@ dependencies {
 }
 
 sourceSets {
-    "main" { projectDefault() }
-    "test" { projectDefault() }
+    "main" { }
+    "test" {
+        projectDefault()
+        java.srcDir("src")
+    }
 }
 
 projectTest {

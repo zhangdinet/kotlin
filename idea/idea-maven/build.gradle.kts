@@ -1,5 +1,6 @@
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compileOnly(ideaSdkDeps("openapi", "idea", "gson"))
@@ -20,9 +21,9 @@ dependencies {
 
     testCompile(projectTests(":idea"))
     testCompile(projectTests(":compiler:tests-common"))
-    testCompile(project(":idea:idea-test-framework"))
-    testCompileOnly(ideaSdkDeps("openapi", "idea", "gson", "idea_rt"))
-    testCompileOnly(ideaPluginDeps("maven", "maven-server-api", plugin = "maven"))
+    testCompile(projectTests(":idea:idea-test-framework"))
+    testCompile(ideaSdkDeps("openapi", "idea", "gson", "idea_rt"))
+    testCompile(ideaPluginDeps("maven", "maven-server-api", plugin = "maven"))
 
     testRuntime(projectDist(":kotlin-reflect"))
     testRuntime(project(":idea:idea-jvm"))

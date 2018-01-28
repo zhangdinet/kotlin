@@ -11,13 +11,14 @@ node {
 }
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     testCompile(protobufFull())
     testCompile(projectTests(":compiler:tests-common"))
-    testCompileOnly(project(":compiler:frontend"))
-    testCompileOnly(project(":compiler:cli"))
-    testCompileOnly(project(":compiler:util"))
+    testCompile(project(":compiler:frontend"))
+    testCompile(project(":compiler:cli"))
+    testCompile(project(":compiler:util"))
     testCompile(project(":js:js.translator"))
     testCompile(project(":js:js.serializer"))
     testCompile(project(":js:js.dce"))

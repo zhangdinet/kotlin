@@ -191,6 +191,9 @@ apply {
     }
 }
 
+apply { plugin("jps-compatible") }
+apply { plugin("jps-compatible-root") }
+
 val importedAntTasksPrefix = "imported-ant-update-"
 
 // TODO: check the reasons of import conflict with xerces

@@ -1,5 +1,6 @@
 
 apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
 
 dependencies {
     compileOnly(project(":kotlin-reflect-api"))
@@ -12,6 +13,7 @@ dependencies {
     compile(project(":idea:idea-core"))
     compile(project(":idea:ide-common"))
     compile(project(":idea:idea-gradle"))
+    compile(project(":kotlin-android-extensions-runtime"))
 
     compile(ideaSdkDeps("openapi", "idea"))
     compile(ideaPluginDeps("gradle-tooling-api", plugin = "gradle"))
@@ -19,7 +21,7 @@ dependencies {
     compile(preloadedDeps("dx", subdir = "android-5.0/lib"))
 
     testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
-    testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
+    testCompile(projectTests(":idea:idea-test-framework")) { isTransitive = false }
     testCompile(project(":plugins:lint")) { isTransitive = false }
     testCompile(project(":idea:idea-jvm"))
     testCompile(projectTests(":compiler:tests-common"))
