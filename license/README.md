@@ -57,6 +57,10 @@ the Kotlin IntelliJ IDEA plugin:
       - License: Boost Software License 1.0 (license/third_party/boost_LICENSE.txt)
       - Origin: Derived from boost special math functions, Copyright Eric Ford & Hubert Holin 2001.
 
+ - Path: libraries/stdlib/jvm/src/kotlin/util/MathJVM.kt
+      - License: Boost Software License 1.0 (license/third_party/boost_LICENSE.txt)
+      - Origin: Derived from boost special math functions, Copyright Eric Ford & Hubert Holin 2001.
+
  - Path: plugins/lint/android-annotations
       - License: Apache 2 (license/third_party/aosp_license.txt)
       - Origin: Copyright (C) 2011-15 The Android Open Source Project
