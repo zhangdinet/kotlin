@@ -59,11 +59,11 @@ class CodeConformanceTest : TestCase() {
                 "js/js.tests/.gradle",
                 "js/js.translator/testData/node_modules",
                 "libraries/stdlib/common/build",
-                "libraries/stdlib/common/target",
                 "libraries/stdlib/js/.gradle",
                 "libraries/stdlib/js/build",
                 "libraries/kotlin.test/js/it/.gradle",
                 "libraries/kotlin.test/js/it/node_modules",
+                "libraries/tools/kotlin-maven-plugin-test/target",
                 "libraries/stdlib/js/node_modules",
                 "buildSrc/prepare-deps/android-dx/build",
                 "buildSrc/prepare-deps/intellij-sdk/build"
