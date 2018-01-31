@@ -65,6 +65,11 @@ import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 import org.jetbrains.org.objectweb.asm.commons.Method
+import org.jetbrains.org.objectweb.asm.util.Textifier
+import org.jetbrains.org.objectweb.asm.util.TraceMethodVisitor
+import org.jetbrains.org.objectweb.asm.tree.MethodNode
+import java.io.StringWriter
+import java.io.PrintWriter
 import java.util.*
 
 fun generateIsCheck(
@@ -439,3 +444,13 @@ val CodegenContext<*>.parentContexts
 
 val CodegenContext<*>.contextStackText
     get() = parentContextsWithSelf.joinToString(separator = "\n") { it.toString() }
+
+// Handy debugging routine. Print all instructions from methodNode.
+fun MethodNode.textifyMethodNode(): String {
+    val text = Textifier()
+    val tmv = TraceMethodVisitor(text)
+    this.instructions.toArray().forEach { it.accept(tmv) }
+    val sw = StringWriter()
+    text.print(PrintWriter(sw))
+    return "$sw"
+}

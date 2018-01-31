@@ -12,7 +12,7 @@ fun builder(c: suspend () -> Unit) {
     c.startCoroutine(EmptyContinuation)
 }
 
-suspend inline fun test(noinline c: suspend () -> Unit) {
+suspend inline fun test(c: suspend () -> Unit) {
     c()
 }
 
