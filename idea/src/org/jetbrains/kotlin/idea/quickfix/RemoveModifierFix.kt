@@ -22,10 +22,7 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.core.quickfix.QuickFixUtil
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtModifierListOwner
-import org.jetbrains.kotlin.psi.KtTypeParameter
-import org.jetbrains.kotlin.psi.KtTypeProjection
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.types.Variance
 
@@ -107,6 +104,17 @@ class RemoveModifierFix(
                         else -> return null
                     }
                     return RemoveModifierFix(psiElement, modifier, isRedundant = false)
+                }
+            }
+        }
+
+        fun createRemoveSuspendFactory(): KotlinSingleIntentionActionFactory {
+            return object : KotlinSingleIntentionActionFactory() {
+                override fun createAction(diagnostic: Diagnostic): KotlinQuickFixAction<KtModifierListOwner>? {
+                    val parameter = diagnostic.psiElement as KtParameter
+                    val type = parameter.typeReference ?: return null
+                    if (!type.hasModifier(KtTokens.SUSPEND_KEYWORD)) return null
+                    return RemoveModifierFix(type, KtTokens.SUSPEND_KEYWORD, isRedundant = false)
                 }
             }
         }
