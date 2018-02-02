@@ -2,6 +2,8 @@ description 'Kotlin Script Runtime'
 
 apply plugin: 'kotlin'
 
+kotlin { experimental { coroutines 'enable' } }
+
 configureJvm6Project(project)
 configurePublishing(project)
 

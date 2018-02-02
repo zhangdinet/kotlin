@@ -1,5 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.Coroutines
 
 apply { plugin("kotlin") }
+
+kotlin { // configure<org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension>
+    experimental.coroutines = Coroutines.ENABLE
+}
 
 jvmTarget = "1.6"
 
