@@ -42,6 +42,7 @@ class JvmPlatformParameters(
 
 
 object JvmAnalyzerFacade : AnalyzerFacade() {
+
     override fun <M : ModuleInfo> createResolverForModule(
         moduleInfo: M,
         moduleDescriptor: ModuleDescriptorImpl,
@@ -70,13 +71,22 @@ object JvmAnalyzerFacade : AnalyzerFacade() {
             @Suppress("UNCHECKED_CAST")
             val resolverForReferencedModule = referencedClassModule?.let { resolverForProject.tryGetResolverForModule(it as M) }
 
-            val resolverForModule = resolverForReferencedModule?.takeIf {
-                referencedClassModule.platform == JvmPlatform || referencedClassModule.platform == null
-            } ?: run {
+            val referencedModulePlatform = referencedClassModule?.platform
+            val resolverForModule = resolverForReferencedModule?.let {
                 // in case referenced class lies outside of our resolver, resolve the class as if it is inside our module
                 // this leads to java class being resolved several times
-                resolverForProject.resolverForModule(moduleInfo)
-            }
+                when (referencedModulePlatform) {
+                    JvmPlatform, null ->
+                        resolverForReferencedModule
+                    TargetPlatform.Common ->
+                        moduleInfo.findImplementingDependency(referencedClassModule, platform = JvmPlatform)?.let {
+                            @Suppress("UNCHECKED_CAST")
+                            resolverForProject.resolverForModule(it as M)
+                        }
+                    else -> null
+                }
+            } ?: resolverForProject.resolverForModule(moduleInfo)
+
             resolverForModule.componentProvider.get<JavaDescriptorResolver>()
         }
 

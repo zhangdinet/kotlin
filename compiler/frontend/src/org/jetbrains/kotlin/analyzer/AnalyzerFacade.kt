@@ -262,6 +262,22 @@ interface ModuleInfo {
     }
 }
 
+fun ModuleInfo.findImplementingDependency(targetInfo: ModuleInfo, platform: TargetPlatform): ModuleInfo? {
+    val queue: Queue<ModuleInfo> = LinkedList()
+    val visited = mutableSetOf<ModuleInfo>()
+    queue += this
+    while (queue.isNotEmpty()) {
+        val current = queue.poll()
+        if (targetInfo == current.expectedBy) return current
+        for (dependency in current.dependencies()) {
+            if (dependency in visited || dependency.platform != platform) continue
+            visited += dependency
+            queue += dependency
+        }
+    }
+    return null
+}
+
 interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
 }
