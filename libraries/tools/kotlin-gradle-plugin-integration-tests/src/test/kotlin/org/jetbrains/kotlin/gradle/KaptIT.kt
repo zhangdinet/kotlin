@@ -8,13 +8,9 @@ import java.io.File
 
 class KaptIT: BaseGradleIT() {
 
-    companion object {
-        private val GRADLE_VERSION = NoSpecificGradleVersion
-    }
-
     @Test
     fun testSimple() {
-        val project = Project("kaptSimple", GRADLE_VERSION)
+        val project = Project("kaptSimple")
 
         project.build("build") {
             assertSuccessful()
@@ -43,7 +39,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testEnumConstructor() {
-        val project = Project("kaptEnumConstructor", GRADLE_VERSION)
+        val project = Project("kaptEnumConstructor")
 
         project.build("build") {
             assertSuccessful()
@@ -59,7 +55,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testStubs() {
-        val project = Project("kaptStubs", GRADLE_VERSION)
+        val project = Project("kaptStubs")
 
         project.build("build") {
             assertSuccessful()
@@ -84,7 +80,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testStubsWithoutJava() {
-        val project = Project("kaptStubs", GRADLE_VERSION)
+        val project = Project("kaptStubs")
         project.setupWorkingDir()
         project.projectDir.allJavaFiles().forEach { it.delete() }
 
@@ -110,7 +106,7 @@ class KaptIT: BaseGradleIT() {
 
     private fun doTestIncrementalBuild(projectName: String, compileTasks: Array<String>) {
         val compileTasksUpToDate = compileTasks.map { it + " UP-TO-DATE" }.toTypedArray()
-        val project = Project(projectName, NoSpecificGradleVersion)
+        val project = Project(projectName)
 
         project.build("build") {
             assertSuccessful()
@@ -146,7 +142,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testArguments() {
-        Project("kaptArguments", GRADLE_VERSION).build("build") {
+        Project("kaptArguments").build("build") {
             assertSuccessful()
             assertContains("kapt: Using class file stubs")
             assertContains(":compileKotlin")
@@ -160,7 +156,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testInheritedAnnotations() {
-        Project("kaptInheritedAnnotations", GRADLE_VERSION).build("build") {
+        Project("kaptInheritedAnnotations").build("build") {
             assertSuccessful()
             assertFileExists("build/generated/source/kapt/main/example/TestClassGenerated.java")
             assertFileExists("build/generated/source/kapt/main/example/AncestorClassGenerated.java")
@@ -171,7 +167,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testOutputKotlinCode() {
-        Project("kaptOutputKotlinCode", GRADLE_VERSION).build("build") {
+        Project("kaptOutputKotlinCode").build("build") {
             assertSuccessful()
             assertContains("kapt: Using class file stubs")
             assertContains(":compileKotlin")
@@ -187,7 +183,7 @@ class KaptIT: BaseGradleIT() {
     @Test
     fun testInternalUserIsModifiedStubsIC() {
         val options = defaultBuildOptions().copy(incremental = true)
-        val project = Project("kaptStubs", GRADLE_VERSION)
+        val project = Project("kaptStubs")
 
         project.build("build", options = options) {
             assertSuccessful()
@@ -207,7 +203,7 @@ class KaptIT: BaseGradleIT() {
     @Test
     fun testKotlinCompilerNotCalledStubsIC() {
         val options = defaultBuildOptions().copy(incremental = true)
-        val project = Project("kaptStubs", GRADLE_VERSION)
+        val project = Project("kaptStubs")
 
         project.build("build", options = options) {
             assertSuccessful()
