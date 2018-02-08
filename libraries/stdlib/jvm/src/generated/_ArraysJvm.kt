@@ -1222,7 +1222,6 @@ public actual inline fun <T: Comparable<T>> Array<out T>.sort(): Unit {
  * 
  * @throws ClassCastException if any element of the array is not [Comparable].
  */
-@Suppress("ACTUAL_MISSING")
 public fun <T> Array<out T>.sort(): Unit {
     if (size > 1) java.util.Arrays.sort(this)
 }
