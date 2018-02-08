@@ -572,22 +572,36 @@ class MethodInliner(
     //   ICONST fakeContinuationMarker
     //   INVOKESTATIC InlineMarker.mark
     //   ACONST_NULL
-    // iff this ALOAD 0 is continuation and passed as the last parameter to suspending function
+    // iff this ALOAD 0 is continuation and one of the following conditions is met
+    //   1) it is passed as the last parameter to suspending function
+    //   2) it is ASTORE'd right after
     private fun replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode: MethodNode) {
         val lambdaInfo = inliningContext.lambdaInfo ?: return
         if (!lambdaInfo.invokeMethodDescriptor.isSuspend) return
+        val aload0s = processingNode.instructions.asSequence().filter { it.opcode == Opcodes.ALOAD && it.safeAs<VarInsnNode>()?.`var` == 0 }
         // Expected pattern here:
         //     ALOAD 0
         //     ICONST_0
         //     INVOKESTATIC InlineMarker.mark
         //     INVOKE* suspendingFunction(..., Continuation;)Ljava/lang/Object;
-        val aload0s = processingNode.instructions.asSequence().filter { it.opcode == Opcodes.ALOAD && it.safeAs<VarInsnNode>()?.`var` == 0 }
-        val continuationAload0s =
-            aload0s.filter { it.next?.next?.let(::isBeforeSuspendMarker) == true && isSuspendCall(it.next?.next?.next) }.toList()
-        val fakeContinuation = createFakeContinuationMethodNodeForInline()
-        for (toReplace in continuationAload0s) {
-            insertNodeBefore(fakeContinuation, processingNode, toReplace)
-            processingNode.instructions.remove(toReplace)
+        val continuationAsParameterAload0s =
+            aload0s.filter { it.next?.next?.let(::isBeforeSuspendMarker) == true && isSuspendCall(it.next?.next?.next) }
+        replaceContinuationsWithFakeOnes(continuationAsParameterAload0s, processingNode)
+        // Expected pattern here:
+        //     ALOAD 0
+        //     ASTORE N
+        // This pattern may occur after multiple inlines
+        val continuationToStoreAload0s = aload0s.filter { it.next?.opcode == Opcodes.ASTORE }
+        replaceContinuationsWithFakeOnes(continuationToStoreAload0s, processingNode)
+    }
+
+    private fun replaceContinuationsWithFakeOnes(
+        continuations: Sequence<AbstractInsnNode>,
+        node: MethodNode
+    ) {
+        for (toReplace in continuations) {
+            insertNodeBefore(createFakeContinuationMethodNodeForInline(), node, toReplace)
+            node.instructions.remove(toReplace)
         }
     }
 

@@ -162,7 +162,7 @@ class CoroutineTransformerMethodVisitor(
     }
 
     private fun replaceFakeContinuationsWithRealOnes(methodNode: MethodNode, continuationIndex: Int) {
-        val fakeContinuations = methodNode.instructions.asSequence().filter(::isFakeContinuationMarker)
+        val fakeContinuations = methodNode.instructions.asSequence().filter(::isFakeContinuationMarker).toList()
         for (fakeContinuation in fakeContinuations) {
             methodNode.instructions.removeAll(listOf(fakeContinuation.previous.previous, fakeContinuation.previous))
             methodNode.instructions.set(fakeContinuation, VarInsnNode(Opcodes.ALOAD, continuationIndex))
