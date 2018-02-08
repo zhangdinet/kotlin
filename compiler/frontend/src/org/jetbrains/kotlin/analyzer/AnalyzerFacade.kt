@@ -90,7 +90,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     private val builtIns: KotlinBuiltIns = DefaultBuiltIns.Instance,
     private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
     private val packagePartProviderFactory: (M, ModuleContent) -> PackagePartProvider = { _, _ -> PackagePartProvider.Empty },
-    private val firstDependency: M? = null,
+    private val sdkDependency: M? = null,
     private val modulePlatforms: (M) -> MultiTargetPlatform?,
     private val packageOracleFactory: PackageOracleFactory = PackageOracleFactory.OptimisticFactory,
     private val languageSettingsProvider: LanguageSettingsProvider = LanguageSettingsProvider.Default,
@@ -124,7 +124,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
             LazyModuleDependencies(
                 projectContext.storageManager,
                 module,
-                firstDependency,
+                sdkDependency,
                 this
             )
         )
@@ -285,14 +285,14 @@ abstract class AnalyzerFacade {
 class LazyModuleDependencies<M : ModuleInfo>(
     storageManager: StorageManager,
     private val module: M,
-    firstDependency: M? = null,
+    sdkDependency: M? = null,
     private val resolverForProject: ResolverForProjectImpl<M>
 ) : ModuleDependencies {
     private val dependencies = storageManager.createLazyValue {
         val moduleDescriptor = resolverForProject.descriptorForModule(module)
         buildSequence {
-            if (firstDependency != null) {
-                yield(resolverForProject.descriptorForModule(firstDependency))
+            if (sdkDependency != null) {
+                yield(resolverForProject.descriptorForModule(sdkDependency))
             }
             if (module.dependencyOnBuiltIns() == ModuleInfo.DependencyOnBuiltIns.AFTER_SDK) {
                 yield(moduleDescriptor.builtIns.builtInsModule)

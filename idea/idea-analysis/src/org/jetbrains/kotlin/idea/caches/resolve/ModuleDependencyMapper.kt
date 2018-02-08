@@ -74,19 +74,19 @@ fun createModuleResolverProvider(
     }
 
     val resolverForProject = ResolverForProjectImpl(
-            debugName, globalContext.withProject(project), modulesToCreateResolversFor,
-            { module ->
+        debugName, globalContext.withProject(project), modulesToCreateResolversFor,
+        { module ->
                 val platform = module.platform ?: analysisSettings.platform
                 IdePlatformSupport.facades[platform] ?: throw UnsupportedOperationException("Unsupported platform $platform")
             },
-            modulesContent, jvmPlatformParameters,
-            IdeaEnvironment, builtIns,
-            delegateResolver, { _, c -> IDEPackagePartProvider(c.moduleContentScope) },
-            analysisSettings.sdk?.let { SdkInfo(project, it) },
-            modulePlatforms = { module -> module.platform?.multiTargetPlatform },
-            packageOracleFactory = ServiceManager.getService(project, IdePackageOracleFactory::class.java),
-            languageSettingsProvider =  IDELanguageSettingsProvider,
-            invalidateOnOOCB = invalidateOnOOCB
+        modulesContent, jvmPlatformParameters,
+        IdeaEnvironment, builtIns,
+        delegateResolver, { _, c -> IDEPackagePartProvider(c.moduleContentScope) },
+        sdkDependency = analysisSettings.sdk?.let { SdkInfo(project, it) },
+        modulePlatforms = { module -> module.platform?.multiTargetPlatform },
+        packageOracleFactory = ServiceManager.getService(project, IdePackageOracleFactory::class.java),
+        languageSettingsProvider =  IDELanguageSettingsProvider,
+        invalidateOnOOCB = invalidateOnOOCB
     )
 
     if (providedBuiltIns == null && builtIns is JvmBuiltIns) {
