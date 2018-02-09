@@ -1,8 +1,6 @@
-// WITH_RUNTIME
-// WITH_COROUTINES
-
 // FILE: test.kt
-import helpers.*
+// WITH_RUNTIME
+
 import kotlin.coroutines.experimental.*
 
 // Block is allowed to be called inside the body of owner inline function
@@ -19,11 +17,20 @@ suspend inline fun test2(crossinline c: () -> Unit) {
 
 // FILE: box.kt
 
-import helpers.*
 import kotlin.coroutines.experimental.*
 
 fun builder(c: suspend () -> Unit) {
-    c.startCoroutine(EmptyContinuation)
+    c.startCoroutine(object: Continuation<Unit> {
+        override val context: CoroutineContext
+            get() = EmptyCoroutineContext
+
+        override fun resume(value: Unit) {
+        }
+
+        override fun resumeWithException(exception: Throwable) {
+            throw exception
+        }
+    })
 }
 
 fun box() : String {

@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClosureCodegen
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
+import org.jetbrains.kotlin.codegen.coroutines.replaceFakeContinuationsWithRealOnes
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.ApiVersionCallsPreprocessingMethodTransformer
@@ -128,8 +129,23 @@ class MethodInliner(
         //flush transformed node to output
         resultNode.accept(MethodBodyVisitor(adapter, true))
 
+        replaceFakeContinuationsWithRealOnesIfNeeded(resultNode)
+
         sourceMapper.endMapping()
         return result
+    }
+
+    // In case of crossinline lambdas the state machine is already generated and we need to replace the fake continuations
+    // in the lambda here.
+    private fun replaceFakeContinuationsWithRealOnesIfNeeded(resultNode: MethodNode) {
+        if (!inliningContext.isInliningLambda || inliningContext.lambdaInfo == null || !inliningContext.lambdaInfo.isCrossInline) return
+        // Differentiate the cases:
+        //      val l : suspend () -> Unit = { c() }
+        // and
+        //      c()
+        // In the second case we do not need to replace fake continuations: it is a simple inline
+        if (inliningContext.parent == null || inliningContext.parent.isRoot) return
+        replaceFakeContinuationsWithRealOnes(resultNode, 0)
     }
 
     private fun doInline(node: MethodNode): MethodNode {

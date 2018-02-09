@@ -1,9 +1,7 @@
+// FILE: test.kt
 // WITH_RUNTIME
-// WITH_COROUTINES
 // NO_CHECK_LAMBDA_INLINING
 
-// FILE: test.kt
-import helpers.*
 import kotlin.coroutines.experimental.*
 
 // Block is allowed to be called inside the body of owner inline function
@@ -14,11 +12,21 @@ suspend inline fun test(c: suspend () -> Unit) {
 }
 
 // FILE: box.kt
-import helpers.*
+
 import kotlin.coroutines.experimental.*
 
 fun builder(c: suspend () -> Unit) {
-    c.startCoroutine(EmptyContinuation)
+    c.startCoroutine(object: Continuation<Unit> {
+        override val context: CoroutineContext
+            get() = EmptyCoroutineContext
+
+        override fun resume(value: Unit) {
+        }
+
+        override fun resumeWithException(exception: Throwable) {
+            throw exception
+        }
+    })
 }
 
 suspend fun calculate() = "OK"
