@@ -34,5 +34,20 @@ fun box(): String {
     test1 {
         res = calculate()
     }
+    if (res != "OK") return res
+    res = "FAIL 2"
+    test1 {
+        test1 {
+            test1 {
+                test1 {
+                    test1 {
+                        test1 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
     return res
 }
