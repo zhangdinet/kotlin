@@ -289,24 +289,20 @@ class MethodInliner(
                         //put additional captured parameters on stack
                         var info = transformationInfo as AnonymousObjectTransformationInfo
 
-                        val oldInfo = inliningContext.findAnonymousObjectTransformationInfo(owner)
-                        if (oldInfo != null && isContinuation) {
-                            info = oldInfo
-                        }
-
-                        for (capturedParamDesc in info.allRecapturedParameters) {
-                            visitFieldInsn(
-                                    Opcodes.GETSTATIC, capturedParamDesc.containingLambdaName,
-                                    CAPTURED_FIELD_FOLD_PREFIX + capturedParamDesc.fieldName, capturedParamDesc.type.descriptor
-                            )
-                        }
-                        super.visitMethodInsn(opcode, info.newClassName, name, info.newConstructorDescriptor, itf)
-
-                        //TODO: add new inner class also for other contexts
-                        if (inliningContext.parent is RegeneratedClassContext) {
-                            inliningContext.parent.typeRemapper.addAdditionalMappings(
-                                    transformationInfo!!.oldClassName, transformationInfo!!.newClassName
-                            )
+                        // HACK: sometimes info can be not initialized, for example, on multiple crossinline suspend lambda inlines of
+                        // ordinary inline functions.
+                        if (isContinuation) {
+                            if (info.lambdasToInline.isNotEmpty()) {
+                                val oldInfo = inliningContext.findAnonymousObjectTransformationInfo(owner)
+                                if (oldInfo != null) {
+                                    info = oldInfo
+                                }
+                                putCapturedParameters(info, opcode, name, itf)
+                            } else {
+                                super.visitMethodInsn(opcode, owner, name, desc, itf)
+                            }
+                        } else {
+                            putCapturedParameters(info, opcode, name, itf)
                         }
 
                         transformationInfo = null
@@ -321,6 +317,28 @@ class MethodInliner(
                 }
                 else {
                     super.visitMethodInsn(opcode, owner, name, desc, itf)
+                }
+            }
+
+            private fun putCapturedParameters(
+                info: AnonymousObjectTransformationInfo,
+                opcode: Int,
+                name: String,
+                itf: Boolean
+            ) {
+                for (capturedParamDesc in info.allRecapturedParameters) {
+                    visitFieldInsn(
+                        Opcodes.GETSTATIC, capturedParamDesc.containingLambdaName,
+                        CAPTURED_FIELD_FOLD_PREFIX + capturedParamDesc.fieldName, capturedParamDesc.type.descriptor
+                    )
+                }
+                super.visitMethodInsn(opcode, info.newClassName, name, info.newConstructorDescriptor, itf)
+
+                //TODO: add new inner class also for other contexts
+                if (inliningContext.parent is RegeneratedClassContext) {
+                    inliningContext.parent.typeRemapper.addAdditionalMappings(
+                        transformationInfo!!.oldClassName, transformationInfo!!.newClassName
+                    )
                 }
             }
 
@@ -693,7 +711,7 @@ class MethodInliner(
         )
 
         if (memoizeAnonymousObject) {
-            inliningContext.root.internalNameToAnonymousObjectTransformationInfo.put(anonymousType, info)
+            inliningContext.root.internalNameToAnonymousObjectTransformationInfo[anonymousType] = info
         }
         return info
     }
