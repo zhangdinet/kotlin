@@ -609,6 +609,7 @@ class MethodInliner(
     // iff this ALOAD 0 is continuation and one of the following conditions is met
     //   1) it is passed as the last parameter to suspending function
     //   2) it is ASTORE'd right after
+    //   3) it is passed to invoke of lambda
     private fun replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode: MethodNode) {
         val lambdaInfo = inliningContext.lambdaInfo ?: return
         if (!lambdaInfo.invokeMethodDescriptor.isSuspend) return
@@ -627,6 +628,20 @@ class MethodInliner(
         // This pattern may occur after multiple inlines
         val continuationToStoreAload0s = aload0s.filter { it.next?.opcode == Opcodes.ASTORE }
         replaceContinuationsWithFakeOnes(continuationToStoreAload0s, processingNode)
+        // Expected pattern here:
+        //     ALOAD 0
+        //     INVOKEINTERFACE kotlin/jvm/functions/FunctionN.invoke (...,Ljava/lang/Object;)Ljava/lang/Object;
+        val continuationAsLambdaParameterAload0s = aload0s.filter { isLambdaCall(it.next) }
+        replaceContinuationsWithFakeOnes(continuationAsLambdaParameterAload0s, processingNode)
+    }
+
+    private fun isLambdaCall(invoke: AbstractInsnNode?): Boolean {
+        if (invoke?.opcode != Opcodes.INVOKEINTERFACE) return false
+        invoke as MethodInsnNode
+        if (!invoke.owner.startsWith("kotlin/jvm/functions/Function")) return false
+        if (invoke.name != "invoke") return false
+        if (Type.getReturnType(invoke.desc) != OBJECT_TYPE) return false
+        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == OBJECT_TYPE }
     }
 
     private fun replaceContinuationsWithFakeOnes(
