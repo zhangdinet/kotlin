@@ -6,9 +6,6 @@ import org.jetbrains.kotlin.gradle.util.getFileByName
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
 
-class KaptIncrementalNoStubsIT : KaptIncrementalBaseIT(shouldUseStubs = false)
-class KaptIncrementalWithStubsIT : KaptIncrementalBaseIT(shouldUseStubs = true)
-
 class Kapt3Incremental : KaptIncrementalBaseIT(shouldUseStubs = false, useKapt3 = true)
 
 abstract class KaptIncrementalBaseIT(val shouldUseStubs: Boolean, val useKapt3: Boolean = false): BaseGradleIT() {
