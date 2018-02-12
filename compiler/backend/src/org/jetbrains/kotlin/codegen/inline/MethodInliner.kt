@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.backend.jvm.codegen.IrExpressionLambda
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClosureCodegen
 import org.jetbrains.kotlin.codegen.StackValue
+import org.jetbrains.kotlin.codegen.context.MethodContext
 import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
 import org.jetbrains.kotlin.codegen.coroutines.replaceFakeContinuationsWithRealOnes
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
@@ -171,7 +172,13 @@ class MethodInliner(
                 transformationInfo = iterator.next()
 
                 val oldClassName = transformationInfo!!.oldClassName
-                if (transformationInfo!!.shouldRegenerate(isSameModule)) {
+                // HACK: regenerate uninitialized transformation info if inline site is suspend.
+                var regenerateAnyway = false
+                if (inliningContext.isRoot) {
+                    val sourceCompilerForInline = (inliningContext as RootInliningContext).sourceCompilerForInline
+                    regenerateAnyway = sourceCompilerForInline.compilationContextFunctionDescriptor.isSuspend
+                }
+                if (transformationInfo!!.shouldRegenerate(isSameModule) || regenerateAnyway) {
                     //TODO: need poping of type but what to do with local funs???
                     val newClassName = transformationInfo!!.newClassName
                     remapper.addMapping(oldClassName, newClassName)
@@ -289,20 +296,24 @@ class MethodInliner(
                         //put additional captured parameters on stack
                         var info = transformationInfo as AnonymousObjectTransformationInfo
 
-                        // HACK: sometimes info can be not initialized, for example, on multiple crossinline suspend lambda inlines of
-                        // ordinary inline functions.
-                        if (isContinuation) {
-                            if (info.lambdasToInline.isNotEmpty()) {
-                                val oldInfo = inliningContext.findAnonymousObjectTransformationInfo(owner)
-                                if (oldInfo != null) {
-                                    info = oldInfo
-                                }
-                                putCapturedParameters(info, opcode, name, itf)
-                            } else {
-                                super.visitMethodInsn(opcode, owner, name, desc, itf)
-                            }
-                        } else {
-                            putCapturedParameters(info, opcode, name, itf)
+                        val oldInfo = inliningContext.findAnonymousObjectTransformationInfo(owner)
+                        if (oldInfo != null && isContinuation) {
+                            info = oldInfo
+                        }
+
+                        for (capturedParamDesc in info.allRecapturedParameters) {
+                            visitFieldInsn(
+                                Opcodes.GETSTATIC, capturedParamDesc.containingLambdaName,
+                                CAPTURED_FIELD_FOLD_PREFIX + capturedParamDesc.fieldName, capturedParamDesc.type.descriptor
+                            )
+                        }
+                        super.visitMethodInsn(opcode, info.newClassName, name, info.newConstructorDescriptor, itf)
+
+                        //TODO: add new inner class also for other contexts
+                        if (inliningContext.parent is RegeneratedClassContext) {
+                            inliningContext.parent.typeRemapper.addAdditionalMappings(
+                                transformationInfo!!.oldClassName, transformationInfo!!.newClassName
+                            )
                         }
 
                         transformationInfo = null
@@ -312,33 +323,11 @@ class MethodInliner(
                     }
                 }
                 else if ((!inliningContext.isInliningLambda || isDefaultLambdaWithReification(inliningContext.lambdaInfo!!)) &&
-                         ReifiedTypeInliner.isNeedClassReificationMarker(MethodInsnNode(opcode, owner, name, desc, false))) {
+                    ReifiedTypeInliner.isNeedClassReificationMarker(MethodInsnNode(opcode, owner, name, desc, false))) {
                     //we shouldn't process here content of inlining lambda it should be reified at external level except default lambdas
                 }
                 else {
                     super.visitMethodInsn(opcode, owner, name, desc, itf)
-                }
-            }
-
-            private fun putCapturedParameters(
-                info: AnonymousObjectTransformationInfo,
-                opcode: Int,
-                name: String,
-                itf: Boolean
-            ) {
-                for (capturedParamDesc in info.allRecapturedParameters) {
-                    visitFieldInsn(
-                        Opcodes.GETSTATIC, capturedParamDesc.containingLambdaName,
-                        CAPTURED_FIELD_FOLD_PREFIX + capturedParamDesc.fieldName, capturedParamDesc.type.descriptor
-                    )
-                }
-                super.visitMethodInsn(opcode, info.newClassName, name, info.newConstructorDescriptor, itf)
-
-                //TODO: add new inner class also for other contexts
-                if (inliningContext.parent is RegeneratedClassContext) {
-                    inliningContext.parent.typeRemapper.addAdditionalMappings(
-                        transformationInfo!!.oldClassName, transformationInfo!!.newClassName
-                    )
                 }
             }
 

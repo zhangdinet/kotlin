@@ -11,6 +11,19 @@ inline fun test1(crossinline runner: suspend () -> Unit)  {
     builder { l() }
 }
 
+interface SuspendRunnable {
+    suspend fun run()
+}
+
+inline fun test2(crossinline c: suspend () -> Unit) {
+    val sr = object: SuspendRunnable {
+        override suspend fun run() {
+            c()
+        }
+    }
+    builder { sr.run() }
+}
+
 fun builder(c: suspend () -> Unit) {
     c.startCoroutine(object: Continuation<Unit> {
         override val context: CoroutineContext
@@ -42,6 +55,41 @@ fun box(): String {
                 test1 {
                     test1 {
                         test1 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 3"
+    test2 {
+        res = calculate()
+    }
+    if (res != "OK") return res
+    res = "FAIL 4"
+    test2 {
+        test2 {
+            test2 {
+                test2 {
+                    test2 {
+                        test2 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 5"
+    test1 {
+        test2 {
+            test1 {
+                test2 {
+                    test1 {
+                        test2 {
                             res = calculate()
                         }
                     }
