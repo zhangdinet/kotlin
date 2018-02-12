@@ -12,32 +12,37 @@ inline fun test1(noinline c: suspend () -> Unit)  {
     builder { l() }
 }
 
+val EmptyContinuation = object: Continuation<Unit> {
+    override val context: CoroutineContext
+        get() = EmptyCoroutineContext
+
+    override fun resume(value: Unit) {
+    }
+
+    override fun resumeWithException(exception: Throwable) {
+        throw exception
+    }
+}
+
 inline fun test2(noinline c: suspend () -> Unit) {
-    c.startCoroutine(object: Continuation<Unit> {
-        override val context: CoroutineContext
-            get() = EmptyCoroutineContext
+    c.startCoroutine(EmptyContinuation)
+}
 
-        override fun resume(value: Unit) {
-        }
+interface SuspendRunnable {
+    suspend fun run()
+}
 
-        override fun resumeWithException(exception: Throwable) {
-            throw exception
+inline fun test3(noinline c: suspend () -> Unit) {
+    val sr = object : SuspendRunnable {
+        override suspend fun run() {
+            c()
         }
-    })
+    }
+    builder { sr.run() }
 }
 
 fun builder(c: suspend () -> Unit) {
-    c.startCoroutine(object: Continuation<Unit> {
-        override val context: CoroutineContext
-            get() = EmptyCoroutineContext
-
-        override fun resume(value: Unit) {
-        }
-
-        override fun resumeWithException(exception: Throwable) {
-            throw exception
-        }
-    })
+    c.startCoroutine(EmptyContinuation)
 }
 
 // FILE: box.kt
@@ -53,6 +58,71 @@ fun box(): String {
     res = "FAIL 2"
     test2 {
         res = "OK"
+    }
+    if (res != "OK") return res
+    res = "FAIL 3"
+    test3 {
+        res = "OK"
+    }
+    if (res != "OK") return res
+    res = "FAIL 4"
+    test1 {
+        test1 {
+            test1 {
+                test1 {
+                    test1 {
+                        test1 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 5"
+    test2 {
+        test2 {
+            test2 {
+                test2 {
+                    test2 {
+                        test2 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 6"
+    test3 {
+        test3 {
+            test3 {
+                test3 {
+                    test3 {
+                        test3 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 7"
+    test1 {
+        test2 {
+            test3 {
+                test1 {
+                    test2 {
+                        test3 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
     }
     return res
 }

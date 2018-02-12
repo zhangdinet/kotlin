@@ -16,6 +16,19 @@ suspend inline fun test2(crossinline c: suspend () -> Unit) {
     l()
 }
 
+interface SuspendRunnable {
+    suspend fun run()
+}
+
+suspend inline fun test3(crossinline c: suspend () -> Unit) {
+    val sr = object : SuspendRunnable {
+        override suspend fun run() {
+            c()
+        }
+    }
+    sr.run()
+}
+
 // FILE: box.kt
 
 import kotlin.coroutines.experimental.*
@@ -53,6 +66,13 @@ fun box() : String {
     if (res != "OK") return res
     res = "FAIL 3"
     builder {
+        test3 {
+            res = calculate()
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 4"
+    builder {
         test1 {
             test1 {
                 test1 {
@@ -66,7 +86,7 @@ fun box() : String {
         }
     }
     if (res != "OK") return res
-    res = "FAIL 4"
+    res = "FAIL 5"
     builder {
         test2 {
             test2 {
@@ -81,13 +101,28 @@ fun box() : String {
         }
     }
     if (res != "OK") return res
-    res = "FAIL 5"
+    res = "FAIL 6"
+    builder {
+        test3 {
+            test3 {
+                test3 {
+                    test3 {
+                        test3 {
+                            res = calculate()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+    res = "FAIL 7"
     builder {
         test1 {
             test2 {
-                test1 {
-                    test2 {
-                        test1 {
+                test3 {
+                    test1 {
+                        test2 {
                             res = calculate()
                         }
                     }

@@ -55,8 +55,7 @@ class RegeneratedLambdaFieldRemapper(
     override fun getFieldForInline(node: FieldInsnNode, prefix: StackValue?): StackValue? {
         val fieldName = node.name
         assert(fieldName.startsWith(CAPTURED_FIELD_FOLD_PREFIX)) { "Captured field template should start with $CAPTURED_FIELD_FOLD_PREFIX prefix" }
-        if (fieldName == CAPTURED_FIELD_FOLD_PREFIX + THIS) {
-            assert(originalLambdaInternalName == node.owner) { "Can't unfold '$CAPTURED_FIELD_FOLD_PREFIX$THIS' parameter" }
+        if (fieldName == CAPTURED_FIELD_FOLD_PREFIX + THIS && originalLambdaInternalName == node.owner) {
             return StackValue.LOCAL_0
         }
 

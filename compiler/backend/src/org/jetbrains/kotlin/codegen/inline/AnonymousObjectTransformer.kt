@@ -454,7 +454,7 @@ class AnonymousObjectTransformer(
         val addCapturedNotAddOuter = parentFieldRemapper.isRoot || parentFieldRemapper is InlinedLambdaRemapper && parentFieldRemapper.parent!!.isRoot
         val alreadyAdded = HashMap<String, CapturedParamInfo>()
         for (info in capturedLambdas) {
-            if (addCapturedNotAddOuter || inliningContext.isContinuation) {
+            if (addCapturedNotAddOuter) {
                 for (desc in info.capturedVars) {
                     val key = desc.fieldName + "$$$" + desc.type.className
                     val alreadyAddedParam = alreadyAdded[key]
@@ -484,7 +484,7 @@ class AnonymousObjectTransformer(
             capturedLambdasToInline.put(info.lambdaClassType.internalName, info)
         }
 
-        if (parentFieldRemapper is InlinedLambdaRemapper && !capturedLambdas.isEmpty() && !(addCapturedNotAddOuter || inliningContext.isContinuation)) {
+        if (parentFieldRemapper is InlinedLambdaRemapper && !capturedLambdas.isEmpty() && !addCapturedNotAddOuter) {
             //lambda with non InlinedLambdaRemapper already have outer
             val parent = parentFieldRemapper.parent as? RegeneratedLambdaFieldRemapper ?:
                          throw AssertionError("Expecting RegeneratedLambdaFieldRemapper, but ${parentFieldRemapper.parent}")

@@ -146,7 +146,20 @@ class MethodInliner(
         //      c()
         // In the second case we do not need to replace fake continuations: it is a simple inline
         if (inliningContext.parent == null || inliningContext.parent.isRoot) return
-        replaceFakeContinuationsWithRealOnes(resultNode, 0)
+        // There can be two types of crossinline:
+        //      1) Inside lambda
+        //      2) Inside class/object
+        // In the first case continuation is LOCAL_0, otherwise it is the last parameter of the function
+        var classContext: InliningContext? = inliningContext
+        while (classContext !is RegeneratedClassContext && classContext != null) {
+            classContext = classContext.parent
+        }
+        assert (classContext != null)
+        val continuation =
+            if (classContext!!.isContinuation) 0
+            else if (resultNode.access and Opcodes.ACC_STATIC != 0) Type.getArgumentTypes(node.desc).size - 1
+            else Type.getArgumentTypes(node.desc).size
+        replaceFakeContinuationsWithRealOnes(resultNode, continuation)
     }
 
     private fun doInline(node: MethodNode): MethodNode {
