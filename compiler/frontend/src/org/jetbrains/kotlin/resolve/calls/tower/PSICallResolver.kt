@@ -72,7 +72,8 @@ class PSICallResolver(
     private val typeApproximator: TypeApproximator,
     private val argumentTypeResolver: ArgumentTypeResolver,
     private val effectSystem: EffectSystem,
-    private val constantExpressionEvaluator: ConstantExpressionEvaluator
+    private val constantExpressionEvaluator: ConstantExpressionEvaluator,
+    private val dataFlowValueFactory: DataFlowValueFactory
 ) {
     private val GIVEN_CANDIDATES_NAME = Name.special("<given candidates>")
 
@@ -163,7 +164,7 @@ class PSICallResolver(
         KotlinResolutionCallbacksImpl(
             context, expressionTypingServices, typeApproximator,
             argumentTypeResolver, languageVersionSettings, kotlinToResolvedCallTransformer,
-            constantExpressionEvaluator
+            constantExpressionEvaluator, dataFlowValueFactory
         )
 
     private fun calculateExpectedType(context: BasicCallResolutionContext): UnwrappedType? {
@@ -416,7 +417,7 @@ class PSICallResolver(
 
             temporaryTrace.record(BindingContext.REFERENCE_TARGET, calleeExpression, variable.resolvedCall.candidateDescriptor)
             val dataFlowValue =
-                DataFlowValueFactory.createDataFlowValue(variableReceiver, temporaryTrace.bindingContext, context.scope.ownerDescriptor)
+                dataFlowValueFactory.createDataFlowValue(variableReceiver, temporaryTrace.bindingContext, context.scope.ownerDescriptor)
             return ReceiverValueWithSmartCastInfo(
                 variableReceiver,
                 context.dataFlowInfo.getCollectedTypes(dataFlowValue, context.languageVersionSettings),
