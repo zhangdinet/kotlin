@@ -15,9 +15,18 @@ suspend inline fun test2(noinline c: () -> Unit) {
     l()
 }
 
-// FILE: box.kt
+suspend inline fun test3(noinline c: () -> Unit) {
+    val r = object: Runnable {
+        override fun run() {
+            c()
+        }
+    }
+    r.run()
+}
 
-import kotlin.coroutines.experimental.*
+inline fun transform(crossinline c: suspend () -> Unit) {
+    builder { c() }
+}
 
 fun builder(c: suspend () -> Unit) {
     c.startCoroutine(object: Continuation<Unit> {
@@ -33,6 +42,10 @@ fun builder(c: suspend () -> Unit) {
     })
 }
 
+// FILE: box.kt
+
+import kotlin.coroutines.experimental.*
+
 fun box() : String {
     var res = "FAIL 1"
     builder {
@@ -46,6 +59,50 @@ fun box() : String {
     builder {
         test2 {
             res = "OK"
+        }
+    }
+    if (res != "OK") return res
+
+    res = "FAIL 3"
+    builder {
+        test3 {
+            res = "OK"
+        }
+    }
+    if (res != "OK") return res
+
+    res = "FAIL 4"
+    builder {
+        test1 {
+            transform {
+                test1 {
+                    res = "OK"
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+
+    res = "FAIL 5"
+    builder {
+        test2 {
+            transform {
+                test2 {
+                    res = "OK"
+                }
+            }
+        }
+    }
+    if (res != "OK") return res
+
+    res = "FAIL 6"
+    builder {
+        test3 {
+            transform {
+                test3 {
+                    res = "OK"
+                }
+            }
         }
     }
     return res

@@ -139,13 +139,18 @@ class MethodInliner(
     // In case of crossinline lambdas the state machine is already generated and we need to replace the fake continuations
     // in the lambda here.
     private fun replaceFakeContinuationsWithRealOnesIfNeeded(resultNode: MethodNode) {
-        if (!inliningContext.isInliningLambda || inliningContext.lambdaInfo == null || !inliningContext.lambdaInfo.isCrossInline) return
         // Differentiate the cases:
         //      val l : suspend () -> Unit = { c() }
         // and
         //      c()
         // In the second case we do not need to replace fake continuations: it is a simple inline
         if (inliningContext.parent == null || inliningContext.parent.isRoot) return
+        // We are inside invoke which is going to be inlined. No need for replacement
+        if (resultNode.access and Opcodes.ACC_STATIC == 0 &&
+            resultNode.name == "invoke" &&
+            Type.getReturnType(resultNode.desc) == OBJECT_TYPE &&
+            Type.getArgumentTypes(resultNode.desc).lastOrNull() == CONTINUATION_ASM_TYPE
+        ) return
         // There can be two types of crossinline:
         //      1) Inside lambda
         //      2) Inside class/object
@@ -154,7 +159,7 @@ class MethodInliner(
         while (classContext !is RegeneratedClassContext && classContext != null) {
             classContext = classContext.parent
         }
-        assert (classContext != null)
+        assert(classContext != null)
         val continuation =
             if (classContext!!.isContinuation) 0
             else if (resultNode.access and Opcodes.ACC_STATIC != 0) Type.getArgumentTypes(node.desc).size - 1

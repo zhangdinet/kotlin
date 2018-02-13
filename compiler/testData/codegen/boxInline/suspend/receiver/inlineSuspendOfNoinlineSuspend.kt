@@ -8,9 +8,8 @@ import kotlin.coroutines.experimental.*
 // Start coroutine call is possible
 // Block is allowed to be called directly inside inline function
 
-suspend inline fun test1(noinline c: suspend () -> Unit)  {
-    val l : suspend () -> Unit = { c() }
-    builder { l() }
+interface SuspendRunnable {
+    suspend fun run()
 }
 
 object EmptyContinuation: Continuation<Unit> {
@@ -25,29 +24,34 @@ object EmptyContinuation: Continuation<Unit> {
     }
 }
 
-suspend inline fun test2(noinline c: suspend () -> Unit) {
-    c.startCoroutine(EmptyContinuation)
-}
+class Controller {
+    var res = "FAIL 1"
 
-suspend inline fun test3(noinline c: suspend () -> Unit) {
-    c()
-}
-
-fun builder(c: suspend () -> Unit) {
-    c.startCoroutine(EmptyContinuation)
-}
-
-interface SuspendRunnable {
-    suspend fun run()
-}
-
-suspend inline fun test4(noinline c: suspend () -> Unit) {
-    val sr = object: SuspendRunnable {
-        override suspend fun run() {
-            c()
-        }
+    suspend inline fun test1(noinline c: suspend Controller.() -> Unit)  {
+        val l : suspend Controller.() -> Unit = { c() }
+        l()
     }
-    sr.run()
+
+    suspend inline fun test2(noinline c: suspend Controller.() -> Unit) {
+        c.startCoroutine(this, EmptyContinuation)
+    }
+
+    suspend inline fun test3(noinline c: suspend Controller.() -> Unit) {
+        c()
+    }
+
+    suspend inline fun test4(noinline c: suspend Controller.() -> Unit) {
+        val sr = object: SuspendRunnable {
+            override suspend fun run() {
+                c()
+            }
+        }
+        sr.run()
+    }
+}
+
+fun builder(controller: Controller, c: suspend Controller.() -> Unit) {
+    c.startCoroutine(controller, EmptyContinuation)
 }
 
 // FILE: box.kt
@@ -57,36 +61,36 @@ import kotlin.coroutines.experimental.*
 suspend fun calculate() = "OK"
 
 fun box(): String {
-    var res = "FAIL 1"
-    builder {
+    val controller = Controller()
+    builder(controller) {
         test1 {
             res = calculate()
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 2"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 2"
+    builder(controller) {
         test2 {
             res = "OK"
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 3"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 3"
+    builder(controller) {
         test3 {
             res = "OK"
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 4"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 4"
+    builder(controller) {
         test4 {
             res = "OK"
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 5"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 5"
+    builder(controller) {
         test1 {
             test1 {
                 test1 {
@@ -99,9 +103,9 @@ fun box(): String {
             }
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 6"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 6"
+    builder(controller) {
         test2 {
             test2 {
                 test2 {
@@ -114,9 +118,9 @@ fun box(): String {
             }
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 7"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 7"
+    builder(controller) {
         test3 {
             test3 {
                 test3 {
@@ -129,9 +133,9 @@ fun box(): String {
             }
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 8"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 8"
+    builder(controller) {
         test4 {
             test4 {
                 test4 {
@@ -144,9 +148,9 @@ fun box(): String {
             }
         }
     }
-    if (res != "OK") return res
-    res = "FAIL 9"
-    builder {
+    if (controller.res != "OK") return controller.res
+    controller.res = "FAIL 9"
+    builder(controller) {
         test1 {
             test2 {
                 test3 {
@@ -159,5 +163,5 @@ fun box(): String {
             }
         }
     }
-    return res
+    return controller.res
 }

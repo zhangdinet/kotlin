@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.codegen.context.PackageContext
 import org.jetbrains.kotlin.codegen.coroutines.unwrapInitialDescriptorForSuspendFunction
 import org.jetbrains.kotlin.codegen.inline.ReificationArgument
 import org.jetbrains.kotlin.codegen.intrinsics.TypeIntrinsics
+import org.jetbrains.kotlin.codegen.optimization.common.asSequence
 import org.jetbrains.kotlin.codegen.signature.JvmSignatureWriter
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
@@ -449,7 +450,7 @@ val CodegenContext<*>.contextStackText
 fun MethodNode.textifyMethodNode(): String {
     val text = Textifier()
     val tmv = TraceMethodVisitor(text)
-    this.instructions.toArray().forEach { it.accept(tmv) }
+    this.instructions.asSequence().forEach { it.accept(tmv) }
     val sw = StringWriter()
     text.print(PrintWriter(sw))
     return "$sw"

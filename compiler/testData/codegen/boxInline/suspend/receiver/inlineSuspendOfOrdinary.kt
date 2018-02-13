@@ -7,12 +7,20 @@ import kotlin.coroutines.experimental.*
 // Block is allowed to be called inside the body of owner inline function
 // suspend calls possible inside lambda matching to the parameter
 
-suspend inline fun test(c: () -> Unit) {
-    c()
+class Controller {
+    var res = "FAIL 1"
+
+    suspend inline fun test(c: Controller.() -> Unit) {
+        c()
+    }
+
+    inline fun transform(crossinline c: suspend Controller.() -> Unit) {
+        builder(this) { c() }
+    }
 }
 
-fun builder(c: suspend () -> Unit) {
-    c.startCoroutine(object: Continuation<Unit> {
+fun builder(controller: Controller, c: suspend Controller.() -> Unit) {
+    c.startCoroutine(controller, object: Continuation<Unit> {
         override val context: CoroutineContext
             get() = EmptyCoroutineContext
 
@@ -25,10 +33,6 @@ fun builder(c: suspend () -> Unit) {
     })
 }
 
-inline fun transform(crossinline c: suspend () -> Unit) {
-    builder { c() }
-}
-
 // FILE: box.kt
 
 import kotlin.coroutines.experimental.*
@@ -36,14 +40,14 @@ import kotlin.coroutines.experimental.*
 suspend fun calculate() = "OK"
 
 fun box() : String {
-    var res = "FAIL 1"
-    builder {
+    val controller = Controller()
+    builder(controller) {
         test {
             res = calculate()
         }
     }
-    if (res != "OK") return res
-    builder {
+    if (controller.res != "OK") return controller.res
+    builder(controller) {
         test {
             transform {
                 test {
@@ -52,5 +56,5 @@ fun box() : String {
             }
         }
     }
-    return res
+    return controller.res
 }

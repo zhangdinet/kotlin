@@ -3441,10 +3441,73 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
             doTest(fileName);
         }
 
+        @TestMetadata("multipleLocals.kt")
+        public void testMultipleLocals() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/multipleLocals.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("multipleSuspensionPoints.kt")
         public void testMultipleSuspensionPoints() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/multipleSuspensionPoints.kt");
             doTest(fileName);
+        }
+
+        @TestMetadata("compiler/testData/codegen/boxInline/suspend/receiver")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Receiver extends AbstractIrBlackBoxInlineCodegenTest {
+            public void testAllFilesPresentInReceiver() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/boxInline/suspend/receiver"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("inlineOrdinaryOfCrossinlineSuspend.kt")
+            public void testInlineOrdinaryOfCrossinlineSuspend() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineOrdinaryOfCrossinlineSuspend.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineOrdinaryOfNoinlineSuspend.kt")
+            public void testInlineOrdinaryOfNoinlineSuspend() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineOrdinaryOfNoinlineSuspend.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfCrossinlineOrdinary.kt")
+            public void testInlineSuspendOfCrossinlineOrdinary() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfCrossinlineOrdinary.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfCrossinlineSuspend.kt")
+            public void testInlineSuspendOfCrossinlineSuspend() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfCrossinlineSuspend.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfNoinlineOrdinary.kt")
+            public void testInlineSuspendOfNoinlineOrdinary() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfNoinlineOrdinary.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfNoinlineSuspend.kt")
+            public void testInlineSuspendOfNoinlineSuspend() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfNoinlineSuspend.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfOrdinary.kt")
+            public void testInlineSuspendOfOrdinary() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfOrdinary.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSuspendOfSuspend.kt")
+            public void testInlineSuspendOfSuspend() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/receiver/inlineSuspendOfSuspend.kt");
+                doTest(fileName);
+            }
         }
     }
 
