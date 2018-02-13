@@ -55,7 +55,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testStubs() {
-        val project = Project("kaptStubs")
+        val project = Project("kaptStubs", GradleVersionRequired.Exact("3.5"))
 
         project.build("build") {
             assertSuccessful()
@@ -80,7 +80,7 @@ class KaptIT: BaseGradleIT() {
 
     @Test
     fun testStubsWithoutJava() {
-        val project = Project("kaptStubs")
+        val project = Project("kaptStubs", GradleVersionRequired.Exact("3.5"))
         project.setupWorkingDir()
         project.projectDir.allJavaFiles().forEach { it.delete() }
 
@@ -106,7 +106,7 @@ class KaptIT: BaseGradleIT() {
 
     private fun doTestIncrementalBuild(projectName: String, compileTasks: Array<String>) {
         val compileTasksUpToDate = compileTasks.map { it + " UP-TO-DATE" }.toTypedArray()
-        val project = Project(projectName)
+        val project = Project(projectName, GradleVersionRequired.Exact("3.5"))
 
         project.build("build") {
             assertSuccessful()
@@ -183,7 +183,7 @@ class KaptIT: BaseGradleIT() {
     @Test
     fun testInternalUserIsModifiedStubsIC() {
         val options = defaultBuildOptions().copy(incremental = true)
-        val project = Project("kaptStubs")
+        val project = Project("kaptStubs", GradleVersionRequired.Exact("3.5"))
 
         project.build("build", options = options) {
             assertSuccessful()
@@ -203,7 +203,7 @@ class KaptIT: BaseGradleIT() {
     @Test
     fun testKotlinCompilerNotCalledStubsIC() {
         val options = defaultBuildOptions().copy(incremental = true)
-        val project = Project("kaptStubs")
+        val project = Project("kaptStubs", GradleVersionRequired.Exact("3.5"))
 
         project.build("build", options = options) {
             assertSuccessful()
