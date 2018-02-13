@@ -3453,6 +3453,12 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
             doTest(fileName);
         }
 
+        @TestMetadata("tryCatchStackTransform.kt")
+        public void testTryCatchStackTransform() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/tryCatchStackTransform.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("compiler/testData/codegen/boxInline/suspend/receiver")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
