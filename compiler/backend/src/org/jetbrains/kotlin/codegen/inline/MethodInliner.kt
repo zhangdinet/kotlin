@@ -26,7 +26,7 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
-import org.jetbrains.org.objectweb.asm.commons.RemappingMethodAdapter
+import org.jetbrains.org.objectweb.asm.commons.MethodRemapper
 import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.*
 import org.jetbrains.org.objectweb.asm.util.Printer
@@ -127,12 +127,7 @@ class MethodInliner(
         val iterator = transformations.iterator()
 
         val remapper = TypeRemapper.createFrom(currentTypeMapping)
-        val remappingMethodAdapter = RemappingMethodAdapter(
-                resultNode.access,
-                resultNode.desc,
-                resultNode,
-                AsmTypeRemapper(remapper, result)
-        )
+        val remappingMethodAdapter = MethodRemapper(resultNode, AsmTypeRemapper(remapper, result))
 
         val markerShift = calcMarkerShift(parameters, node)
         val lambdaInliner = object : InlineAdapter(remappingMethodAdapter, parameters.argsSizeOnStack, sourceMapper) {
