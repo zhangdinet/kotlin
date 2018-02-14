@@ -79,7 +79,7 @@ object JvmAnalyzerFacade : AnalyzerFacade() {
                     JvmPlatform, null ->
                         resolverForReferencedModule
                     TargetPlatform.Common ->
-                        moduleInfo.findImplementingDependency(referencedClassModule, platform = JvmPlatform)?.let {
+                        moduleInfo.findImplementingDependency(referencedClassModule, targetPlatform = JvmPlatform)?.let {
                             @Suppress("UNCHECKED_CAST")
                             resolverForProject.resolverForModule(it as M)
                         }

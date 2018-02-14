@@ -154,6 +154,20 @@ sealed class ModuleSourceInfoWithExpectedBy(private val forProduction: Boolean) 
             return if (forProduction) expectedByModule?.productionSourceInfo() else expectedByModule?.testSourceInfo()
         }
 
+    private val implementingDependencyProviderMap: MutableMap<TargetPlatform, ImplementingDependencyProvider> = mutableMapOf()
+
+    private fun findImplementingDependencyProvider(targetPlatform: TargetPlatform): ImplementingDependencyProvider? {
+        return if (platform != TargetPlatform.Common) null else implementingDependencyProviderMap.getOrPut(targetPlatform) {
+            ImplementingDependencyProvider(this, targetPlatform)
+        }
+    }
+
+    override fun findImplementingDependency(startInfo: ModuleInfo, targetPlatform: TargetPlatform): ModuleInfo? {
+        val provider = findImplementingDependencyProvider(targetPlatform) ?: return null
+        provider.baseInfo = startInfo
+        return module.cached(provider)
+    }
+
     override fun dependencies(): List<IdeaModuleInfo> = module.cached(createCachedValueProvider {
         CachedValueProvider.Result(
             ideaModelDependencies(module, forProduction),
