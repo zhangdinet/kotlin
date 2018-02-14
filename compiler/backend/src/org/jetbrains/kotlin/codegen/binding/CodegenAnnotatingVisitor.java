@@ -14,6 +14,7 @@ import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.ReflectionTypes;
+import org.jetbrains.kotlin.builtins.functions.FunctionInvokeDescriptor;
 import org.jetbrains.kotlin.cfg.WhenChecker;
 import org.jetbrains.kotlin.codegen.*;
 import org.jetbrains.kotlin.codegen.coroutines.CoroutineCodegenUtilKt;
@@ -41,6 +42,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.CallUtilKt;
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument;
+import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall;
 import org.jetbrains.kotlin.resolve.constants.ConstantValue;
 import org.jetbrains.kotlin.resolve.constants.EnumValue;
 import org.jetbrains.kotlin.resolve.constants.NullValue;
@@ -316,11 +318,52 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
             );
             closure.setSuspend(true);
             closure.setSuspendLambda();
+            if (capturesCrossinlineSuspendLambda(functionLiteral, functionDescriptor)) {
+                bindingTrace.record(
+                        CodegenBinding.CAPTURES_CROSSINLINE_SUSPEND_LAMBDA,
+                        functionDescriptor,
+                        true
+                );
+            }
         }
 
         super.visitLambdaExpression(lambdaExpression);
         nameStack.pop();
         classStack.pop();
+    }
+
+    // If inner lambda captures crossinline suspend lambda, it is unsafe to generate state machine for it.
+    private boolean capturesCrossinlineSuspendLambda(@NotNull PsiElement psiNode, @NotNull FunctionDescriptor descriptor) {
+        PsiElement[] children = psiNode.getChildren();
+        boolean res = false;
+        for (PsiElement child : children) {
+            if (child instanceof KtCallElement) {
+                KtExpression callee = ((KtCallElement) child).getCalleeExpression();
+                Call call = bindingContext.get(CALL, callee);
+                ResolvedCall<?> resolvedCall = bindingContext.get(RESOLVED_CALL, call);
+                if (resolvedCall instanceof VariableAsFunctionResolvedCall) {
+                    VariableAsFunctionResolvedCall variableAsFunction = (VariableAsFunctionResolvedCall) resolvedCall;
+                    VariableDescriptor variableDescriptor = variableAsFunction.getVariableCall().getResultingDescriptor();
+                    CallableDescriptor callableDescriptor = ((ResolvedCall) variableAsFunction).getResultingDescriptor();
+                    if (variableAsFunction instanceof ValueParameterDescriptor &&
+                        ((ValueParameterDescriptor) variableDescriptor).isCrossinline() &&
+                        callableDescriptor instanceof FunctionDescriptor &&
+                        ((FunctionDescriptor) callableDescriptor).isSuspend()) {
+                        FunctionDescriptor enclosingDescriptor =
+                                bindingContext.get(ENCLOSING_SUSPEND_FUNCTION_FOR_SUSPEND_FUNCTION_CALL, resolvedCall.getCall());
+                        assert(enclosingDescriptor != null);
+                        if (enclosingDescriptor == descriptor) {
+                            return true;
+                        } else {
+                            // We went too deep: inside inner function
+                            return false;
+                        }
+                    }
+                }
+            }
+            res = res || capturesCrossinlineSuspendLambda(child, descriptor);
+        }
+        return res;
     }
 
     @Override

@@ -53,7 +53,7 @@ class CoroutineTransformerMethodVisitor(
     obtainClassBuilderForCoroutineState: () -> ClassBuilder,
     private val isForNamedFunction: Boolean,
     private val shouldPreserveClassInitialization: Boolean,
-    private val element: KtElement,
+    private val lineNumber: Int,
     // It's only matters for named functions, may differ from '!isStatic(access)' in case of DefaultImpls
     private val needDispatchReceiver: Boolean = false,
     // May differ from containingClassInternalName in case of DefaultImpls
@@ -125,7 +125,6 @@ class CoroutineTransformerMethodVisitor(
             val startLabel = LabelNode()
             val defaultLabel = LabelNode()
             val tableSwitchLabel = LabelNode()
-            val lineNumber = CodegenUtil.getLineNumberForElement(element, false) ?: 0
 
             // tableswitch(this.label)
             insertBefore(
@@ -493,7 +492,7 @@ class CoroutineTransformerMethodVisitor(
     ): LabelNode {
         val continuationLabel = LabelNode()
         val continuationLabelAfterLoadedResult = LabelNode()
-        val suspendElementLineNumber = CodegenUtil.getLineNumberForElement(element, false) ?: 0
+        val suspendElementLineNumber = lineNumber
         val nextLineNumberNode = suspension.suspensionCallEnd.findNextOrNull { it is LineNumberNode } as? LineNumberNode
         with(methodNode.instructions) {
             // Save state

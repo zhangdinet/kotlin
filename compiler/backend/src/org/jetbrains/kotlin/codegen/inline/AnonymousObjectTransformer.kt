@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.coroutines.COROUTINE_IMPL_ASM_TYPE
+import org.jetbrains.kotlin.codegen.coroutines.CoroutineTransformerMethodVisitor
 import org.jetbrains.kotlin.codegen.serialization.JvmStringTable
 import org.jetbrains.kotlin.codegen.writeKotlinMetadata
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
@@ -138,12 +139,20 @@ class AnonymousObjectTransformer(
         val additionalFakeParams = extractParametersMappingAndPatchConstructor(
                 constructor!!, allCapturedParamBuilder, constructorParamBuilder,transformationInfo, parentRemapper
         )
+
+        val generateStateMachine = inliningContext.isContinuation &&
+                transformationInfo.capturedLambdasToInline.any { (_, lambda) ->
+                    lambda is PsiExpressionLambda && lambda.isCrossInline && lambda.invokeMethodDescriptor.isSuspend
+                }
+
         val deferringMethods = ArrayList<DeferredMethodVisitor>()
 
         generateConstructorAndFields(classBuilder, allCapturedParamBuilder, constructorParamBuilder, parentRemapper, additionalFakeParams)
 
         for (next in methodsToTransform) {
-            val deferringVisitor = newMethod(classBuilder, next)
+            val deferringVisitor =
+                if (generateStateMachine && next.name == "doResume") newStateMachine(classBuilder, next)
+                else newMethod(classBuilder, next)
             val funResult = inlineMethodAndUpdateGlobalResult(parentRemapper, deferringVisitor, next, allCapturedParamBuilder, false)
 
             val returnType = Type.getReturnType(next.desc)
@@ -387,6 +396,28 @@ class AnonymousObjectTransformer(
                     NO_ORIGIN, original.access, original.name, original.desc, original.signature,
                     ArrayUtil.toStringArray(original.exceptions)
             )
+        }
+    }
+
+    private fun newStateMachine(builder: ClassBuilder, original: MethodNode): DeferredMethodVisitor {
+        return DeferredMethodVisitor(
+            MethodNode(
+                original.access, original.name, original.desc, original.signature,
+                ArrayUtil.toStringArray(original.exceptions)
+            )
+        ) {
+            CoroutineTransformerMethodVisitor(
+                builder.newMethod(
+                    NO_ORIGIN, original.access, original.name, original.desc, original.signature,
+                    ArrayUtil.toStringArray(original.exceptions)
+                ), original.access, original.name, original.desc, null, null,
+                obtainClassBuilderForCoroutineState = { builder },
+                lineNumber = 0, // <- TODO
+                shouldPreserveClassInitialization = state.constructorCallNormalizationMode.shouldPreserveClassInitialization,
+                containingClassInternalName = builder.thisName,
+                isForNamedFunction = false
+            )
+
         }
     }
 

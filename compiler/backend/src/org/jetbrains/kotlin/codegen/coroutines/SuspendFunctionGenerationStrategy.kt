@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.codegen.coroutines
 
+import org.jetbrains.kotlin.backend.common.CodegenUtil
 import org.jetbrains.kotlin.codegen.ExpressionCodegen
 import org.jetbrains.kotlin.codegen.FunctionGenerationStrategy
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
@@ -58,12 +59,12 @@ class SuspendFunctionGenerationStrategy(
         if (access and Opcodes.ACC_ABSTRACT != 0) return mv
 
         return CoroutineTransformerMethodVisitor(
-                mv, access, name, desc, null, null, containingClassInternalName, this::classBuilderForCoroutineState,
-                isForNamedFunction = true,
-                element = declaration,
-                shouldPreserveClassInitialization = constructorCallNormalizationMode.shouldPreserveClassInitialization,
-                needDispatchReceiver = originalSuspendDescriptor.dispatchReceiverParameter != null,
-                internalNameForDispatchReceiver = containingClassInternalNameOrNull()
+            mv, access, name, desc, null, null, containingClassInternalName, this::classBuilderForCoroutineState,
+            isForNamedFunction = true,
+            lineNumber = CodegenUtil.getLineNumberForElement(declaration, false) ?: 0,
+            shouldPreserveClassInitialization = constructorCallNormalizationMode.shouldPreserveClassInitialization,
+            needDispatchReceiver = originalSuspendDescriptor.dispatchReceiverParameter != null,
+            internalNameForDispatchReceiver = containingClassInternalNameOrNull()
         ).also {
             transformer = it
         }
