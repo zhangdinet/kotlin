@@ -3547,6 +3547,12 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/normalInline.kt");
                 doTest(fileName);
             }
+
+            @TestMetadata("numberOfSuspentions.kt")
+            public void testNumberOfSuspentions() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/numberOfSuspentions.kt");
+                doTest(fileName);
+            }
         }
     }
 
