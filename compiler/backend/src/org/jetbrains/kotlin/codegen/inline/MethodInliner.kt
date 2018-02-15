@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.backend.jvm.codegen.IrExpressionLambda
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClosureCodegen
 import org.jetbrains.kotlin.codegen.StackValue
-import org.jetbrains.kotlin.codegen.context.MethodContext
 import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
 import org.jetbrains.kotlin.codegen.coroutines.replaceFakeContinuationsWithRealOnes
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
@@ -197,13 +196,7 @@ class MethodInliner(
                 transformationInfo = iterator.next()
 
                 val oldClassName = transformationInfo!!.oldClassName
-                // HACK: regenerate uninitialized transformation info if inline site is suspend.
-                var regenerateAnyway = false
-                if (inliningContext.isRoot) {
-                    val sourceCompilerForInline = (inliningContext as RootInliningContext).sourceCompilerForInline
-                    regenerateAnyway = sourceCompilerForInline.compilationContextFunctionDescriptor.isSuspend
-                }
-                if (transformationInfo!!.shouldRegenerate(isSameModule) || regenerateAnyway) {
+                if (transformationInfo!!.shouldRegenerate(isSameModule)) {
                     //TODO: need poping of type but what to do with local funs???
                     val newClassName = transformationInfo!!.newClassName
                     remapper.addMapping(oldClassName, newClassName)
@@ -744,7 +737,6 @@ class MethodInliner(
             needReification: Boolean,
             capturesAnonymousObjectThatMustBeRegenerated: Boolean
     ): AnonymousObjectTransformationInfo {
-        val memoizeAnonymousObject = inliningContext.findAnonymousObjectTransformationInfo(anonymousType) == null
 
         val info = AnonymousObjectTransformationInfo(
                 anonymousType, needReification, lambdaMapping,
@@ -756,8 +748,16 @@ class MethodInliner(
                 capturesAnonymousObjectThatMustBeRegenerated
         )
 
-        if (memoizeAnonymousObject) {
-            inliningContext.root.internalNameToAnonymousObjectTransformationInfo[anonymousType] = info
+        val memoizeAnonymousObject = inliningContext.findAnonymousObjectTransformationInfo(anonymousType)
+        if (memoizeAnonymousObject == null ||
+            //anonymous object could be inlined in several context without transformation (keeps same class name)
+            // and on further inlining such code some of such cases would be transformed and some not,
+            // so we should distinguish one classes from another more clearly
+            !memoizeAnonymousObject.shouldRegenerate(isSameModule) &&
+            info.shouldRegenerate(isSameModule)
+        ) {
+
+            inliningContext.recordIfNotPresent(anonymousType, info)
         }
         return info
     }

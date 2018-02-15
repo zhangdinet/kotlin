@@ -55,7 +55,7 @@ open class InliningContext(
 
     val isInliningLambda = lambdaInfo != null
 
-    val internalNameToAnonymousObjectTransformationInfo = hashMapOf<String, AnonymousObjectTransformationInfo>()
+    private val internalNameToAnonymousObjectTransformationInfo = hashMapOf<String, AnonymousObjectTransformationInfo>()
 
     var isContinuation: Boolean = false
 
@@ -63,6 +63,14 @@ open class InliningContext(
 
     val root: RootInliningContext
         get() = if (isRoot) this as RootInliningContext else parent!!.root
+
+    fun findAnonymousObjectTransformationInfo(internalName: String, searchInParent: Boolean = true): AnonymousObjectTransformationInfo? =
+        internalNameToAnonymousObjectTransformationInfo[internalName]
+                ?: if (searchInParent) parent?.findAnonymousObjectTransformationInfo(internalName, searchInParent) else null
+
+    fun recordIfNotPresent(internalName: String, info: AnonymousObjectTransformationInfo) {
+        internalNameToAnonymousObjectTransformationInfo.putIfAbsent(internalName, info)
+    }
 
     fun subInlineLambda(lambdaInfo: LambdaInfo): InliningContext =
             subInline(
@@ -104,8 +112,4 @@ open class InliningContext(
         get() {
             return parent!!.callSiteInfo
         }
-
-    fun findAnonymousObjectTransformationInfo(internalName: String): AnonymousObjectTransformationInfo? {
-        return root.internalNameToAnonymousObjectTransformationInfo[internalName]
-    }
 }
