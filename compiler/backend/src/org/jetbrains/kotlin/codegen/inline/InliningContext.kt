@@ -45,7 +45,7 @@ class RegeneratedClassContext(
 
 open class InliningContext(
         val parent: InliningContext?,
-        private val expressionMap: Map<Int, LambdaInfo>,
+        val expressionMap: Map<Int, LambdaInfo>,
         val state: GenerationState,
         val nameGenerator: NameGenerator,
         val typeRemapper: TypeRemapper,

@@ -141,7 +141,7 @@ class AnonymousObjectTransformer(
         )
 
         val generateStateMachine = inliningContext.isContinuation &&
-                transformationInfo.capturedLambdasToInline.any { (_, lambda) ->
+                inliningContext.expressionMap.values.any { lambda ->
                     lambda is PsiExpressionLambda && lambda.isCrossInline && lambda.invokeMethodDescriptor.isSuspend
                 }
 

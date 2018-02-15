@@ -3530,6 +3530,12 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
                 doTest(fileName);
             }
 
+            @TestMetadata("innerLambdaInsideLambda.kt")
+            public void testInnerLambdaInsideLambda() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerLambdaInsideLambda.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("innerLambdaWithoutCrossinline.kt")
             public void testInnerLambdaWithoutCrossinline() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerLambdaWithoutCrossinline.kt");

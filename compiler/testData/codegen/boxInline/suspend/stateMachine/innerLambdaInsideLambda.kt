@@ -3,8 +3,13 @@
 // NO_CHECK_LAMBDA_INLINING
 
 suspend inline fun crossinlineMe(crossinline c: suspend () -> Unit) {
-    c()
-    c()
+    val l: suspend () -> Unit = {
+        val l1 : suspend () -> Unit = {
+            c()
+        }
+        l1()
+    }
+    l()
 }
 
 // FILE: inlineSite.kt
@@ -43,6 +48,6 @@ fun box(): String {
             suspendHere()
         }
     }
-    if (i != 1) return "FAIL"
+    if (i != 1) return "FAIL $i"
     return "OK"
 }

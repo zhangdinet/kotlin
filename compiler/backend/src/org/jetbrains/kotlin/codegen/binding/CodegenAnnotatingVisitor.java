@@ -318,7 +318,7 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
             );
             closure.setSuspend(true);
             closure.setSuspendLambda();
-            if (capturesCrossinlineSuspendLambda(functionLiteral, functionDescriptor)) {
+            if (capturesCrossinlineSuspendLambda(functionLiteral)) {
                 bindingTrace.record(
                         CodegenBinding.CAPTURES_CROSSINLINE_SUSPEND_LAMBDA,
                         functionDescriptor,
@@ -333,7 +333,7 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
     }
 
     // If inner lambda captures crossinline suspend lambda, it is unsafe to generate state machine for it.
-    private boolean capturesCrossinlineSuspendLambda(@NotNull PsiElement psiNode, @NotNull FunctionDescriptor descriptor) {
+    private boolean capturesCrossinlineSuspendLambda(@NotNull PsiElement psiNode) {
         PsiElement[] children = psiNode.getChildren();
         boolean res = false;
         for (PsiElement child : children) {
@@ -345,23 +345,18 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
                     VariableAsFunctionResolvedCall variableAsFunction = (VariableAsFunctionResolvedCall) resolvedCall;
                     VariableDescriptor variableDescriptor = variableAsFunction.getVariableCall().getResultingDescriptor();
                     CallableDescriptor callableDescriptor = ((ResolvedCall) variableAsFunction).getResultingDescriptor();
-                    if (variableAsFunction instanceof ValueParameterDescriptor &&
+                    if (variableDescriptor instanceof ValueParameterDescriptor &&
                         ((ValueParameterDescriptor) variableDescriptor).isCrossinline() &&
                         callableDescriptor instanceof FunctionDescriptor &&
                         ((FunctionDescriptor) callableDescriptor).isSuspend()) {
                         FunctionDescriptor enclosingDescriptor =
                                 bindingContext.get(ENCLOSING_SUSPEND_FUNCTION_FOR_SUSPEND_FUNCTION_CALL, resolvedCall.getCall());
                         assert(enclosingDescriptor != null);
-                        if (enclosingDescriptor == descriptor) {
-                            return true;
-                        } else {
-                            // We went too deep: inside inner function
-                            return false;
-                        }
+                        return true;
                     }
                 }
             }
-            res = res || capturesCrossinlineSuspendLambda(child, descriptor);
+            res = res || capturesCrossinlineSuspendLambda(child);
         }
         return res;
     }
