@@ -51,7 +51,7 @@ fun bar() {
         _ checkType { _<String>() }
     }
 
-    foo { (<!NI;TYPE_MISMATCH, OI;COMPONENT_FUNCTION_RETURN_TYPE_MISMATCH!>_: String<!>, b) ->
+    foo { (<!NI;TYPE_MISMATCH, COMPONENT_FUNCTION_RETURN_TYPE_MISMATCH!>_: String<!>, b) ->
         <!UNRESOLVED_REFERENCE!>_<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>hashCode<!>()
         b checkType { _<String>() }
     }

@@ -11359,6 +11359,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
+                @TestMetadata("mismatchOnReturnTypeOfComponentFunction.kt")
+                public void testMismatchOnReturnTypeOfComponentFunction() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/reportingImprovements/mismatchOnReturnTypeOfComponentFunction.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("NoAmbiguityForDifferentFunctionTypes.kt")
                 public void testNoAmbiguityForDifferentFunctionTypes() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/inference/reportingImprovements/NoAmbiguityForDifferentFunctionTypes.kt");
