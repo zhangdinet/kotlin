@@ -61,6 +61,21 @@ configurations {
     builtins
 }
 
+compileJava9Java {
+    sourceCompatibility = 1.9
+    targetCompatibility = 1.9
+    // options.compilerArgs.addAll(["-source", "1.9", "-target", "1.9"])
+    options.fork = true
+    options.forkOptions.javaHome = file(JDK_9)
+    // options.forkOptions.executable = "${JDK_9}/bin/javac"
+
+    println("#####")
+    println(options.forkOptions.javaHome)
+    println(options.forkOptions.executable)
+    println(options.compilerArgs)
+    println("#####")
+}
+
 createCompileJava9Task(project, "compileJava9", "kotlin.stdlib", [sourceSets.builtins.output/* TODO: sourceSets.annotations.output?*/])
 
 task originalStdlibJar(type: Jar) {
@@ -73,7 +88,7 @@ jar {
     from("${rootDir}/dist/builtins")
     from sourceSets.builtins.output
     from sourceSets.experimental.output
-    from compileJava9.outputs
+    from compileJava9Java.outputs
 }
 
 task distJar(type: Jar) {

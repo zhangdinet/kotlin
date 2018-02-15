@@ -22,10 +22,12 @@ ext.configureJvmProject = { Project project ->
 
 ext.configureJavaOnlyJvm6Project = { Project project ->
     project.tasks.withType(JavaCompile) {
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6
-        options.fork = true
-        options.forkOptions.javaHome = file(JDK_16)
+        if (it.name != "compileJava9Java") {
+            sourceCompatibility = 1.6
+            targetCompatibility = 1.6
+            options.fork = true
+            options.forkOptions.javaHome = file(JDK_16)
+        }
     }
 }
 
@@ -204,7 +206,7 @@ ext.createPreprocessorTask = { Project project, def name, def sourceDir, def tar
 }
 
 ext.createCompileJava9Task = { Project project, String name, String moduleName, List<? extends FileCollection> extraModuleContent = [] ->
-    project.tasks.findByName("compileJava9Java").enabled = false
+    // project.tasks.findByName("compileJava9Java").enabled = false
 
     def task = project.tasks.create(name, Exec)
 
