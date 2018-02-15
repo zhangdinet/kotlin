@@ -77,6 +77,13 @@ class MethodInliner(
         return doInline(adapter, remapper, remapReturn, labelOwner, 0)
     }
 
+    private fun recordTransformation(info: TransformationInfo) {
+        if (!inliningContext.isInliningLambda) {
+            inliningContext.root.state.globalInlineContext.recordTypeFromInlineFunction(info.oldClassName)
+        }
+        transformations.add(info)
+    }
+
     private fun doInline(
             adapter: MethodVisitor,
             remapper: LocalVarRemapper,
@@ -214,7 +221,9 @@ class MethodInliner(
 
                     if (inliningContext.isInliningLambda &&
                         inliningContext.lambdaInfo !is DefaultLambda && //never delete default lambda classes
-                        transformationInfo!!.canRemoveAfterTransformation()) {
+                        transformationInfo!!.canRemoveAfterTransformation() &&
+                        !inliningContext.root.state.globalInlineContext.isTypeFromInlineFunction(oldClassName)
+                    ) {
                         // this class is transformed and original not used so we should remove original one after inlining
                         result.addClassToRemove(oldClassName)
                     }
@@ -515,7 +524,7 @@ class MethodInliner(
                             invokeCalls.add(InvokeCall(lambdaInfo, currentFinallyDeep))
                         }
                         else if (isSamWrapperConstructorCall(owner, name)) {
-                            transformations.add(SamWrapperTransformationInfo(owner, inliningContext, isAlreadyRegenerated(owner)))
+                            recordTransformation(SamWrapperTransformationInfo(owner, inliningContext, isAlreadyRegenerated(owner)))
                         }
                         else if (isAnonymousConstructorCall(owner, name)) {
                             val lambdaMapping = HashMap<Int, LambdaInfo>()
@@ -536,7 +545,7 @@ class MethodInliner(
                                 offset += if (i == 0) 1 else argTypes[i - 1].size
                             }
 
-                            transformations.add(
+                            recordTransformation(
                                     buildConstructorInvocation(
                                             owner, cur.desc, lambdaMapping, awaitClassReification, capturesAnonymousObjectThatMustBeRegenerated
                                     )
@@ -554,7 +563,7 @@ class MethodInliner(
                         val fieldInsnNode = cur as FieldInsnNode?
                         val className = fieldInsnNode!!.owner
                         if (isAnonymousSingletonLoad(className, fieldInsnNode.name)) {
-                            transformations.add(
+                            recordTransformation(
                                     AnonymousObjectTransformationInfo(
                                             className, awaitClassReification, isAlreadyRegenerated(className), true,
                                             inliningContext.nameGenerator
@@ -563,7 +572,7 @@ class MethodInliner(
                             awaitClassReification = false
                         }
                         else if (isWhenMappingAccess(className, fieldInsnNode.name)) {
-                            transformations.add(
+                            recordTransformation(
                                     WhenMappingTransformationInfo(
                                             className, inliningContext.nameGenerator, isAlreadyRegenerated(className), fieldInsnNode
                                     )

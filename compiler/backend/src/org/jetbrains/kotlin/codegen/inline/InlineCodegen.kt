@@ -163,6 +163,7 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
             callDefault: Boolean,
             codegen: BaseExpressionCodegen
     ) {
+        state.globalInlineContext.enter()
         var nodeAndSmap: SMAPAndMethodNode? = null
         try {
             nodeAndSmap = createInlineMethodNode(functionDescriptor, jvmSignature, callDefault, typeArguments, state, sourceCompiler)
@@ -176,6 +177,8 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
         }
         catch (e: Exception) {
             throw throwCompilationException(nodeAndSmap, e, true)
+        } finally {
+            state.globalInlineContext.exit()
         }
     }
 
