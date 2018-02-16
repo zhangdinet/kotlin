@@ -16,19 +16,26 @@
 
 package org.jetbrains.uast.test.env
 
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.visitor.UastVisitor
 import java.io.File
 import kotlin.test.fail
 
-abstract class AbstractUastTest : AbstractTestWithCoreEnvironment() {
+abstract class AbstractUastTest : KotlinLightCodeInsightFixtureTestCase() {
     protected companion object {
         val TEST_DATA_DIR = File("testData")
+    }
+
+    protected val uastContext: UastContext by lazy {
+        ServiceManager.getService(project, UastContext::class.java)
     }
 
     abstract fun getVirtualFile(testName: String): VirtualFile

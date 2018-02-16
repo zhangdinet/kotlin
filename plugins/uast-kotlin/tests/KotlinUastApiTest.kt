@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.asJava.toLightAnnotation
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.getValueParameterList
+import org.jetbrains.kotlin.test.TestMetadata
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.uast.*
@@ -38,7 +39,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testConvertStringTemplate() {
+    @Test
+    @TestMetadata("StringTemplateInClass.kt")
+    fun testConvertStringTemplate() {
         doTest("StringTemplateInClass") { _, file ->
             val literalExpression = file.findElementByText<ULiteralExpression>("lorem")
             val psi = literalExpression.psi!!
@@ -49,7 +52,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testConvertStringTemplateWithExpectedType() {
+    @Test
+    @TestMetadata("StringTemplateWithVar.kt")
+    fun testConvertStringTemplateWithExpectedType() {
         doTest("StringTemplateWithVar") { _, file ->
             val index = file.psi.text.indexOf("foo")
             val stringTemplate = file.psi.findElementAt(index)!!.getParentOfType<KtStringTemplateExpression>(false)
@@ -71,7 +76,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testInterfaceMethodWithBody() {
+    @Test
+    @TestMetadata("DefaultImpls.kt")
+    fun testInterfaceMethodWithBody() {
         doTest("DefaultImpls") { _, file ->
             val bar = file.findElementByText<UMethod>("fun bar() = \"Hello!\"")
             assertFalse(bar.containingFile.text!!, bar.psi.modifierList.hasExplicitModifier(PsiModifier.DEFAULT))
@@ -130,7 +137,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testConvertTypeInAnnotation() {
+    @Test
+    @TestMetadata("TypeInAnnotation.kt")
+    fun testConvertTypeInAnnotation() {
         doTest("TypeInAnnotation") { _, file ->
             val index = file.psi.text.indexOf("Test")
             val element = file.psi.findElementAt(index)!!.getParentOfType<KtUserType>(false)!!
@@ -145,7 +154,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testFindAttributeDefaultValue() {
+    @Test
+    @TestMetadata("AnnotationParameters.kt")
+    fun testFindAttributeDefaultValue() {
         doTest("AnnotationParameters") { _, file ->
             val witDefaultValue = file.findElementByText<UAnnotation>("@WithDefaultValue")
             assertEquals(42, witDefaultValue.findAttributeValue("value")!!.evaluate())
@@ -153,7 +164,9 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         }
     }
 
-    @Test fun testIfCondition() {
+    @Test
+    @TestMetadata("IfStatement.kt")
+    fun testIfCondition() {
         doTest("IfStatement") { _, file ->
             val psiFile = file.psi
             val element = psiFile.findElementAt(psiFile.text.indexOf("\"abc\""))!!
@@ -204,6 +217,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
     }
 
     @Test
+    @TestMetadata("BrokenMethod.kt")
     fun testBrokenMethodTypeResolve() {
         doTest("BrokenMethod") { _, file ->
 
@@ -235,6 +249,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
 
 
     @Test
+    @TestMetadata("SuperCalls.kt")
     fun testSuperTypes() {
         doTest("SuperCalls") { _, file ->
             file.checkUastSuperTypes("B", listOf("A"))
@@ -246,6 +261,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
     }
 
     @Test
+    @TestMetadata("Anonymous.kt")
     fun testAnonymousSuperTypes() {
         doTest("Anonymous") { _, file ->
             file.checkUastSuperTypes("object : Runnable { override fun run() {} }", listOf("java.lang.Runnable"))
@@ -261,6 +277,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
     }
 
     @Test
+    @TestMetadata("AnnotationParameters.kt")
     fun testLiteralArraysTypes() {
         doTest("AnnotationParameters") { _, file ->
             file.findElementByTextFromPsi<UCallExpression>("intArrayOf(1, 2, 3)").let { field ->
@@ -289,6 +306,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
     }
 
     @Test
+    @TestMetadata("AnnotationComplex.kt")
     fun testNestedAnnotation() = doTest("AnnotationComplex") { _, file ->
         file.findElementByTextFromPsi<UElement>("@AnnotationArray(value = Annotation())")
             .findElementByTextFromPsi<UElement>("Annotation()")
