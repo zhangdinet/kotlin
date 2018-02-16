@@ -136,41 +136,8 @@ class MethodInliner(
         //flush transformed node to output
         resultNode.accept(MethodBodyVisitor(adapter, true))
 
-        replaceFakeContinuationsWithRealOnesIfNeeded(resultNode)
-
         sourceMapper.endMapping()
         return result
-    }
-
-    // In case of crossinline lambdas the state machine is already generated and we need to replace the fake continuations
-    // in the lambda here.
-    private fun replaceFakeContinuationsWithRealOnesIfNeeded(resultNode: MethodNode) {
-        // Differentiate the cases:
-        //      val l : suspend () -> Unit = { c() }
-        // and
-        //      c()
-        // In the second case we do not need to replace fake continuations: it is a simple inline
-        if (inliningContext.parent == null || inliningContext.parent.isRoot) return
-        // We are inside invoke which is going to be inlined. No need for replacement
-        if (resultNode.access and Opcodes.ACC_STATIC == 0 &&
-            resultNode.name == "invoke" &&
-            Type.getReturnType(resultNode.desc) == OBJECT_TYPE &&
-            Type.getArgumentTypes(resultNode.desc).lastOrNull() == CONTINUATION_ASM_TYPE
-        ) return
-        // There can be two types of crossinline:
-        //      1) Inside lambda
-        //      2) Inside class/object
-        // In the first case continuation is LOCAL_0, otherwise it is the last parameter of the function
-        var classContext: InliningContext? = inliningContext
-        while (classContext !is RegeneratedClassContext && classContext != null) {
-            classContext = classContext.parent
-        }
-        assert(classContext != null)
-        val continuation =
-            if (classContext!!.isContinuation) 0
-            else if (resultNode.access and Opcodes.ACC_STATIC != 0) Type.getArgumentTypes(node.desc).size - 1
-            else Type.getArgumentTypes(node.desc).size
-        replaceFakeContinuationsWithRealOnes(resultNode, continuation)
     }
 
     private fun doInline(node: MethodNode): MethodNode {
@@ -206,7 +173,11 @@ class MethodInliner(
                             currentTypeMapping,
                             inlineCallSiteInfo
                     )
-                    val transformer = transformationInfo!!.createTransformer(childInliningContext, isSameModule)
+                    val transformer = transformationInfo!!.createTransformer(
+                        childInliningContext,
+                        isSameModule,
+                        node.instructions.asSequence().any(::isBeforeFakeContinuationConstructorCallMarker)
+                    )
 
                     val transformResult = transformer.doTransform(nodeRemapper)
                     result.merge(transformResult)

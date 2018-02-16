@@ -3548,6 +3548,12 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
                 doTest(fileName);
             }
 
+            @TestMetadata("innerObject.kt")
+            public void testInnerObject() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerObject.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("normalInline.kt")
             public void testNormalInline() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/normalInline.kt");

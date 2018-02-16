@@ -575,6 +575,14 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
             MutableClosure closure = recordClosure(classDescriptor, name);
             closure.setSuspend(true);
 
+            if (capturesCrossinlineSuspendLambda(function)) {
+                bindingTrace.record(
+                        CodegenBinding.CAPTURES_CROSSINLINE_SUSPEND_LAMBDA,
+                        functionDescriptor,
+                        true
+                );
+            }
+
             super.visitNamedFunction(function);
 
             if (nameForClassOrPackageMember != null) {
