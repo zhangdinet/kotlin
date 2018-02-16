@@ -233,6 +233,10 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
             args.verbose = true
         }
 
+        if (project.plugins.any { it is KotlinPlatformPluginBase }) {
+            args.freeArgs += "-Xmulti-platform"
+        }
+
         setupPlugins(args)
     }
 
