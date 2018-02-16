@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.codegen.inline
 
+import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -41,7 +42,9 @@ class RegeneratedClassContext(
         override val callSiteInfo: InlineCallSiteInfo
 ) : InliningContext(
         parent, expressionMap, state, nameGenerator, typeRemapper, lambdaInfo, true
-)
+) {
+    var continuationBuilder: ClassBuilder? = null
+}
 
 open class InliningContext(
         val parent: InliningContext?,

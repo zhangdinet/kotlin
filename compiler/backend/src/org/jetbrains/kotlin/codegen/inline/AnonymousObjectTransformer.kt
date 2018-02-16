@@ -43,7 +43,7 @@ class AnonymousObjectTransformer(
         transformationInfo: AnonymousObjectTransformationInfo,
         private val inliningContext: InliningContext,
         private val isSameModule: Boolean,
-        private val keepClassBuilder: Boolean
+        private val continuationClassName: String?
 ) : ObjectTransformer<AnonymousObjectTransformationInfo>(transformationInfo, inliningContext.state) {
 
     private val oldObjectType = Type.getObjectType(transformationInfo.oldClassName)
@@ -184,9 +184,12 @@ class AnonymousObjectTransformer(
         // During regeneration of named suspend functions, which capture crossinline suspend lambda, we need to spill the variables
         // into continuation object.
         // In order to do this, we reuse class builder, which regenerates continuation object.
-        if (capturesCrossinlineSuspend && !inliningContext.isContinuation && continuationBuilder != null) {
-            continuationBuilder!!.done()
-            continuationBuilder = null
+        if (capturesCrossinlineSuspend &&
+            !inliningContext.isContinuation &&
+            inliningContext is RegeneratedClassContext &&
+            inliningContext.continuationBuilder != null) {
+            inliningContext.continuationBuilder!!.done()
+            inliningContext.continuationBuilder = null
         }
 
         SourceMapper.flushToClassBuilder(sourceMapper, classBuilder)
@@ -204,8 +207,9 @@ class AnonymousObjectTransformer(
 
         writeOuterInfo(visitor)
 
-        if (keepClassBuilder) {
-            continuationBuilder = classBuilder
+        if (continuationClassName == transformationInfo.oldClassName) {
+            assert(inliningContext.parent?.parent is RegeneratedClassContext)
+            (inliningContext.parent?.parent as RegeneratedClassContext).continuationBuilder = classBuilder
         } else {
             classBuilder.done()
         }
@@ -446,6 +450,7 @@ class AnonymousObjectTransformer(
         builder: ClassBuilder,
         original: MethodNode
     ): DeferredMethodVisitor {
+        assert(inliningContext is RegeneratedClassContext)
         return DeferredMethodVisitor(
             MethodNode(
                 original.access, original.name, original.desc, original.signature,
@@ -457,7 +462,7 @@ class AnonymousObjectTransformer(
                     NO_ORIGIN, original.access, original.name, original.desc, original.signature,
                     ArrayUtil.toStringArray(original.exceptions)
                 ), original.access, original.name, original.desc, null, null,
-                obtainClassBuilderForCoroutineState = { continuationBuilder!! },
+                obtainClassBuilderForCoroutineState = { (inliningContext as RegeneratedClassContext).continuationBuilder!! },
                 lineNumber = 0, // <- TODO
                 shouldPreserveClassInitialization = state.constructorCallNormalizationMode.shouldPreserveClassInitialization,
                 containingClassInternalName = builder.thisName,
@@ -612,8 +617,4 @@ class AnonymousObjectTransformer(
 
     private fun isFirstDeclSiteLambdaFieldRemapper(parentRemapper: FieldRemapper): Boolean =
             parentRemapper !is RegeneratedLambdaFieldRemapper && parentRemapper !is InlinedLambdaRemapper
-
-    companion object {
-        var continuationBuilder: ClassBuilder? = null
-    }
 }

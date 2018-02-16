@@ -3554,6 +3554,18 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
                 doTest(fileName);
             }
 
+            @TestMetadata("innerObjectInsideInnerObject.kt")
+            public void testInnerObjectInsideInnerObject() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerObjectInsideInnerObject.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("innerObjectWithoutCapturingCrossinline.kt")
+            public void testInnerObjectWithoutCapturingCrossinline() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerObjectWithoutCapturingCrossinline.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("normalInline.kt")
             public void testNormalInline() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/normalInline.kt");

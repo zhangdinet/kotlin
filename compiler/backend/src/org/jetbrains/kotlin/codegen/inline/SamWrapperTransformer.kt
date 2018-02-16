@@ -43,7 +43,7 @@ class SamWrapperTransformationInfo(override val oldClassName: String, private va
 
     override fun canRemoveAfterTransformation() = false
 
-    override fun createTransformer(inliningContext: InliningContext, sameModule: Boolean, keepClassBuilder: Boolean) =
+    override fun createTransformer(inliningContext: InliningContext, sameModule: Boolean, continuationClassName: String?) =
             SamWrapperTransformer(this, inliningContext)
 }
 

@@ -176,7 +176,7 @@ class MethodInliner(
                     val transformer = transformationInfo!!.createTransformer(
                         childInliningContext,
                         isSameModule,
-                        node.instructions.asSequence().any(::isBeforeFakeContinuationConstructorCallMarker)
+                        findFakeContinuationConstructorClassName()
                     )
 
                     val transformResult = transformer.doTransform(nodeRemapper)
@@ -353,6 +353,13 @@ class MethodInliner(
         node.accept(lambdaInliner)
 
         return resultNode
+    }
+
+    private fun findFakeContinuationConstructorClassName(): String? {
+        val marker = node.instructions.asSequence().firstOrNull(::isBeforeFakeContinuationConstructorCallMarker) ?: return null
+        val new = marker.next
+        assert(new?.opcode == Opcodes.NEW)
+        return (new as TypeInsnNode).desc
     }
 
     private fun isDefaultLambdaWithReification(lambdaInfo: LambdaInfo) =
