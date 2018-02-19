@@ -35,9 +35,12 @@ dist {
     rename("kotlin-", "")
 }
 
+// Do not rename, used in JPS importer
+val ideaPluginArtifactName by extra(project.name.replace("^kotlin-".toRegex(), ""))
+
 ideaPlugin {
     from(jar)
-    rename("^kotlin-", "")
+    rename { ideaPluginArtifactName }
 }
 
 projectTest {
