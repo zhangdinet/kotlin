@@ -3393,6 +3393,12 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/boxInline/suspend"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
+        @TestMetadata("capturedVariables.kt")
+        public void testCapturedVariables() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/capturedVariables.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("crossinlineSuspendLambdaInsideCrossinlineSuspendLambda.kt")
         public void testCrossinlineSuspendLambdaInsideCrossinlineSuspendLambda() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/crossinlineSuspendLambdaInsideCrossinlineSuspendLambda.kt");
@@ -3545,6 +3551,12 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @TestMetadata("innerLambdaWithoutCrossinline.kt")
             public void testInnerLambdaWithoutCrossinline() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerLambdaWithoutCrossinline.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("innerMadness.kt")
+            public void testInnerMadness() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/boxInline/suspend/stateMachine/innerMadness.kt");
                 doTest(fileName);
             }
 
