@@ -155,3 +155,9 @@ class KotlinCallCompleter(
         )
     }
 }
+
+interface InferenceSession {
+    companion object {
+        val default = object : InferenceSession {}
+    }
+}
