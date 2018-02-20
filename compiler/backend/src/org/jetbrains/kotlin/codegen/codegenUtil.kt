@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.DescriptorUtils.getDirectMember
 import org.jetbrains.kotlin.resolve.DescriptorUtils.isSubclass
 import org.jetbrains.kotlin.resolve.annotations.hasJvmStaticAnnotation
 import org.jetbrains.kotlin.resolve.calls.callUtil.getFirstArgumentExpression
@@ -51,6 +52,8 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 import org.jetbrains.org.objectweb.asm.commons.Method
 import java.util.*
+
+private val JVM_DEFAULT_FQ_NAME = FqName("kotlin.annotations.JvmDefault")
 
 fun generateIsCheck(
     v: InstructionAdapter,
@@ -424,3 +427,5 @@ inline fun FrameMap.evaluateOnce(
         leaveTemp(asType)
     }
 }
+
+fun CallableMemberDescriptor.hasJvmDefaultAnnotation() = getDirectMember(this).annotations.hasAnnotation(JVM_DEFAULT_FQ_NAME)
