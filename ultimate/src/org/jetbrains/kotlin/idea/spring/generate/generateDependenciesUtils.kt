@@ -58,25 +58,20 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.moduleInfo
 import org.jetbrains.kotlin.idea.caches.resolve.*
-import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
-import org.jetbrains.kotlin.idea.completion.InsertHandlerProvider
+import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaOrKotlinMemberDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.util.getParameterDescriptor
 import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.core.NewDeclarationNameValidator
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.core.getOrCreateCompanionObject
 import org.jetbrains.kotlin.idea.editor.BatchTemplateRunner
-import org.jetbrains.kotlin.idea.spring.beanClass
-import org.jetbrains.kotlin.idea.spring.effectiveBeanClasses
-import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.load.java.propertyNameBySetMethodName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.isIdentifier
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.TypeReconstructionUtil
 import org.jetbrains.kotlin.utils.SmartList
-import org.jetbrains.kotlin.utils.ifEmpty
 import java.util.*
 
 // TODO: GenerateSpringBeanDependenciesUtil.ensureFileWritable() is not accessible here
