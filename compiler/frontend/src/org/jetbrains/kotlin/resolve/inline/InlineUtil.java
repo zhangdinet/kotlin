@@ -83,6 +83,23 @@ public class InlineUtil {
         return InlineStrategy.NOT_INLINE;
     }
 
+    public static boolean checkNonLocalSuspentionPoint(
+            @NotNull DeclarationDescriptor fromFunction,
+            @NotNull KtExpression startExpression,
+            @NotNull ResolutionContext<?> context
+    ) {
+        PsiElement containingExpression = context.getContextParentOfType(startExpression, KtClassBody.class, KtDeclarationWithBody.class);
+        // We can call object suspend functions in object parameters, but not in body.
+        if (containingExpression == null || containingExpression instanceof KtClassBody) {
+            return false;
+        }
+
+        return checkNonLocalReturnUsage(
+                fromFunction, context.trace.get(BindingContext.DECLARATION_TO_DESCRIPTOR, containingExpression), containingExpression,
+                context.trace.getBindingContext()
+        );
+    }
+
     public static boolean checkNonLocalReturnUsage(
             @NotNull DeclarationDescriptor fromFunction,
             @NotNull KtExpression startExpression,

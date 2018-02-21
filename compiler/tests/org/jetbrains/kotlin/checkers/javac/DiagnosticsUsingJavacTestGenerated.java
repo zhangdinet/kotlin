@@ -447,6 +447,18 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
             doTest(fileName);
         }
 
+        @TestMetadata("objectLiteralParameterNonLocalReturn.kt")
+        public void testObjectLiteralParameterNonLocalReturn() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/objectLiteralParameterNonLocalReturn.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("objectLiteralSuspendCall.kt")
+        public void testObjectLiteralSuspendCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/objectLiteralSuspendCall.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("ObjectWithConstructor.kt")
         public void testObjectWithConstructor() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/ObjectWithConstructor.kt");

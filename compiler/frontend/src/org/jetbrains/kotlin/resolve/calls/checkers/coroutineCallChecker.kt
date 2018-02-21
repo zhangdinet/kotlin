@@ -81,7 +81,7 @@ object CoroutineSuspendCallChecker : CallChecker {
             enclosingSuspendFunction != null -> {
                 val callElement = resolvedCall.call.callElement as KtExpression
 
-                if (!InlineUtil.checkNonLocalReturnUsage(enclosingSuspendFunction, callElement, context.resolutionContext)) {
+                if (!InlineUtil.checkNonLocalSuspentionPoint(enclosingSuspendFunction, callElement, context.resolutionContext)) {
                     context.trace.report(Errors.NON_LOCAL_SUSPENSION_POINT.on(reportOn))
                 } else if (context.scope.parentsWithSelf.any { it.isScopeForDefaultParameterValuesOf(enclosingSuspendFunction) }) {
                     context.trace.report(Errors.UNSUPPORTED.on(reportOn, "suspend function calls in a context of default parameter value"))

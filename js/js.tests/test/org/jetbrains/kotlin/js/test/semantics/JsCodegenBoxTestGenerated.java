@@ -6609,6 +6609,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             doTest(fileName);
         }
 
+        @TestMetadata("objectLiteralParameter.kt")
+        public void testObjectLiteralParameter() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/objectLiteralParameter.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("overrideDefaultArgument.kt")
         public void testOverrideDefaultArgument() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/overrideDefaultArgument.kt");
