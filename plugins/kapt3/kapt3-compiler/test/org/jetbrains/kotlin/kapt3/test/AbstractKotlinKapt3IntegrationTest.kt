@@ -51,7 +51,7 @@ import javax.lang.model.element.TypeElement
 import com.sun.tools.javac.util.List as JavacList
 
 abstract class AbstractKotlinKapt3IntegrationTest : CodegenTestCase() {
-    companion object {
+    private companion object {
         val TEST_DATA_DIR = File("plugins/kapt3/kapt3-compiler/testData/kotlinRunner")
     }
 

@@ -30,7 +30,7 @@ import java.io.File
 private val LINE_SEPARATOR = System.getProperty("line.separator")
 
 abstract class AbstractAsmLikeInstructionListingTest : CodegenTestCase() {
-    companion object {
+    private companion object {
         val CURIOUS_ABOUT_DIRECTIVE = "// CURIOUS_ABOUT "
         val LOCAL_VARIABLES_TABLE_DIRECTIVE = "// LOCAL_VARIABLES_TABLE"
     }

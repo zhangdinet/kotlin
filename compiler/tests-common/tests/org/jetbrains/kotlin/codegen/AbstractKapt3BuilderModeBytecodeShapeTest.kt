@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.test.KotlinTestUtils
 import java.io.File
 
 abstract class AbstractKapt3BuilderModeBytecodeShapeTest : CodegenTestCase() {
-    companion object {
+    private companion object {
         var TEST_LIGHT_ANALYSIS: ClassBuilderFactory = object : ClassBuilderFactories.TestClassBuilderFactory(false) {
             override fun getClassBuilderMode() = ClassBuilderMode.KAPT3
         }
