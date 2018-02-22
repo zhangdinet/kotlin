@@ -4857,7 +4857,13 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             }
 
             @TestMetadata("withCoroutines.kt")
-            public void testWithCoroutines() throws Exception {
+            public void testWithCoroutines_1_2() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/closures/capturedVarsOptimization/withCoroutines.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("withCoroutines.kt")
+            public void testWithCoroutines_1_3() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/closures/capturedVarsOptimization/withCoroutines.kt");
                 doTest(fileName);
             }

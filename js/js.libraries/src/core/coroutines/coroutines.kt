@@ -1,24 +1,15 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the license/LICENSE.txt file.
  */
 
-package kotlin.coroutines.experimental
-import kotlin.coroutines.experimental.intrinsics.*
+package kotlin.coroutines
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 
 @JsName("CoroutineImpl")
-internal abstract class CoroutineImpl(private val resultContinuation: Continuation<Any?>) : Continuation<Any?> {
+@SinceKotlin("1.3")
+internal abstract class CoroutineImpl(private val resultContinuation: Continuation<Any?>) :
+    Continuation<Any?> {
     protected var state = 0
     protected var exceptionState = 0
     protected var result: Any? = null
@@ -47,15 +38,19 @@ internal abstract class CoroutineImpl(private val resultContinuation: Continuati
     protected abstract fun doResume(): Any?
 }
 
+@SinceKotlin("1.3")
 private val UNDECIDED: Any? = Any()
+@SinceKotlin("1.3")
 private val RESUMED: Any? = Any()
+@SinceKotlin("1.3")
 private class Fail(val exception: Throwable)
 
 @PublishedApi
+@SinceKotlin("1.3")
 internal class SafeContinuation<in T>
 internal constructor(
-        private val delegate: Continuation<T>,
-        initialResult: Any?
+    private val delegate: Continuation<T>,
+    initialResult: Any?
 ) : Continuation<T> {
 
     @PublishedApi
