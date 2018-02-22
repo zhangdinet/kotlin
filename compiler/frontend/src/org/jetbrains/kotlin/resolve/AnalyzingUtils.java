@@ -67,6 +67,9 @@ public class AnalyzingUtils {
 
     public static void throwExceptionOnErrors(Diagnostics diagnostics) {
         for (Diagnostic diagnostic : diagnostics) {
+            if (diagnostic.getFactory().getName() == "PRE_RELEASE_CLASS") {
+                continue;
+            }
             DiagnosticSink.THROW_EXCEPTION.report(diagnostic);
         }
     }
