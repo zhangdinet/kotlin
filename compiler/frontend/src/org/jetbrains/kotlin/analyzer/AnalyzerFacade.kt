@@ -86,7 +86,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     private val debugName: String,
     private val projectContext: ProjectContext,
     modules: Collection<M>,
-    private val analyzerFacade: (M) -> AnalyzerFacade,
+    private val resolverForModuleFactory: (M) -> ResolverForModuleFactory,
     private val modulesContent: (M) -> ModuleContent,
     private val platformParameters: PlatformAnalysisParameters,
     private val targetEnvironment: TargetEnvironment = CompilerEnvironment,
@@ -165,7 +165,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
             resolverByModuleDescriptor.getOrPut(descriptor) {
                 ResolverForModuleComputationTracker.getInstance(projectContext.project)?.onResolverComputed(module)
 
-                analyzerFacade(module).createResolverForModule(
+                resolverForModuleFactory(module).createResolverForModule(
                     module, descriptor as ModuleDescriptorImpl, projectContext.withModule(descriptor), modulesContent(module),
                     platformParameters, targetEnvironment, this@ResolverForProjectImpl,
                     languageSettingsProvider,
@@ -270,7 +270,7 @@ interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
 }
 
-abstract class AnalyzerFacade {
+abstract class ResolverForModuleFactory {
     abstract fun <M : ModuleInfo> createResolverForModule(
         moduleInfo: M,
         moduleDescriptor: ModuleDescriptorImpl,
