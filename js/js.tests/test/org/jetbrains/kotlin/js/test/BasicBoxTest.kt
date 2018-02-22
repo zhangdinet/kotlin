@@ -98,10 +98,17 @@ abstract class BasicBoxTest(
         doTest(filePath, "OK", MainCallParameters.noCall())
     }
 
-    fun doTest(filePath: String, expectedResult: String, mainCallParameters: MainCallParameters) {
+    fun doTestWithCoroutinesPackageReplacement(filePath: String, packageName: String) {
+        doTest(filePath, "OK", MainCallParameters.noCall(), packageName)
+    }
+
+    fun doTest(filePath: String, expectedResult: String, mainCallParameters: MainCallParameters, packageName: String? = null) {
         val file = File(filePath)
         val outputDir = getOutputDir(file)
-        val fileContent = KotlinTestUtils.doLoadFile(file)
+        var fileContent = KotlinTestUtils.doLoadFile(file)
+        if (packageName != null) {
+            fileContent = fileContent.replace("COROUTINES_PACKAGE", packageName)
+        }
 
         val outputPrefixFile = getOutputPrefixFile(filePath)
         val outputPostfixFile = getOutputPostfixFile(filePath)
