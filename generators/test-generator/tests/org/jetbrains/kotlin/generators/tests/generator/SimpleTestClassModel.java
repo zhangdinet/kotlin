@@ -20,6 +20,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.generators.util.CoroutinesKt;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.TargetBackend;
 import org.jetbrains.kotlin.utils.Printer;
@@ -93,9 +94,9 @@ public class SimpleTestClassModel implements TestClassModel {
                     if (file.isDirectory() && dirHasFilesInside(file) && !excludeDirs.contains(file.getName())) {
                         String innerTestClassName = TestGeneratorUtil.fileNameToJavaIdentifier(file);
                         children.add(new SimpleTestClassModel(
-                                             file, true, excludeParentDirs, filenamePattern, checkFilenameStartsLowerCase,
-                                             doTestMethodName, innerTestClassName, targetBackend, excludesStripOneDirectory(file.getName()),
-                                             skipIgnored)
+                                file, true, excludeParentDirs, filenamePattern, checkFilenameStartsLowerCase,
+                                doTestMethodName, innerTestClassName, targetBackend, excludesStripOneDirectory(file.getName()),
+                                skipIgnored)
                         );
                     }
                 }
@@ -143,9 +144,16 @@ public class SimpleTestClassModel implements TestClassModel {
     public Collection<MethodModel> getMethods() {
         if (testMethods == null) {
             if (!rootFile.isDirectory()) {
-                testMethods = Collections.singletonList(new SimpleTestMethodModel(
-                        rootFile, rootFile, doTestMethodName, filenamePattern, checkFilenameStartsLowerCase, targetBackend, skipIgnored
-                ));
+                if (CoroutinesKt.isCommonCoroutineTest(rootFile)) {
+                    testMethods = CoroutinesKt.createCommonCoroutinesTestMethodModels(rootFile, rootFile, doTestMethodName, filenamePattern,
+                                                                                      checkFilenameStartsLowerCase, targetBackend,
+                                                                                      skipIgnored);
+                }
+                else {
+                    testMethods = Collections.singletonList(new SimpleTestMethodModel(
+                            rootFile, rootFile, doTestMethodName, filenamePattern, checkFilenameStartsLowerCase, targetBackend, skipIgnored
+                    ));
+                }
             }
             else {
                 List<MethodModel> result = new ArrayList<>();
@@ -161,8 +169,16 @@ public class SimpleTestClassModel implements TestClassModel {
                                 continue;
                             }
 
-                            result.add(new SimpleTestMethodModel(rootFile, file, doTestMethodName, filenamePattern,
-                                                                 checkFilenameStartsLowerCase, targetBackend, skipIgnored));
+                            if (!file.isDirectory() && CoroutinesKt.isCommonCoroutineTest(file)) {
+                                result.addAll(CoroutinesKt.createCommonCoroutinesTestMethodModels(rootFile, file, doTestMethodName,
+                                                                                                  filenamePattern,
+                                                                                                  checkFilenameStartsLowerCase,
+                                                                                                  targetBackend, skipIgnored));
+                            }
+                            else {
+                                result.add(new SimpleTestMethodModel(rootFile, file, doTestMethodName, filenamePattern,
+                                                                     checkFilenameStartsLowerCase, targetBackend, skipIgnored));
+                            }
                         }
                     }
                 }

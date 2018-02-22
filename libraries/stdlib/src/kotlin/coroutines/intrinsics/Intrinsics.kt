@@ -52,26 +52,6 @@ public inline fun <T> Continuation<T>.intercepted(): Continuation<T> =
         throw NotImplementedError("Implementation of intercepted is intrinsic")
 
 /**
- * Continuation context of current coroutine.
- *
- * This allows the user code to not pass an extra [CoroutineContext] parameter in basic coroutine builders
- * like [launch](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.experimental/launch.html)
- * and [async](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.experimental/async.html),
- * but still provide easy access to coroutine context.
- */
-@SinceKotlin("1.3")
-@Suppress("WRONG_MODIFIER_TARGET")
-@Deprecated(
-    "Use kotlin.coroutines.experimental.coroutineContext instead",
-    ReplaceWith("kotlin.coroutines.experimental.coroutineContext"),
-    DeprecationLevel.WARNING
-)
-public suspend inline val coroutineContext: CoroutineContext
-    get() {
-        throw NotImplementedError("Implemented as intrinsic")
-    }
-
-/**
  * This value is used as a return value of [suspendCoroutineOrReturn] `block` argument to state that
  * the execution was suspended and will not return any result immediately.
  */
@@ -95,13 +75,13 @@ public val COROUTINE_SUSPENDED: Any = Any()
 public fun <T> (suspend () -> T).createCoroutineUnchecked(
         completion: Continuation<T>
 ): Continuation<Unit> =
-        if (this !is kotlin.coroutines.experimental.jvm.internal.CoroutineImpl)
+        if (this !is kotlin.coroutines.jvm.internal.CoroutineImpl)
             buildContinuationByInvokeCall(completion) {
                 @Suppress("UNCHECKED_CAST")
                 (this as Function1<Continuation<T>, Any?>).invoke(completion)
             }
         else
-            (this.create(completion) as kotlin.coroutines.experimental.jvm.internal.CoroutineImpl).facade
+            (this.create(completion) as kotlin.coroutines.jvm.internal.CoroutineImpl).facade
 
 /**
  * Creates a coroutine with receiver type [R] and result type [T].
@@ -119,13 +99,13 @@ public fun <R, T> (suspend R.() -> T).createCoroutineUnchecked(
         receiver: R,
         completion: Continuation<T>
 ): Continuation<Unit> =
-        if (this !is kotlin.coroutines.experimental.jvm.internal.CoroutineImpl)
+        if (this !is kotlin.coroutines.jvm.internal.CoroutineImpl)
             buildContinuationByInvokeCall(completion) {
                 @Suppress("UNCHECKED_CAST")
                 (this as Function2<R, Continuation<T>, Any?>).invoke(receiver, completion)
             }
         else
-            (this.create(receiver, completion) as kotlin.coroutines.experimental.jvm.internal.CoroutineImpl).facade
+            (this.create(receiver, completion) as kotlin.coroutines.jvm.internal.CoroutineImpl).facade
 
 // INTERNAL DEFINITIONS
 
@@ -149,5 +129,5 @@ private inline fun <T> buildContinuationByInvokeCall(
                 }
             }
 
-    return kotlin.coroutines.experimental.jvm.internal.interceptContinuationIfNeeded(completion.context, continuation)
+    return kotlin.coroutines.jvm.internal.interceptContinuationIfNeeded(completion.context, continuation)
 }

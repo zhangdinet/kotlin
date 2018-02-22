@@ -1,5 +1,7 @@
 // WITH_RUNTIME
 // WITH_COROUTINES
+// COMMON_COROUTINES_TEST
+
 import helpers.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*

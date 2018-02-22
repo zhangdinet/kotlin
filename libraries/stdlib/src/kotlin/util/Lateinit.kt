@@ -14,5 +14,6 @@ import kotlin.reflect.KProperty0
  */
 @SinceKotlin("1.2")
 @InlineOnly
+@Suppress("WRONG_ANNOTATION_TARGET_WITH_USE_SITE_TARGET")
 inline val @receiver:AccessibleLateinitPropertyLiteral KProperty0<*>.isInitialized: Boolean
     get() = throw NotImplementedError("Implementation is intrinsic")

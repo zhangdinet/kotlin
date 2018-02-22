@@ -31,7 +31,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes.*
 import java.io.File
 
 abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
-    private companion object {
+    companion object {
         var TEST_LIGHT_ANALYSIS: ClassBuilderFactory = object : ClassBuilderFactories.TestClassBuilderFactory(false) {
             override fun getClassBuilderMode() = ClassBuilderMode.LIGHT_ANALYSIS_FOR_TESTS
         }
