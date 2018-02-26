@@ -50,6 +50,8 @@ import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.utils.Cached
+import org.jetbrains.kotlin.utils.ProjectService
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.lang.AssertionError
@@ -62,6 +64,7 @@ internal val LOG = Logger.getInstance(KotlinCacheService::class.java)
 // meaning that we can't just change those setting on a per module basis
 data class PlatformAnalysisSettings(val platform: TargetPlatform, val sdk: Sdk?, val isAdditionalBuiltInFeaturesSupported: Boolean)
 
+@ProjectService
 class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade {
         return getFacadeToAnalyzeFiles(elements.map {
@@ -72,6 +75,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
 
     override fun getSuppressionCache(): KotlinSuppressCache = kotlinSuppressCache.value
 
+    @Cached(["permanent?"])
     private val globalFacadesPerPlatformAndSdk: SLRUCache<PlatformAnalysisSettings, GlobalFacade> =
         object : SLRUCache<PlatformAnalysisSettings, GlobalFacade>(2 * 3 * 2, 2 * 3 * 2) {
             override fun createValue(settings: PlatformAnalysisSettings): GlobalFacade {
@@ -80,6 +84,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
         }
 
 
+    @Cached(["permanent?"])
     private val facadesForScriptDependencies: SLRUCache<ScriptModuleInfo, ProjectResolutionFacade> =
         object : SLRUCache<ScriptModuleInfo, ProjectResolutionFacade>(2, 3) {
             override fun createValue(scriptModuleInfo: ScriptModuleInfo?): ProjectResolutionFacade {
@@ -301,7 +306,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
         }
     }
 
-    private val suppressAnnotationShortName = KotlinBuiltIns.FQ_NAMES.suppress.shortName().identifier
+    @Cached(["LibraryModificationTracker", "MODIFICATION_COUNT"])
     private val kotlinSuppressCache: CachedValue<KotlinSuppressCache> = CachedValuesManager.getManager(project).createCachedValue(
         {
             CachedValueProvider.Result<KotlinSuppressCache>(
@@ -353,6 +358,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
 
     private val syntheticFileCachesLock = Any()
 
+    @Cached(["LibraryModificationTracker", "ProjectRootModificationTracker"])
     private val syntheticFilesCacheProvider = CachedValueProvider {
         CachedValueProvider.Result(object : SLRUCache<Set<KtFile>, ProjectResolutionFacade>(2, 3) {
             override fun createValue(files: Set<KtFile>) = createFacadeForSyntheticFiles(files)

@@ -26,11 +26,15 @@ import com.intellij.psi.impl.java.stubs.PsiJavaFileStub
 import com.intellij.psi.impl.java.stubs.impl.PsiJavaFileStubImpl
 import com.intellij.util.cls.ClsFormatException
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.kotlin.utils.Cached
+import org.jetbrains.kotlin.utils.ProjectService
 import java.io.IOException
 
+@ProjectService
 class ClsJavaStubByVirtualFileCache {
     private class CachedJavaStub(val modificationStamp: Long, val javaFileStub: PsiJavaFileStubImpl)
 
+    @Cached(["modificationStamp"])
     private val cache = ContainerUtil.createConcurrentWeakKeySoftValueMap<VirtualFile, CachedJavaStub>()
 
     fun get(classFile: VirtualFile): PsiJavaFileStubImpl? {

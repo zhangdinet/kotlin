@@ -27,7 +27,9 @@ import org.jetbrains.kotlin.idea.search.PsiBasedClassResolver
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
+import org.jetbrains.kotlin.utils.ProjectService
 
+@ProjectService
 class IdeLightClassInheritanceHelper : LightClassInheritanceHelper {
     override fun isInheritor(
         lightClass: KtLightClass,

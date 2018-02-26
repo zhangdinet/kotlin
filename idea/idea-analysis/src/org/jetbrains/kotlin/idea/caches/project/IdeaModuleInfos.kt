@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.idea.util.rootManager
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.resolve.jvm.GlobalSearchScopeWithModuleSources
+import org.jetbrains.kotlin.utils.Cached
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.*
 
@@ -154,6 +155,7 @@ sealed class ModuleSourceInfoWithExpectedBy(private val forProduction: Boolean) 
             return expectedByModules.mapNotNull { if (forProduction) it.productionSourceInfo() else it.testSourceInfo() }
         }
 
+    @Cached(["ProjectRootModificationTracker"])
     override fun dependencies(): List<IdeaModuleInfo> = module.cached(createCachedValueProvider {
         CachedValueProvider.Result(
             ideaModelDependencies(module, forProduction),

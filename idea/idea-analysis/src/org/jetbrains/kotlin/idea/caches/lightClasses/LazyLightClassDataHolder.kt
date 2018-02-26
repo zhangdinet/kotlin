@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.NotNullableUserDataProperty
 import org.jetbrains.kotlin.psi.debugText.getDebugText
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
+import org.jetbrains.kotlin.utils.Cached
 import org.jetbrains.kotlin.utils.KotlinExceptionWithAttachments
 
 typealias ExactLightClassContextProvider = () -> LightClassConstructionContext
@@ -41,6 +42,7 @@ sealed class LazyLightClassDataHolder(
 
     private data class CachedLightClassBuilderResult(val stub: PsiJavaFileStub, val diagnostics: Diagnostics)
 
+    @Cached(["MC/OOCBMC"])
     private val exactResultCachedValue =
         CachedValuesManager.getManager(project).createCachedValue(
             {

@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCompilerSettings
 import org.jetbrains.kotlin.idea.facet.getLibraryLanguageLevel
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.TargetPlatform
+import org.jetbrains.kotlin.utils.Cached
 
 val KtElement.platform: TargetPlatform
     get() = TargetPlatformDetector.getPlatform(containingKtFile)
@@ -119,6 +120,7 @@ val Module.languageVersionSettings: LanguageVersionSettings
         return cachedValue.value
     }
 
+@Cached(["ProjectRootModificationTracker"])
 private fun Module.createCachedValueForLanguageVersionSettings(): CachedValue<LanguageVersionSettings> {
     return CachedValuesManager.getManager(project).createCachedValue({
                                                                          CachedValueProvider.Result(

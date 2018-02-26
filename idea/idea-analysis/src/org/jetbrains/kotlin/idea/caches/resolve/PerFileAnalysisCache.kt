@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
+import org.jetbrains.kotlin.utils.Cached
 import java.util.*
 
 internal class PerFileAnalysisCache(val file: KtFile, componentProvider: ComponentProvider) {
@@ -48,6 +49,7 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
     private val codeFragmentAnalyzer = componentProvider.get<CodeFragmentAnalyzer>()
     private val bodyResolveCache = componentProvider.get<BodyResolveCache>()
 
+    @Cached(["instance"])
     private val cache = HashMap<PsiElement, AnalysisResult>()
 
     private fun lookUp(analyzableElement: KtElement): AnalysisResult? {
