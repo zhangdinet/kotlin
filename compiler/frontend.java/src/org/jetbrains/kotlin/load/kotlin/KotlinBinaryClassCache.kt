@@ -23,7 +23,10 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiJavaModule
+import org.jetbrains.kotlin.utils.ApplicationService
+import org.jetbrains.kotlin.utils.Cached
 
+@ApplicationService
 class KotlinBinaryClassCache : Disposable {
     private class RequestCache {
         internal var virtualFile: VirtualFile? = null
@@ -39,6 +42,7 @@ class KotlinBinaryClassCache : Disposable {
         }
     }
 
+    @Cached
     private val cache = object : ThreadLocal<RequestCache>() {
         override fun initialValue(): RequestCache {
             return RequestCache()

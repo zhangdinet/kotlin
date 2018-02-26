@@ -43,6 +43,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.kotlin.utils.Cached
+import org.jetbrains.kotlin.utils.ProjectService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
@@ -100,12 +102,14 @@ class KotlinPackageStatementPsiTreeChangePreprocessor(private val project: Proje
     }
 }
 
+@ProjectService
 class PerModulePackageCacheService(private val project: Project) {
 
     /*
      * Disposal of entries handled by Module child Disposable registered in packageExists
      * Actually an StrongMap<Module, SoftMap<ModuleSourceInfo, SoftMap<FqName, Boolean>>>
      */
+    @Cached(["vfs events"])
     private val cache = ConcurrentHashMap<Module, ConcurrentMap<ModuleSourceInfo, ConcurrentMap<FqName, Boolean>>>()
 
     private val pendingVFileChanges: MutableSet<VirtualFile> = mutableSetOf()

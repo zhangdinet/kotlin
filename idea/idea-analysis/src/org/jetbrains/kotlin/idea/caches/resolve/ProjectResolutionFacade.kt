@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.CompositeBindingContext
 import org.jetbrains.kotlin.resolve.jvm.JvmPlatformParameters
+import org.jetbrains.kotlin.utils.Cached
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 internal class ProjectResolutionFacade(
@@ -55,6 +56,7 @@ internal class ProjectResolutionFacade(
     val syntheticFiles: Collection<KtFile> = listOf(),
     val allModules: Collection<IdeaModuleInfo>? = null // null means create resolvers for modules from idea model
 ) {
+    @Cached(["param: dependencies", "globalContext.exceptionTracker"])
     private val cachedValue = CachedValuesManager.getManager(project).createCachedValue(
         {
             val resolverProvider = computeModuleResolverProvider()
@@ -63,9 +65,11 @@ internal class ProjectResolutionFacade(
         /* trackValue = */ false
     )
 
+    @Cached(["globalContext.storageManager"])
     private val cachedResolverForProject: ResolverForProject<IdeaModuleInfo>
         get() = globalContext.storageManager.compute { cachedValue.value }
 
+    @Cached(["param: dependencies", "globalContext.exceptionTracker", "MODIFICATION_COUNT"])
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
         {
             val resolverForProject = cachedResolverForProject

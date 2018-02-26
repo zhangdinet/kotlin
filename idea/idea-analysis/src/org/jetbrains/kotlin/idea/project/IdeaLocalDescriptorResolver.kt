@@ -25,7 +25,9 @@ import org.jetbrains.kotlin.resolve.lazy.LocalDescriptorResolver
 import org.jetbrains.kotlin.resolve.lazy.AbsentDescriptorHandler
 import org.jetbrains.kotlin.resolve.lazy.NoDescriptorForDeclarationException
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
+import org.jetbrains.kotlin.utils.FrontendService
 
+@FrontendService
 class IdeaLocalDescriptorResolver(
         private val resolveElementCache: ResolveElementCache,
         private val absentDescriptorHandler: AbsentDescriptorHandler
@@ -37,6 +39,7 @@ class IdeaLocalDescriptorResolver(
     }
 }
 
+@FrontendService
 class IdeaAbsentDescriptorHandler(
         private val declarationProviderFactory: DeclarationProviderFactory
 ) : AbsentDescriptorHandler {

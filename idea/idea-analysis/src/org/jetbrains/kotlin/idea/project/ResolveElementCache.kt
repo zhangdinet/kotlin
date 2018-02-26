@@ -45,8 +45,11 @@ import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyScriptDescriptor
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+import org.jetbrains.kotlin.utils.Cached
+import org.jetbrains.kotlin.utils.FrontendService
 import java.util.*
 
+@FrontendService
 class ResolveElementCache(
     private val resolveSession: ResolveSession,
     private val project: Project,
@@ -73,6 +76,7 @@ class ResolveElementCache(
     }
 
     // drop whole cache after change "out of code block"
+    @Cached(["OOCB", "Exception tracker"])
     private val fullResolveCache: CachedValue<MutableMap<KtElement, CachedFullResolve>> =
         CachedValuesManager.getManager(project).createCachedValue(
             CachedValueProvider<MutableMap<KtElement, ResolveElementCache.CachedFullResolve>> {
@@ -99,6 +103,7 @@ class ResolveElementCache(
         }
     }
 
+    @Cached(["MC", "Exception tracker"])
     private val partialBodyResolveCache: CachedValue<MutableMap<KtExpression, CachedPartialResolve>> =
         CachedValuesManager.getManager(project).createCachedValue(
             CachedValueProvider<MutableMap<KtExpression, ResolveElementCache.CachedPartialResolve>> {
