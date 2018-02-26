@@ -69,7 +69,8 @@ class MultiModuleJavaAnalysisCustomTest : KtUsefulTestCase() {
         val builtIns = JvmBuiltIns(projectContext.storageManager)
         val resolverForProject = ResolverForProjectImpl(
                 "test",
-                projectContext, modules, { JvmAnalyzerFacade },
+                projectContext, modules,
+                { JvmAnalyzerFacade },
                 modulesContent = { module -> ModuleContent(module.kotlinFiles, module.javaFilesScope) },
                 platformParameters = JvmPlatformParameters {
                     javaClass ->

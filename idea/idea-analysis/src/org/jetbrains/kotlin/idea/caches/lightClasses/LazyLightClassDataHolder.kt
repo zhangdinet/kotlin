@@ -41,15 +41,17 @@ sealed class LazyLightClassDataHolder(
 
     @Cached(["MC/OOCBMC"])
     private val exactResultCachedValue =
-        CachedValuesManager.getManager(project).createCachedValue({
-                                                                      CachedValueProvider.Result.create(
-                                                                          builder(exactContextProvider()),
-                                                                          if (isLocal)
-                                                                              PsiModificationTracker.MODIFICATION_COUNT
-                                                                          else
-                                                                              PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT
-                                                                      )
-                                                                  }, false)
+        CachedValuesManager.getManager(project).createCachedValue(
+            {
+                CachedValueProvider.Result.create(
+                    builder(exactContextProvider()),
+                    if (isLocal)
+                        PsiModificationTracker.MODIFICATION_COUNT
+                    else
+                        PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT
+                )
+            }, false
+        )
 
     private val lazyInexactStub by lazyPub {
         dummyContextProvider?.let { provider -> provider()?.let { context -> builder.invoke(context).stub } }
