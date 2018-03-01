@@ -124,8 +124,9 @@ class DiagnosticReporterByTrackingStrategy(
     }
 
     override fun onCallArgumentName(callArgument: KotlinCallArgument, diagnostic: KotlinCallDiagnostic) {
-        val nameReference = callArgument.psiCallArgument.valueArgument.getArgumentName()?.referenceExpression
-                ?: error("Argument name should be not null for argument: $callArgument")
+        // it's possible to have named argument without corresponding reference expression, see DummyArgument which is used in completion
+        val nameReference = callArgument.psiCallArgument.valueArgument.getArgumentName()?.referenceExpression ?: return
+
         when (diagnostic.javaClass) {
             NamedArgumentReference::class.java -> {
                 trace.record(BindingContext.REFERENCE_TARGET, nameReference, (diagnostic as NamedArgumentReference).parameterDescriptor)
