@@ -52,9 +52,11 @@ import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.ObservableBindingTrace
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoAfter
 import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsExpression
+import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstructor
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.ifEmpty
@@ -433,6 +435,12 @@ object KotlinIntroduceVariableHandler : RefactoringActionHandler {
         }
     }
 
+    private fun BindingContext.getTypeWithUpdatedPrimitiveType(expression: KtExpression): KotlinType? {
+        val type = getType(expression) ?: return null
+        val constructor = type.constructor
+        return if (constructor is IntegerValueTypeConstructor) TypeUtils.getDefaultPrimitiveNumberType(constructor) else type
+    }
+
     private fun doRefactoring(
         project: Project,
         editor: Editor?,
@@ -473,7 +481,7 @@ object KotlinIntroduceVariableHandler : RefactoringActionHandler {
             return showErrorHint(project, editor, KotlinRefactoringBundle.message("cannot.refactor.no.container"))
         }
 
-        val expressionType = substringInfo?.type ?: bindingContext.getType(physicalExpression) //can be null or error type
+        val expressionType = substringInfo?.type ?: bindingContext.getTypeWithUpdatedPrimitiveType(physicalExpression)
         val scope = physicalExpression.getResolutionScope(bindingContext, resolutionFacade)
         val dataFlowInfo = bindingContext.getDataFlowInfoAfter(physicalExpression)
 
