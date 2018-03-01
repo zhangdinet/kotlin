@@ -351,7 +351,7 @@ fun List<Pair<ResolvedConfiguration, Scope>>.collectDependencies(): List<Depende
     val dependencies = mutableListOf<DependencyInfo>()
 
     val unprocessed = LinkedList<DependencyInfo>()
-    val existing = mutableSetOf<ResolvedDependency>()
+    val existing = mutableSetOf<Pair<Scope, ResolvedDependency>>()
 
     for ((configuration, scope) in this) {
         for (dependency in configuration.firstLevelModuleDependencies) {
@@ -362,10 +362,12 @@ fun List<Pair<ResolvedConfiguration, Scope>>.collectDependencies(): List<Depende
     while (unprocessed.isNotEmpty()) {
         val info = unprocessed.removeAt(0)
         dependencies += info
-        existing += info.dependency
+
+        val data = Pair(info.scope, info.dependency)
+        existing += data
 
         for (child in info.dependency.children) {
-            if (child.moduleGroup != "org.jetbrains.kotlin" && child in existing) {
+            if (child.moduleGroup != "org.jetbrains.kotlin" && Pair(info.scope, child) in existing) {
                 continue
             }
 
