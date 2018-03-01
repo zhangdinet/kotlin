@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.load.java.JavaVisibilities;
 import org.jetbrains.kotlin.load.java.sam.SamConstructorDescriptor;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
+import org.jetbrains.kotlin.resolve.jvm.annotations.AnnotationUtilKt;
 import org.jetbrains.kotlin.storage.LockBasedStorageManager;
 import org.jetbrains.kotlin.storage.NullableLazyValue;
 import org.jetbrains.kotlin.types.KotlinType;
@@ -570,7 +571,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         DeclarationDescriptor enclosing = descriptor.getContainingDeclaration();
         boolean isInliningContext = properContext.isInlineMethodContext();
         boolean sameJvmDefault = CodegenUtilKt.hasJvmDefaultAnnotation(descriptor) ==
-                                 CodegenUtilKt.isCallableMemberWithJvmDefaultAnnotation(properContext.contextDescriptor) ||
+                                 AnnotationUtilKt.isCallableMemberWithJvmDefaultAnnotation(properContext.contextDescriptor) ||
                                  properContext.contextDescriptor instanceof AccessorForCallableDescriptor;
         if (!isInliningContext && (
                 !properContext.hasThisDescriptor() ||
