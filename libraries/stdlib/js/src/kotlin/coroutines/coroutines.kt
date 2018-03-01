@@ -3,12 +3,12 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package kotlin.coroutines.experimental
-import kotlin.coroutines.experimental.intrinsics.COROUTINE_SUSPENDED
+package kotlin.coroutines
+import kotlin.coroutines.intrinsics.*
 
+@SinceKotlin("1.3")
 @JsName("CoroutineImpl")
-internal abstract class CoroutineImpl(private val resultContinuation: Continuation<Any?>) :
-    Continuation<Any?> {
+internal abstract class CoroutineImpl(private val resultContinuation: Continuation<Any?>) : Continuation<Any?> {
     protected var state = 0
     protected var exceptionState = 0
     protected var result: Any? = null
@@ -37,15 +37,19 @@ internal abstract class CoroutineImpl(private val resultContinuation: Continuati
     protected abstract fun doResume(): Any?
 }
 
+@SinceKotlin("1.3")
 private val UNDECIDED: Any? = Any()
+@SinceKotlin("1.3")
 private val RESUMED: Any? = Any()
+@SinceKotlin("1.3")
 private class Fail(val exception: Throwable)
 
+@SinceKotlin("1.3")
 @PublishedApi
 internal class SafeContinuation<in T>
 internal constructor(
-    private val delegate: Continuation<T>,
-    initialResult: Any?
+        private val delegate: Continuation<T>,
+        initialResult: Any?
 ) : Continuation<T> {
 
     @PublishedApi
