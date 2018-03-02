@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import kotlin.reflect.KClass
 import kotlin.script.experimental.api.ScriptCompileConfigurationParams
 import kotlin.script.experimental.api.ScriptDefinition
-import kotlin.script.experimental.api.getOrNull
 import kotlin.script.experimental.api.resultOrNull
 import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.jvm.impl.BridgeDependenciesResolver
