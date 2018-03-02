@@ -1,6 +1,6 @@
-// !DIAGNOSTICS: -EXPERIMENTAL_API_USAGE
 // !API_VERSION: 1.3
 // !JVM_TARGET: 1.8
+@kotlin.annotations.JvmDefaultFeature
 interface A {
     @kotlin.annotations.JvmDefault
     fun test() {}

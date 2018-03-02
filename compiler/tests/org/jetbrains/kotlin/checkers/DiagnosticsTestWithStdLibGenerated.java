@@ -500,6 +500,12 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
                 doTest(fileName);
             }
 
+            @TestMetadata("simpleOverrideWithFeature.kt")
+            public void testSimpleOverrideWithFeature() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/annotations/jvmDefault/simpleOverrideWithFeature.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("simplePropertyOverride.kt")
             public void testSimplePropertyOverride() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/annotations/jvmDefault/simplePropertyOverride.kt");
