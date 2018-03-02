@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.types.checker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
-import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
+import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilsKt;
 import org.jetbrains.kotlin.types.*;
 
@@ -61,6 +61,29 @@ public class TypeCheckingProcedure {
         this.constraints = constraints;
     }
 
+    private static boolean actualAliasHasSameFqNameAsExpectClass(@NotNull SimpleType actual, @NotNull SimpleType expect) {
+        ClassifierDescriptor actualDescriptor = actual.getConstructor().getDeclarationDescriptor();
+        ClassifierDescriptor expectDescriptor = expect.getConstructor().getDeclarationDescriptor();
+        if (actualDescriptor instanceof TypeAliasDescriptor &&
+            expectDescriptor instanceof ClassDescriptor) {
+            ClassDescriptor expectClassDescriptor = (ClassDescriptor) expectDescriptor;
+            if (!expectClassDescriptor.isExpect()) return false;
+            TypeAliasDescriptor actualTypeAliasDescriptor = (TypeAliasDescriptor) actualDescriptor;
+            if (!actualTypeAliasDescriptor.isActual()) return false;
+            if (actualTypeAliasDescriptor.getName().equals(expectClassDescriptor.getName())) {
+                DeclarationDescriptor expectContainer = expectClassDescriptor.getContainingDeclaration();
+                DeclarationDescriptor actualContainer = actualTypeAliasDescriptor.getContainingDeclaration();
+                if (expectContainer instanceof PackageFragmentDescriptor &&
+                    actualContainer instanceof PackageFragmentDescriptor) {
+                    return ((PackageFragmentDescriptor) expectContainer).getFqName().equals(
+                            ((PackageFragmentDescriptor) actualContainer).getFqName()
+                    );
+                }
+            }
+        }
+        return false;
+    }
+
     public boolean equalTypes(@NotNull KotlinType type1, @NotNull KotlinType type2) {
         if (type1 == type2) return true;
         if (FlexibleTypesKt.isFlexible(type1)) {
@@ -81,6 +104,16 @@ public class TypeCheckingProcedure {
         if (type1.isMarkedNullable()) {
             // Then type2 is nullable, too (see the previous condition
             return constraints.assertEqualTypes(TypeUtils.makeNotNullable(type1), TypeUtils.makeNotNullable(type2), this);
+        }
+
+        if (type1 instanceof SimpleType && type2 instanceof AbbreviatedType &&
+            actualAliasHasSameFqNameAsExpectClass(((AbbreviatedType) type2).getAbbreviation(), (SimpleType) type1)) {
+            return true;
+        }
+
+        if (type2 instanceof SimpleType && type1 instanceof AbbreviatedType &&
+            actualAliasHasSameFqNameAsExpectClass(((AbbreviatedType) type1).getAbbreviation(), (SimpleType) type2)) {
+            return true;
         }
 
         TypeConstructor constructor1 = type1.getConstructor();
