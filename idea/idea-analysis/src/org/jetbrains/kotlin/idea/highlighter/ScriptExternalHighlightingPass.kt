@@ -32,6 +32,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.idea.actions.internal.KotlinInternalMode
 import org.jetbrains.kotlin.idea.core.script.IdeScriptReportSink
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.script.experimental.dependencies.ScriptReport
@@ -48,25 +49,28 @@ class ScriptExternalHighlightingPass(
         val reports = file.virtualFile.getUserData(IdeScriptReportSink.Reports) ?: return
 
         val annotations = reports.mapNotNull { (message, severity, position) ->
-            val (startOffset, endOffset) = computeOffsets(document, position) ?: return@mapNotNull null
-            Annotation(
+            val (startOffset, endOffset) = computeOffsets(document, position)
+            val annotation = Annotation(
                 startOffset,
                 endOffset,
                 severity.convertSeverity() ?: return@mapNotNull null,
                 message,
                 message
             )
+
+            annotation.isFileLevelAnnotation = startOffset == endOffset
+
+            annotation
         }
 
         val infos = annotations.map { HighlightInfo.fromAnnotation(it) }
         UpdateHighlightersUtil.setHighlightersToEditor(myProject, myDocument!!, 0, file.textLength, infos, colorsScheme, id)
     }
 
-    private fun computeOffsets(document: Document, position: ScriptReport.Position?): Pair<Int, Int>? {
+    private fun computeOffsets(document: Document, position: ScriptReport.Position?): Pair<Int, Int> {
         if (position == null) {
-            // TODO: better presentation of those errors
-            // if no position was specified, mark first two lines as an error
-            return computeOffsets(document, ScriptReport.Position(0, 0, 1))
+            // if no position was specified, show notification panel in editor
+            return 0 to 0
         }
 
         val startLine = position.startLine.coerceLineIn(document)
@@ -78,7 +82,6 @@ class ScriptExternalHighlightingPass(
             position.endColumn ?: document.getLineEndOffset(endLine)
         ).coerceAtLeast(startOffset)
 
-        // TODO: presentation when range is empty?
         return startOffset to endOffset
     }
 
@@ -93,7 +96,7 @@ class ScriptExternalHighlightingPass(
             ScriptReport.Severity.ERROR -> ERROR
             ScriptReport.Severity.WARNING -> WARNING
             ScriptReport.Severity.INFO -> INFORMATION
-            else -> null
+            ScriptReport.Severity.DEBUG -> if (KotlinInternalMode.enabled) INFORMATION else null
         }
     }
 
