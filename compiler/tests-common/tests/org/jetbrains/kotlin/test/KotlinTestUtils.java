@@ -785,10 +785,16 @@ public class KotlinTestUtils {
 
         if (isDirectiveDefined(expectedText, "WITH_COROUTINES")) {
             M supportModule = hasModules ? factory.createModule("support", Collections.emptyList(), Collections.emptyList()) : null;
+            String coroutinesPackage = "kotlin.coroutines.experimental";
+            if (isDirectiveDefined(expectedText, "COMMON_COROUTINES_TEST")) {
+                if (!expectedText.contains(coroutinesPackage)) {
+                    coroutinesPackage = "kotlin.coroutines";
+                }
+            }
             testFiles.add(factory.createFile(supportModule,
                                              "CoroutineUtil.kt",
                                              "package helpers\n" +
-                                             "import kotlin.coroutines.experimental.*\n" +
+                                             "import " + coroutinesPackage + ".*\n" +
                                              "fun <T> handleResultContinuation(x: (T) -> Unit): Continuation<T> = object: Continuation<T> {\n" +
                                              "    override val context = EmptyCoroutineContext\n" +
                                              "    override fun resumeWithException(exception: Throwable) {\n" +
