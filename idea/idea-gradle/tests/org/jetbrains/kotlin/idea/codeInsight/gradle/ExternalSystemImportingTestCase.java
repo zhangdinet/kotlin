@@ -49,84 +49,85 @@ import java.util.*;
 
 // part of com.intellij.openapi.externalSystem.test.ExternalSystemImportingTestCase
 public abstract class ExternalSystemImportingTestCase extends ExternalSystemTestCase {
-  @Override
-  protected Module getModule(String name) {
-    AccessToken accessToken = ApplicationManager.getApplication().acquireReadActionLock();
-    try {
-      Module m = ModuleManager.getInstance(myProject).findModuleByName(name);
-      assertNotNull("Module " + name + " not found", m);
-      return m;
+    @Override
+    protected Module getModule(String name) {
+        AccessToken accessToken = ApplicationManager.getApplication().acquireReadActionLock();
+        try {
+            Module m = ModuleManager.getInstance(myProject).findModuleByName(name);
+            assertNotNull("Module " + name + " not found", m);
+            return m;
+        }
+        finally {
+            accessToken.finish();
+        }
     }
-    finally {
-      accessToken.finish();
+
+    protected void importProject(@NonNls String config) throws IOException {
+        createProjectConfig(config);
+        importProject();
     }
-  }
 
-  protected void importProject(@NonNls String config) throws IOException {
-    createProjectConfig(config);
-    importProject();
-  }
+    protected void importProject() {
+        doImportProject();
+    }
 
-  protected void importProject() {
-    doImportProject();
-  }
+    private void doImportProject() {
+        AbstractExternalSystemSettings systemSettings = ExternalSystemApiUtil.getSettings(myProject, getExternalSystemId());
+        ExternalProjectSettings projectSettings = getCurrentExternalProjectSettings();
+        projectSettings.setExternalProjectPath(getProjectPath());
+        @SuppressWarnings("unchecked") Set<ExternalProjectSettings> projects =
+                ContainerUtilRt.newHashSet(systemSettings.getLinkedProjectsSettings());
+        projects.remove(projectSettings);
+        projects.add(projectSettings);
+        //noinspection unchecked
+        systemSettings.setLinkedProjectsSettings(projects);
 
-  private void doImportProject() {
-    AbstractExternalSystemSettings systemSettings = ExternalSystemApiUtil.getSettings(myProject, getExternalSystemId());
-    ExternalProjectSettings projectSettings = getCurrentExternalProjectSettings();
-    projectSettings.setExternalProjectPath(getProjectPath());
-    @SuppressWarnings("unchecked") Set<ExternalProjectSettings> projects = ContainerUtilRt.newHashSet(systemSettings.getLinkedProjectsSettings());
-    projects.remove(projectSettings);
-    projects.add(projectSettings);
-    //noinspection unchecked
-    systemSettings.setLinkedProjectsSettings(projects);
+        final Ref<Couple<String>> error = Ref.create();
+        ExternalSystemUtil.refreshProjects(
+                new ImportSpecBuilder(myProject, getExternalSystemId())
+                        .use(ProgressExecutionMode.MODAL_SYNC)
+                        .callback(new ExternalProjectRefreshCallback() {
+                            @Override
+                            public void onSuccess(@Nullable DataNode<ProjectData> externalProject) {
+                                if (externalProject == null) {
+                                    System.err.println("Got null External project after import");
+                                    return;
+                                }
+                                ServiceManager.getService(ProjectDataManager.class).importData(externalProject, myProject, true);
+                                System.out.println("External project was successfully imported");
+                            }
 
-    final Ref<Couple<String>> error = Ref.create();
-    ExternalSystemUtil.refreshProjects(
-      new ImportSpecBuilder(myProject, getExternalSystemId())
-        .use(ProgressExecutionMode.MODAL_SYNC)
-        .callback(new ExternalProjectRefreshCallback() {
-          @Override
-          public void onSuccess(@Nullable DataNode<ProjectData> externalProject) {
-            if (externalProject == null) {
-              System.err.println("Got null External project after import");
-              return;
+                            @Override
+                            public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+                                error.set(Couple.of(errorMessage, errorDetails));
+                            }
+                        })
+                        .forceWhenUptodate()
+        );
+
+        if (!error.isNull()) {
+            String failureMsg = "Import failed: " + error.get().first;
+            if (StringUtil.isNotEmpty(error.get().second)) {
+                failureMsg += "\nError details: \n" + error.get().second;
             }
-            ServiceManager.getService(ProjectDataManager.class).importData(externalProject, myProject, true);
-            System.out.println("External project was successfully imported");
-          }
-
-          @Override
-          public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
-            error.set(Couple.of(errorMessage, errorDetails));
-          }
-        })
-        .forceWhenUptodate()
-    );
-
-    if (!error.isNull()) {
-      String failureMsg = "Import failed: " + error.get().first;
-      if (StringUtil.isNotEmpty(error.get().second)) {
-        failureMsg += "\nError details: \n" + error.get().second;
-      }
-      fail(failureMsg);
+            fail(failureMsg);
+        }
     }
-  }
 
-  protected abstract ExternalProjectSettings getCurrentExternalProjectSettings();
+    protected abstract ExternalProjectSettings getCurrentExternalProjectSettings();
 
-  protected abstract ProjectSystemId getExternalSystemId();
+    protected abstract ProjectSystemId getExternalSystemId();
 
-  protected void assertModuleModuleDepScope(String moduleName, String depName, DependencyScope... scopes) {
-    List<ModuleOrderEntry> deps = getModuleModuleDeps(moduleName, depName);
-    Set<DependencyScope> actualScopes = new HashSet<DependencyScope>();
-    for (ModuleOrderEntry dep : deps) {
-      actualScopes.add(dep.getScope());
+    protected void assertModuleModuleDepScope(String moduleName, String depName, DependencyScope... scopes) {
+        List<ModuleOrderEntry> deps = getModuleModuleDeps(moduleName, depName);
+        Set<DependencyScope> actualScopes = new HashSet<DependencyScope>();
+        for (ModuleOrderEntry dep : deps) {
+            actualScopes.add(dep.getScope());
+        }
+        HashSet<DependencyScope> expectedScopes = new HashSet<DependencyScope>(Arrays.asList(scopes));
+        assertEquals("Dependency '" + depName + "' for module '" + moduleName + "' has unexpected scope",
+                     expectedScopes, actualScopes);
     }
-    HashSet<DependencyScope> expectedScopes = new HashSet<DependencyScope>(Arrays.asList(scopes));
-    assertEquals("Dependency '" + depName + "' for module '" + moduleName + "' has unexpected scope",
-                 expectedScopes, actualScopes);
-  }
 
   protected void assertNoDepForModule(String moduleName, String depName) {
     assertEmpty("No dependency '" + depName + "' was expected", collectModuleDeps(moduleName, depName, ModuleOrderEntry.class));
@@ -137,9 +138,9 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     return getModuleDep(moduleName, depName, ModuleOrderEntry.class);
   }
 
-  private ModuleRootManager getRootManager(String module) {
-    return ModuleRootManager.getInstance(getModule(module));
-  }
+    private ModuleRootManager getRootManager(String module) {
+        return ModuleRootManager.getInstance(getModule(module));
+    }
 
   @NotNull
   private <T> List<T> getModuleDep(@NotNull String moduleName, @NotNull String depName, @NotNull Class<T> clazz) {
@@ -162,14 +163,14 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     return deps;
   }
 
-  private List<String> collectModuleDepsNames(String moduleName, Class clazz) {
-    List<String> actual = new ArrayList<String>();
+    private List<String> collectModuleDepsNames(String moduleName, Class clazz) {
+        List<String> actual = new ArrayList<String>();
 
-    for (OrderEntry e : getRootManager(moduleName).getOrderEntries()) {
-      if (clazz.isInstance(e)) {
-        actual.add(e.getPresentableName());
-      }
+        for (OrderEntry e : getRootManager(moduleName).getOrderEntries()) {
+            if (clazz.isInstance(e)) {
+                actual.add(e.getPresentableName());
+            }
+        }
+        return actual;
     }
-    return actual;
-  }
 }

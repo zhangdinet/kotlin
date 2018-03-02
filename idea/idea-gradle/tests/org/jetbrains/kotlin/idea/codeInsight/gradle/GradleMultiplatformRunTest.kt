@@ -38,91 +38,91 @@ class GradleMultiplatformRunTest : GradleImportingTestCase() {
     @Test
     fun testMultiplatformClasspath() {
         createProjectSubFile(
-                "build.gradle",
-                """
-                buildscript {
-                    repositories {
-                        jcenter()
-                        mavenCentral()
-                    }
-                    dependencies {
-                        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
-                    }
-                }
-
-                apply plugin: 'kotlin-platform-common'
-
+            "build.gradle",
+            """
+            buildscript {
                 repositories {
                     jcenter()
                     mavenCentral()
                 }
-
                 dependencies {
-                    compile "org.jetbrains.kotlin:kotlin-stdlib-common:1.1.4"
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
                 }
+            }
 
-                """.trimIndent()
+            apply plugin: 'kotlin-platform-common'
+
+            repositories {
+                jcenter()
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.jetbrains.kotlin:kotlin-stdlib-common:1.1.4"
+            }
+
+            """.trimIndent()
         )
         createProjectSubFile(
-                "settings.gradle",
-                """
-                    rootProject.name = 'MultiTest'
-                    include 'MultiTest-jvm', 'MultiTest-js'
-                """.trimIndent()
+            "settings.gradle",
+            """
+            rootProject.name = 'MultiTest'
+            include 'MultiTest-jvm', 'MultiTest-js'
+            """.trimIndent()
         )
         createProjectSubFile(
-                "MultiTest-js/build.gradle",
-                """
-                buildscript {
-                    repositories {
-                        jcenter()
-                        mavenCentral()
-                    }
-                    dependencies {
-                        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
-                    }
-                }
-
-                apply plugin: 'kotlin-platform-js'
-
-                repositories {
-                        jcenter()
-                        mavenCentral()
-                    }
-
-                dependencies {
-                    compile "org.jetbrains.kotlin:kotlin-stdlib-js:1.1.4"
-                    implement project(":")
-                }
-
-                """.trimIndent()
-        )
-        createProjectSubFile(
-                "MultiTest-jvm/build.gradle",
-                """
-                buildscript {
-                    repositories {
-                        jcenter()
-                        mavenCentral()
-                    }
-                    dependencies {
-                        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
-                    }
-                }
-
-                apply plugin: 'kotlin-platform-jvm'
-
+            "MultiTest-js/build.gradle",
+            """
+            buildscript {
                 repositories {
                     jcenter()
                     mavenCentral()
                 }
-
                 dependencies {
-                    compile "org.jetbrains.kotlin:kotlin-stdlib:1.1.4"
-                    implement project(":")
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
+                }
+            }
+
+            apply plugin: 'kotlin-platform-js'
+
+            repositories {
+                    jcenter()
+                    mavenCentral()
                 }
 
-                """.trimIndent()
+            dependencies {
+                compile "org.jetbrains.kotlin:kotlin-stdlib-js:1.1.4"
+                implement project(":")
+            }
+
+            """.trimIndent()
+        )
+        createProjectSubFile(
+            "MultiTest-jvm/build.gradle",
+            """
+            buildscript {
+                repositories {
+                    jcenter()
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.1.4")
+                }
+            }
+
+            apply plugin: 'kotlin-platform-jvm'
+
+            repositories {
+                jcenter()
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.jetbrains.kotlin:kotlin-stdlib:1.1.4"
+                implement project(":")
+            }
+
+            """.trimIndent()
         )
         val virtualFile = createProjectSubFile("src/main/kotlin/foo.kt", "fun main(args: Array<String>) { println(\"Foo!\") }")
 
@@ -140,16 +140,23 @@ class GradleMultiplatformRunTest : GradleImportingTestCase() {
             val producer = RunConfigurationProducer.getInstance(KotlinRunConfigurationProducer::class.java)
             val configuration = producer.createConfigurationFromContext(configurationContext)!!
 
-            val executionEnvironment = ExecutionEnvironmentBuilder.create(myProject,
-                                                                          DefaultRunExecutor.getRunExecutorInstance(),
-                                                                          configuration.configuration)
+            val executionEnvironment = ExecutionEnvironmentBuilder.create(
+                myProject,
+                DefaultRunExecutor.getRunExecutorInstance(),
+                configuration.configuration
+            )
                 .build()
 
             val compileStepBeforeRun = CompileStepBeforeRun(myProject)
-            compileStepBeforeRun.executeTask(dataContext, configuration.configuration, executionEnvironment,
-                                             CompileStepBeforeRun.MakeBeforeRunTask())
+            compileStepBeforeRun.executeTask(
+                dataContext, configuration.configuration, executionEnvironment,
+                CompileStepBeforeRun.MakeBeforeRunTask()
+            )
 
-            val state = configuration.configuration.getState(DefaultRunExecutor.getRunExecutorInstance(), executionEnvironment) as JavaCommandLineState
+            val state = configuration.configuration.getState(
+                DefaultRunExecutor.getRunExecutorInstance(),
+                executionEnvironment
+            ) as JavaCommandLineState
             state.javaParameters
 
         }
