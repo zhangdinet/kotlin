@@ -1,6 +1,12 @@
-
 apply { plugin("kotlin") }
 apply { plugin("jps-compatible") }
+
+sourceSets {
+    "main" { }
+    "proto" { java.srcDirs("proto") }
+    "protoCompare" { java.srcDirs("protoCompare") }
+    "test" { projectDefault() }
+}
 
 dependencies {
     compile(projectTests(":compiler:cli"))
@@ -21,11 +27,13 @@ dependencies {
     testCompile(intellijDep("jps-build-test"))
     testRuntime(intellijDep()) { includeJars("idea_rt") }
     testRuntime(projectDist(":kotlin-reflect"))
-}
 
-sourceSets {
-    "main" { }
-    "test" { projectDefault() }
+    protoCompile(project(":kotlin-stdlib"))
+    protoCompile(intellijDep()) { includeJars("openapi", "util") }
+    protoRuntime(intellijDep()) { includeJars("trove4j") }
+
+    protoCompareCompile(projectTests(":kotlin-build-common"))
+    protoCompareCompile(projectTests(":generators:test-generator"))
 }
 
 projectTest {
@@ -34,8 +42,8 @@ projectTest {
 
 val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateTestsKt")
 
-val generateProtoBuf by generator("org.jetbrains.kotlin.generators.protobuf.GenerateProtoBufKt")
-val generateProtoBufCompare by generator("org.jetbrains.kotlin.generators.protobuf.GenerateProtoBufCompare")
+val generateProtoBuf by generator("org.jetbrains.kotlin.generators.protobuf.GenerateProtoBufKt", sourceSet = "proto")
+val generateProtoBufCompare by generator("org.jetbrains.kotlin.generators.protobuf.GenerateProtoBufCompare", sourceSet = "protoCompare")
 
 val generateGradleOptions by generator("org.jetbrains.kotlin.generators.arguments.GenerateGradleOptionsKt")
 
