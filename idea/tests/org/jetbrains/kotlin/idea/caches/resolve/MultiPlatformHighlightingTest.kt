@@ -47,6 +47,10 @@ class MultiPlatformHighlightingTest : AbstractMultiModuleHighlightingTest() {
         checkHighlightingInAllFiles()
     }
 
+    fun testExtraActualMember() {
+        doMultiPlatformTest(TargetPlatformKind.Jvm[JvmTarget.JVM_1_6])
+    }
+
     fun testHeaderClass() {
         doMultiPlatformTest(TargetPlatformKind.Jvm[JvmTarget.JVM_1_6])
     }
