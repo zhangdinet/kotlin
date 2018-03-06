@@ -22,9 +22,15 @@ import com.intellij.openapi.fileEditor.impl.LoadTextUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ExternalLibraryDescriptor
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
+import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
 import org.jetbrains.kotlin.idea.configuration.*
+import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.test.testFramework.runWriteAction
 import org.junit.Test
@@ -136,9 +142,12 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
     @Test
     fun testConfigureGSK() {
-        createProjectSubFile("settings.gradle", "include ':app'")
+        if (gradleVersion.toDouble() < 4) {
+            createProjectSubFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+            createProjectSubFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
+        }
         val file = createProjectSubFile(
-            "app/build.gradle.kts",
+            "build.gradle.kts",
             """
             buildscript {
                 repositories {
@@ -150,13 +159,13 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         )
 
         importProject()
+        checkForDiagnostics(file)
 
         runInEdtAndWait {
             runWriteAction {
-                val module = ModuleManager.getInstance(myProject).findModuleByName("app")!!
                 val configurator = findGradleModuleConfigurator()
                 val collector = createConfigureKotlinNotificationCollector(myProject)
-                configurator.configureWithVersion(myProject, listOf(module), "1.1.2", collector)
+                configurator.configureWithVersion(myProject, listOf(myTestFixture.module), "1.1.2", collector)
 
                 FileDocumentManager.getInstance().saveAllDocuments()
                 val content = LoadTextUtil.loadText(file).toString()
@@ -195,6 +204,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
                     }
                 """.trimIndent(), content
                 )
+                checkForDiagnostics(file)
             }
         }
     }
@@ -314,6 +324,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -338,6 +349,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             |""".trimMargin("|"),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -354,6 +366,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -380,6 +393,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             |""".trimMargin("|"),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -394,6 +408,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -425,6 +440,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             |""".trimMargin("|"),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -440,6 +456,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -464,6 +481,7 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             |""".trimMargin("|"),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -528,7 +546,18 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
     @Test
     fun testAddCoroutinesSupportGSK() {
-        val buildScript = createProjectSubFile("build.gradle.kts", "")
+        if (gradleVersion.toDouble() < 4) {
+            createProjectSubFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+            createProjectSubFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
+        }
+        val buildScript = createProjectSubFile(
+            "build.gradle.kts",
+            """
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+            """.trimIndent()
+        )
 
         importProject()
 
@@ -542,13 +571,18 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
         assertEquals(
             """
-            |import org.jetbrains.kotlin.gradle.dsl.Coroutines
-            |
-            |kotlin {
-            |    experimental.coroutines = Coroutines.ENABLE
-            |}""".trimMargin("|"),
+            import org.jetbrains.kotlin.gradle.dsl.Coroutines
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+            kotlin {
+                experimental.coroutines = Coroutines.ENABLE
+            }
+            """.trimIndent(),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -617,18 +651,27 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
     @Test
     fun testChangeCoroutinesSupportGSK() {
+        if (gradleVersion.toDouble() < 4) {
+            createProjectSubFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+            createProjectSubFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
+        }
         val buildScript = createProjectSubFile(
             "build.gradle.kts",
             """
-            |import org.jetbrains.kotlin.gradle.dsl.Coroutines
-            |
-            |kotlin {
-            |    experimental.coroutines = Coroutines.DISABLE
-            |}
-            |""".trimMargin("|")
+            import org.jetbrains.kotlin.gradle.dsl.Coroutines
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+
+            kotlin {
+                experimental.coroutines = Coroutines.ERROR
+            }
+            """.trimIndent()
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -640,14 +683,19 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
         assertEquals(
             """
-            |import org.jetbrains.kotlin.gradle.dsl.Coroutines
-            |
-            |kotlin {
-            |    experimental.coroutines = Coroutines.ENABLE
-            |}
-            |""".trimMargin("|"),
+            import org.jetbrains.kotlin.gradle.dsl.Coroutines
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+
+            kotlin {
+                experimental.coroutines = Coroutines.ENABLE
+            }
+            """.trimIndent(),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -712,7 +760,18 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
     @Test
     fun testAddLanguageVersionGSK() {
-        val buildScript = createProjectSubFile("build.gradle.kts", "")
+        if (gradleVersion.toDouble() < 4) {
+            createProjectSubFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+            createProjectSubFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
+        }
+        val buildScript = createProjectSubFile(
+            "build.gradle.kts",
+            """
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+            """.trimIndent()
+        )
 
         importProject()
 
@@ -726,14 +785,19 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
         assertEquals(
             """
-            |import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-            |
-            |val compileKotlin: KotlinCompile by tasks
-            |compileKotlin.kotlinOptions {
-            |    languageVersion = "1.1"
-            |}""".trimMargin("|"),
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+            val compileKotlin: KotlinCompile by tasks
+            compileKotlin.kotlinOptions {
+                languageVersion = "1.1"
+            }
+            """.trimIndent(),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -743,7 +807,6 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             """
             buildscript {
                 repositories {
-                    jcenter()
                     mavenCentral()
                 }
                 dependencies {
@@ -778,7 +841,6 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             """
             buildscript {
                 repositories {
-                    jcenter()
                     mavenCentral()
                 }
                 dependencies {
@@ -803,17 +865,28 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
     @Test
     fun testChangeLanguageVersionGSK() {
+        if (gradleVersion.toDouble() < 4) {
+            createProjectSubFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+            createProjectSubFile("gradle.properties", "org.gradle.script.lang.kotlin.accessors.auto=true")
+        }
         val buildScript = createProjectSubFile(
             "build.gradle.kts",
             """
-            |val compileKotlin: KotlinCompile by tasks
-            |compileKotlin.kotlinOptions {
-            |   languageVersion = "1.0"
-            |}
-            |""".trimMargin("|")
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+
+            val compileKotlin: KotlinCompile by tasks
+            compileKotlin.kotlinOptions {
+               languageVersion = "1.0"
+            }
+            """.trimIndent()
         )
 
         importProject()
+        checkForDiagnostics(buildScript)
 
         runInEdtAndWait {
             myTestFixture.project.executeWriteCommand("") {
@@ -825,13 +898,20 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
 
         assertEquals(
             """
-            |val compileKotlin: KotlinCompile by tasks
-            |compileKotlin.kotlinOptions {
-            |    languageVersion = "1.1"
-            |}
-            |""".trimMargin("|"),
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins {
+                id("org.jetbrains.kotlin.jvm") version "1.1.1"
+            }
+
+            val compileKotlin: KotlinCompile by tasks
+            compileKotlin.kotlinOptions {
+                languageVersion = "1.1"
+            }
+            """.trimIndent(),
             LoadTextUtil.loadText(buildScript).toString()
         )
+        checkForDiagnostics(buildScript)
     }
 
     @Test
@@ -892,5 +972,24 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             }
             """.trimIndent(), LoadTextUtil.loadText(buildScript).toString()
         )
+    }
+
+    private fun checkForDiagnostics(scriptFile: VirtualFile) {
+        runInEdtAndWait {
+            ScriptDependenciesManager.updateScriptDependenciesSynchronously(scriptFile, myProject)
+            val psiFile = runReadAction {
+                PsiManager.getInstance(myProject).findFile(scriptFile) as? KtFile
+                        ?: error("Couldn't find psiFile for ${scriptFile.path}")
+            }
+            val bindingContext = psiFile.analyzeWithContent()
+            assert(bindingContext.diagnostics.isEmpty()) {
+                bindingContext.diagnostics.joinToString(
+                    separator = "\n",
+                    prefix = "Compilation error for ${scriptFile.path}:\n${psiFile.text}\n"
+                ) {
+                    DefaultErrorMessages.render(it)
+                }
+            }
+        }
     }
 }
