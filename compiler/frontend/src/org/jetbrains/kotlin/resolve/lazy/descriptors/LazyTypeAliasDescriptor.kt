@@ -38,7 +38,8 @@ class LazyTypeAliasDescriptor(
     annotations: Annotations,
     name: Name,
     sourceElement: SourceElement,
-    visibility: Visibility
+    visibility: Visibility,
+    private val supertypeLoopChecker: SupertypeLoopChecker
 ) : AbstractTypeAliasDescriptor(containingDeclaration, annotations, name, sourceElement, visibility),
     TypeAliasDescriptor {
     override val constructors: Collection<TypeAliasConstructorDescriptor> by storageManager.createLazyValue {
@@ -97,7 +98,7 @@ class LazyTypeAliasDescriptor(
         if (substitutor.isEmpty) return this
         val substituted = LazyTypeAliasDescriptor(
             storageManager, trace,
-            containingDeclaration, annotations, name, source, visibility
+            containingDeclaration, annotations, name, source, visibility, supertypeLoopChecker
         )
         substituted.initialize(declaredTypeParameters,
                                storageManager.createLazyValue {
@@ -113,6 +114,14 @@ class LazyTypeAliasDescriptor(
     override fun getTypeConstructorTypeParameters(): List<TypeParameterDescriptor> =
         lazyTypeConstructorParameters()
 
+    override fun getTypeConstructor() = typeConstructor
+
+    private val typeConstructor = object : AbstractTypeAliasTypeConstructor(storageManager) {
+        override val supertypeLoopChecker: SupertypeLoopChecker
+            get() = this@LazyTypeAliasDescriptor.supertypeLoopChecker
+    }
+
+
     companion object {
         @JvmStatic
         fun create(
@@ -122,11 +131,12 @@ class LazyTypeAliasDescriptor(
             annotations: Annotations,
             name: Name,
             sourceElement: SourceElement,
-            visibility: Visibility
+            visibility: Visibility,
+            supertypeLoopChecker: SupertypeLoopChecker
         ): LazyTypeAliasDescriptor =
             LazyTypeAliasDescriptor(
                 storageManager, trace,
-                containingDeclaration, annotations, name, sourceElement, visibility
+                containingDeclaration, annotations, name, sourceElement, visibility, supertypeLoopChecker
             )
     }
 }

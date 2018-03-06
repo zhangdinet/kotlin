@@ -709,7 +709,7 @@ public class DescriptorResolver {
         Name name = KtPsiUtil.safeName(typeAlias.getName());
         SourceElement sourceElement = KotlinSourceElementKt.toSourceElement(typeAlias);
         LazyTypeAliasDescriptor typeAliasDescriptor = LazyTypeAliasDescriptor.create(
-                storageManager, trace, containingDeclaration, allAnnotations, name, sourceElement, visibility);
+                storageManager, trace, containingDeclaration, allAnnotations, name, sourceElement, visibility, supertypeLoopsResolver);
 
         List<TypeParameterDescriptorImpl> typeParameterDescriptors;
         LexicalScope scopeWithTypeParameters;

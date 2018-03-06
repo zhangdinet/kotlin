@@ -52,12 +52,19 @@ public abstract class AbstractClassTypeConstructor extends AbstractTypeConstruct
 
     @NotNull
     @Override
-    public abstract ClassDescriptor getDeclarationDescriptor();
+    public abstract ClassifierDescriptorWithTypeParameters getDeclarationDescriptor();
 
     @Override
     public final boolean isFinal() {
-        ClassDescriptor descriptor = getDeclarationDescriptor();
-        return ModalityKt.isFinalClass(descriptor) && !descriptor.isExpect();
+        ClassifierDescriptorWithTypeParameters descriptor = getDeclarationDescriptor();
+        if (descriptor.isExpect()) return false;
+        if (descriptor instanceof ClassDescriptor) {
+            return ModalityKt.isFinalClass((ClassDescriptor) descriptor);
+        }
+        if (descriptor instanceof TypeAliasDescriptor) {
+            return ModalityKt.getCorrespondsToFinalClass((TypeAliasDescriptor) descriptor);
+        }
+        return false;
     }
 
     @NotNull
@@ -78,7 +85,7 @@ public abstract class AbstractClassTypeConstructor extends AbstractTypeConstruct
         // To avoid problems in type checker we suppose that it is different type constructors.
         if (((TypeConstructor) other).getParameters().size() != getParameters().size()) return false;
 
-        ClassifierDescriptor myDescriptor = getDeclarationDescriptor();
+        ClassifierDescriptorWithTypeParameters myDescriptor = getDeclarationDescriptor();
         ClassifierDescriptor otherDescriptor = ((TypeConstructor) other).getDeclarationDescriptor();
 
         if (!hasMeaningfulFqName(myDescriptor) ||
@@ -88,14 +95,14 @@ public abstract class AbstractClassTypeConstructor extends AbstractTypeConstruct
             return false;
         }
 
-        if (otherDescriptor instanceof ClassDescriptor) {
-            return areFqNamesEqual(((ClassDescriptor) myDescriptor), ((ClassDescriptor) otherDescriptor));
+        if (otherDescriptor instanceof ClassifierDescriptorWithTypeParameters) {
+            return areFqNamesEqual(myDescriptor, ((ClassifierDescriptorWithTypeParameters) otherDescriptor));
         }
 
         return false;
     }
 
-    private static boolean areFqNamesEqual(ClassDescriptor first, ClassDescriptor second) {
+    private static boolean areFqNamesEqual(ClassifierDescriptorWithTypeParameters first, ClassifierDescriptorWithTypeParameters second) {
         if (!first.getName().equals(second.getName())) return false;
 
         DeclarationDescriptor a = first.getContainingDeclaration();

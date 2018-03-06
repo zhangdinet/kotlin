@@ -232,4 +232,8 @@ class DeserializedTypeAliasDescriptor(
     override fun getTypeConstructorTypeParameters(): List<TypeParameterDescriptor> =
             typeConstructorParameters
 
+    override fun getTypeConstructor() = object : AbstractTypeAliasTypeConstructor(storageManager) {
+        override val supertypeLoopChecker: SupertypeLoopChecker
+            get() = SupertypeLoopChecker.EMPTY
+    }
 }

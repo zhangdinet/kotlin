@@ -49,5 +49,8 @@ val CallableMemberDescriptor.isOverridableOrOverrides: Boolean
 val ClassDescriptor.isFinalClass: Boolean
     get() = modality == Modality.FINAL && kind != ClassKind.ENUM_CLASS
 
+val TypeAliasDescriptor.correspondsToFinalClass: Boolean
+    get() = classDescriptor?.isFinalClass == true
+
 val ClassDescriptor.isFinalOrEnum: Boolean
     get() = modality == Modality.FINAL

@@ -80,9 +80,6 @@ abstract class AbstractTypeAliasDescriptor(
 
     override fun isExternal() = false
 
-    override fun getTypeConstructor(): TypeConstructor =
-            typeConstructor
-
     override fun toString(): String = "typealias ${name.asString()}"
 
     override fun getOriginal(): TypeAliasDescriptor = super.getOriginal() as TypeAliasDescriptor
@@ -90,26 +87,21 @@ abstract class AbstractTypeAliasDescriptor(
     protected abstract fun getTypeConstructorTypeParameters(): List<TypeParameterDescriptor>
 
     protected fun computeDefaultType(): SimpleType =
-            TypeUtils.makeUnsubstitutedType(this, classDescriptor?.unsubstitutedMemberScope ?: MemberScope.Empty)
+        TypeUtils.makeUnsubstitutedType(this, classDescriptor?.unsubstitutedMemberScope ?: MemberScope.Empty)
 
-    private val typeConstructor = object : TypeConstructor {
-        override fun getDeclarationDescriptor(): TypeAliasDescriptor =
-                this@AbstractTypeAliasDescriptor
+    abstract inner class AbstractTypeAliasTypeConstructor(
+        storageManager: StorageManager
+    ) : AbstractClassTypeConstructor(storageManager) {
+        override fun computeSupertypes(): Collection<KotlinType> =
+            declarationDescriptor.underlyingType.constructor.supertypes
 
-        override fun getParameters(): List<TypeParameterDescriptor> =
-                getTypeConstructorTypeParameters()
+        override fun getDeclarationDescriptor(): TypeAliasDescriptor = this@AbstractTypeAliasDescriptor
 
-        override fun getSupertypes(): Collection<KotlinType> =
-                declarationDescriptor.underlyingType.constructor.supertypes
+        override fun getParameters(): List<TypeParameterDescriptor> = getTypeConstructorTypeParameters()
 
-        override fun isFinal(): Boolean =
-                declarationDescriptor.underlyingType.constructor.isFinal
+        override fun isDenotable(): Boolean = true
 
-        override fun isDenotable(): Boolean =
-                true
-
-        override fun getBuiltIns(): KotlinBuiltIns =
-                declarationDescriptor.builtIns
+        override fun getBuiltIns(): KotlinBuiltIns = declarationDescriptor.builtIns
 
         override fun toString(): String = "[typealias ${declarationDescriptor.name.asString()}]"
     }
