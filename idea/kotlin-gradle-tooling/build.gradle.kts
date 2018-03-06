@@ -14,7 +14,8 @@ dependencies {
     compile(intellijPluginDep("gradle")) {
         includeJars("gradle-api",
                     "gradle-tooling-extension-api",
-                    "gradle",
+                    "gradle-common",
+                    "gradle-java",
                     rootProject = rootProject)
     }
 }
