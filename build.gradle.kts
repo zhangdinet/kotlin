@@ -159,8 +159,8 @@ extra["IntellijCoreDependencies"] =
                "snappy-in-java-0.5.1",
                "streamex",
                "trove4j",
-               "xpp3-1.1.4-min",
-               "xstream-1.4.8")
+               "xpp3_min-1.1.4c",
+               "xstream-1.4.10")
 
 extra["nativePlatformVariants"] =
         listOf("windows-amd64",
@@ -280,13 +280,16 @@ allprojects {
 //    buildDir = File(commonBuildDir, project.name)
 
     repositories {
+        intellijSdkRepo(project)
+
         for (repo in (rootProject.extra["repos"] as List<String>)) {
             maven { setUrl(repo) }
         }
+
         ivy {
             artifactPattern(rootProject.extra["markdownParserRepo"] as String)
         }
-        intellijSdkRepo(project)
+
         androidDxJarRepo(project)
     }
     configureJvmProject(javaHome!!, jvmTarget!!)
