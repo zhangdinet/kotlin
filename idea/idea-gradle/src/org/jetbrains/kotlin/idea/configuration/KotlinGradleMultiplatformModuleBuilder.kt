@@ -39,6 +39,7 @@ class KotlinGradleMultiplatformModuleBuilder : GradleModuleBuilder() {
     var jvmModuleName: String? = null
     var jdk: Sdk? = null
     var jsModuleName: String? = null
+    var androidModuleName: String? = null
 
     override fun getBuilderId() = "kotlin.gradle.multiplatform"
 
@@ -74,12 +75,14 @@ class KotlinGradleMultiplatformModuleBuilder : GradleModuleBuilder() {
         setupCommonModule(module, contentRoot)
         setupPlatformModule(module, contentRoot, jvmModuleName, GradleKotlinMPPJavaFrameworkSupportProvider(), jdk)
         setupPlatformModule(module, contentRoot, jsModuleName, GradleKotlinMPPJSFrameworkSupportProvider())
+        setupPlatformModule(module, contentRoot, androidModuleName, GradleKotlinMPPAndroidFrameworkSupportProvider())
 
         val settingsGradle = contentRoot.findChild("settings.gradle")
         settingsGradle?.let {
             module.project.executeCommand("Update settings.gradle") {
                 val doc = FileDocumentManager.getInstance().getDocument(it) ?: return@executeCommand
-                val includedModules = listOfNotNull(commonModuleName, jvmModuleName, jsModuleName).filter { it.isNotEmpty() }
+                val includedModules =
+                    listOfNotNull(commonModuleName, jvmModuleName, jsModuleName, androidModuleName).filter { it.isNotEmpty() }
                 if (includedModules.isNotEmpty()) {
                     doc.insertString(doc.textLength, includedModules.joinToString(prefix = "include ") { "'$it'" })
                 }

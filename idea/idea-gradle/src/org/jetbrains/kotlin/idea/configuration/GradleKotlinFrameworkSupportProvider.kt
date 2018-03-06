@@ -174,3 +174,14 @@ class GradleKotlinMPPJSFrameworkSupportProvider
     override fun getPluginId() = "kotlin-platform-js"
     override fun getDescription() = "JavaScript-specific code for a Kotlin multiplatform project"
 }
+
+class GradleKotlinMPPAndroidFrameworkSupportProvider : GradleKotlinFrameworkSupportProvider(
+    "KOTLIN_MPP_ANDROID",
+    "Kotlin (Multiplatform Android - Experimental)",
+    KotlinIcons.MPP
+) {
+    override fun getPluginId() = "kotlin-platform-android"
+    override fun getDescription() = "JVM-specific code for a Kotlin multiplatform project"
+
+    override fun getDependencies(sdk: Sdk?) = listOf<String>()
+}

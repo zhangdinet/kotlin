@@ -55,6 +55,8 @@ class KotlinGradleMultiplatformWizardStep(
     private val jvmModuleNameComponent = JTextField()
     private val jsCheckBox = JCheckBox("", true)
     private val jsModuleNameComponent = JTextField()
+    private val androidCheckBox = JCheckBox("", true)
+    private val androidModuleNameComponent = JTextField()
 
     private val panel: JPanel
     private var syncEditing: Boolean = true
@@ -87,6 +89,7 @@ class KotlinGradleMultiplatformWizardStep(
         commonModuleNameComponent.document.addDocumentListener(stopSyncEditingListener)
         jvmModuleNameComponent.document.addDocumentListener(stopSyncEditingListener)
         jsModuleNameComponent.document.addDocumentListener(stopSyncEditingListener)
+        androidModuleNameComponent.document.addDocumentListener(stopSyncEditingListener)
 
         jdkComboBox.selectedJdk = jdkModel.projectSdk
 
@@ -100,6 +103,9 @@ class KotlinGradleMultiplatformWizardStep(
         jsCheckBox.addItemListener {
             jsModuleNameComponent.isEnabled = jsCheckBox.isSelected
         }
+        androidCheckBox.addItemListener {
+            androidModuleNameComponent.isEnabled = androidCheckBox.isSelected
+        }
 
         this.panel = panel(LCFlags.fillY) {
             row("Hierarchy kind:") { hierarchyKindComponent() }
@@ -110,6 +116,8 @@ class KotlinGradleMultiplatformWizardStep(
             row("JVM module name:") { jvmModuleNameComponent() }
             row("Create JS module:") { jsCheckBox() }
             row("JS module name:") { jsModuleNameComponent() }
+            row("Create Android module:") { androidCheckBox() }
+            row("Android module name:") { androidModuleNameComponent() }
             row { JLabel("")(CCFlags.pushY, CCFlags.growY) }
         }
         panel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
@@ -121,7 +129,7 @@ class KotlinGradleMultiplatformWizardStep(
             commonModuleNameComponent.text = "$rootModuleName-common"
             jvmModuleNameComponent.text = "$rootModuleName-jvm"
             jsModuleNameComponent.text = "$rootModuleName-js"
-
+            androidModuleNameComponent.text = "$rootModuleName-android"
         } finally {
             inSyncUpdate = false
         }
@@ -136,6 +144,7 @@ class KotlinGradleMultiplatformWizardStep(
         builder.jvmModuleName = jvmModuleName
         builder.jdk = jdk
         builder.jsModuleName = jsModuleName
+        builder.androidModuleName = androidModuleName
     }
 
     override fun getComponent() = panel
@@ -152,6 +161,8 @@ class KotlinGradleMultiplatformWizardStep(
         get() = if (jvmCheckBox.isSelected) jdkComboBox.selectedJdk else null
     private val jsModuleName: String
         get() = if (jsCheckBox.isSelected) jsModuleNameComponent.text else ""
+    private val androidModuleName: String
+        get() = if (androidCheckBox.isSelected) androidModuleNameComponent.text else ""
 
     override fun validate(): Boolean {
         if (rootModuleName.isEmpty()) {
@@ -166,16 +177,20 @@ class KotlinGradleMultiplatformWizardStep(
         if (jsCheckBox.isSelected && jsModuleName.isEmpty()) {
             throw ConfigurationException("Please specify the JS module name")
         }
-        if (commonModuleName.isNotEmpty()
-            && (commonModuleName == rootModuleName || commonModuleName == jvmModuleName || commonModuleName == jsModuleName)
-        ) {
-            throw ConfigurationException("The common module name should be distinct")
+        if (androidCheckBox.isSelected && androidModuleName.isEmpty()) {
+            throw ConfigurationException("Please specify the Android module name")
         }
-        if (jvmModuleName.isNotEmpty() && (jvmModuleName == rootModuleName || jvmModuleName == jsModuleName)) {
-            throw ConfigurationException("The JVM module name should be distinct")
-        }
-        if (jsModuleName.isNotEmpty() && jsModuleName == rootModuleName) {
-            throw ConfigurationException("The IS module name should be distinct")
+        val namesAndDescriptions = mapOf(
+            commonModuleName to "common",
+            jvmModuleName to "JVM",
+            jsModuleName to "JS",
+            androidModuleName to "Android"
+        )
+        val allNames = namesAndDescriptions.keys + rootModuleName
+        for ((name, description) in namesAndDescriptions) {
+            if (name.isNotEmpty() && name in allNames - name) {
+                throw ConfigurationException("The $description module name should be distinct")
+            }
         }
         return true
     }
