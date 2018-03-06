@@ -159,8 +159,8 @@ extra["IntellijCoreDependencies"] =
                "snappy-in-java-0.5.1",
                "streamex",
                "trove4j",
-               "xpp3_min-1.1.4c",
-               "xstream-1.4.10")
+               "xpp3_min-1.1.4c"
+        )
 
 extra["nativePlatformVariants"] =
         listOf("windows-amd64",
