@@ -65,7 +65,7 @@ private class SortModifiersFix : LocalQuickFix {
     override fun getFamilyName() = name
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-        (descriptor.psiElement as? KtModifierList)?.normalize()
+        (descriptor.psiElement as? KtModifierList)?.let { it.replace(it.normalize()) }
     }
 }
 
