@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 import org.jetbrains.kotlin.psi.KtScript
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
 import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
@@ -45,6 +46,8 @@ open class KotlinScriptDefinition(val template: KClass<out Any>) {
     open val dependencyResolver: DependenciesResolver get() = DependenciesResolver.NoDependencies
 
     open val acceptedAnnotations: List<KClass<out Annotation>> get() = emptyList()
+
+    open val implicitReceivers: List<KType> get() = emptyList()
 }
 
 object StandardScriptDefinition : KotlinScriptDefinition(ScriptTemplateWithArgs::class)
