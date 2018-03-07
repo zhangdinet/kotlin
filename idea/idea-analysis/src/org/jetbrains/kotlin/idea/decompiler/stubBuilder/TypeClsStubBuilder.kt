@@ -20,6 +20,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionClass
+import org.jetbrains.kotlin.config.continuationInterfaceFqName
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.metadata.ProtoBuf
@@ -189,7 +190,7 @@ class TypeClsStubBuilder(private val c: ClsStubBuilderContext) {
                 if (parameterType.hasClassName() && parameterType.argumentCount == 1) {
                     val classId = c.nameResolver.getClassId(parameterType.className)
                     val fqName = classId.asSingleFqName()
-                    if (fqName == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME) {
+                    if (fqName.asString().startsWith("kotlin.coroutines.") && fqName.asString().endsWith(".Continuation")) {
                         suspendParameterType = parameterType
                         continue
                     }

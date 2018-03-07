@@ -17,8 +17,9 @@
 package org.jetbrains.kotlin.codegen
 
 import org.jetbrains.kotlin.builtins.createFunctionType
-import org.jetbrains.kotlin.codegen.coroutines.COROUTINES_JVM_INTERNAL_PACKAGE_FQ_NAME
+import org.jetbrains.kotlin.codegen.coroutines.coroutinesJvmInternalPackageFqName
 import org.jetbrains.kotlin.codegen.coroutines.getOrCreateJvmSuspendFunctionView
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.coroutines.isSuspendLambda
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -31,10 +32,10 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.KotlinType
 
-class JvmRuntimeTypes(module: ModuleDescriptor) {
+class JvmRuntimeTypes(module: ModuleDescriptor, languageVersionSettings: LanguageVersionSettings) {
     private val kotlinJvmInternalPackage = MutablePackageFragmentDescriptor(module, FqName("kotlin.jvm.internal"))
     private val kotlinCoroutinesJvmInternalPackage =
-            MutablePackageFragmentDescriptor(module, COROUTINES_JVM_INTERNAL_PACKAGE_FQ_NAME)
+        MutablePackageFragmentDescriptor(module, coroutinesJvmInternalPackageFqName(languageVersionSettings))
 
     private fun klass(name: String) = lazy { createClass(kotlinJvmInternalPackage, name) }
 

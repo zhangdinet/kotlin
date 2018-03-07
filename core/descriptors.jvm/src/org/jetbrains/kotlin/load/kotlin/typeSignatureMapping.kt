@@ -47,9 +47,6 @@ interface TypeMappingConfiguration<out T : Any> {
 
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
 
-private val CONTINUATION_INTERNAL_NAME =
-    JvmClassName.byClassId(ClassId.topLevel(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME)).internalName
-
 fun <T : Any> mapType(
     kotlinType: KotlinType,
     factory: JvmTypeFactory<T>,
@@ -180,11 +177,6 @@ fun hasVoidReturnType(descriptor: CallableDescriptor): Boolean {
 
 private fun <T : Any> mapBuiltInType(type: KotlinType, typeFactory: JvmTypeFactory<T>, mode: TypeMappingMode): T? {
     val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
-
-    if (descriptor === FAKE_CONTINUATION_CLASS_DESCRIPTOR) {
-
-        return typeFactory.createObjectType(CONTINUATION_INTERNAL_NAME)
-    }
 
     val primitiveType = KotlinBuiltIns.getPrimitiveType(descriptor)
     if (primitiveType != null) {

@@ -19,6 +19,8 @@ package org.jetbrains.kotlin.js.translate.context;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.config.CommonConfigurationKeysKt;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
@@ -933,5 +935,10 @@ public class TranslationContext {
     @NotNull
     public JsName getVariableForPropertyMetadata(@NotNull VariableDescriptorWithAccessors property) {
         return staticContext.getVariableForPropertyMetadata(property);
+    }
+
+    @NotNull
+    public LanguageVersionSettings getLanguageVersionSettings() {
+        return CommonConfigurationKeysKt.getLanguageVersionSettings(staticContext.getConfig().getConfiguration());
     }
 }

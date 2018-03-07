@@ -165,7 +165,7 @@ class CallArgumentTranslator private constructor(
         val callableDescriptor = resolvedCall.resultingDescriptor
         if (callableDescriptor is FunctionDescriptor && callableDescriptor.isSuspend) {
             var continuationArg: JsExpression = TranslationUtils.translateContinuationArgument(context())
-            if (callableDescriptor.original.isBuiltInSuspendCoroutineOrReturn()) {
+            if (callableDescriptor.original.isBuiltInSuspendCoroutineOrReturn(context().languageVersionSettings)) {
                 val facadeName = context().getNameForDescriptor(TranslationUtils.getCoroutineProperty(context(), "facade"))
                 continuationArg = JsAstUtils.pureFqn(facadeName, continuationArg)
             }

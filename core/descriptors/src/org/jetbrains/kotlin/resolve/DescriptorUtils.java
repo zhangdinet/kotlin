@@ -49,9 +49,12 @@ public class DescriptorUtils {
     public static final FqName JVM_NAME = new FqName("kotlin.jvm.JvmName");
     private static final FqName VOLATILE = new FqName("kotlin.jvm.Volatile");
     private static final FqName SYNCHRONIZED = new FqName("kotlin.jvm.Synchronized");
-    public static final FqName COROUTINES_PACKAGE_FQ_NAME = new FqName("kotlin.coroutines.experimental");
-    public static final FqName COROUTINES_INTRINSICS_PACKAGE_FQ_NAME = COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("intrinsics"));
-    public static final FqName CONTINUATION_INTERFACE_FQ_NAME = COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("Continuation"));
+    public static final FqName COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL = new FqName("kotlin.coroutines.experimental");
+    public static final FqName COROUTINES_PACKAGE_FQ_NAME_RELEASE = new FqName("kotlin.coroutines.experimental");
+    public static final FqName COROUTINES_INTRINSICS_PACKAGE_FQ_NAME_EXPERIMENTAL = COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL.child(Name.identifier("intrinsics"));
+    public static final FqName COROUTINES_INTRINSICS_PACKAGE_FQ_NAME_RELEASE = COROUTINES_PACKAGE_FQ_NAME_RELEASE.child(Name.identifier("intrinsics"));
+    public static final FqName CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL = COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL.child(Name.identifier("Continuation"));
+    public static final FqName CONTINUATION_INTERFACE_FQ_NAME_RELEASE = COROUTINES_PACKAGE_FQ_NAME_RELEASE.child(Name.identifier("Continuation"));
 
     private DescriptorUtils() {
     }

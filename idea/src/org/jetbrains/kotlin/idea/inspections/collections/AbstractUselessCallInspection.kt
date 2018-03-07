@@ -58,10 +58,9 @@ abstract class AbstractUselessCallInspection : AbstractKotlinInspection() {
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) = QualifiedExpressionVisitor(holder, isOnTheFly)
 
+    data class Conversion(val replacementName: String? = null)
 
     protected companion object {
-        data class Conversion(val replacementName: String? = null)
-
         val deleteConversion = Conversion()
 
         fun Set<String>.toShortNames() = mapTo(mutableSetOf()) { fqName -> fqName.takeLastWhile { it != '.' } }

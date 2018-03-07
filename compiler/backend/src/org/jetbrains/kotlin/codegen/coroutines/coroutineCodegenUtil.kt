@@ -21,11 +21,18 @@ import org.jetbrains.kotlin.backend.common.*
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.codegen.ExpressionCodegen
 import org.jetbrains.kotlin.codegen.StackValue
+import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.ApiVersion
+import org.jetbrains.kotlin.config.coroutinesPackageFqName
+import org.jetbrains.kotlin.config.continuationInterfaceFqName
+import org.jetbrains.kotlin.config.coroutinesIntrinsicsPackageFqName
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.inline.addFakeContinuationMarker
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.codegen.topLevelClassAsmType
 import org.jetbrains.kotlin.codegen.topLevelClassInternalName
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
@@ -60,25 +67,28 @@ const val DO_RESUME_METHOD_NAME = "doResume"
 const val DATA_FIELD_NAME = "data"
 const val EXCEPTION_FIELD_NAME = "exception"
 
-@JvmField
-val COROUTINES_JVM_INTERNAL_PACKAGE_FQ_NAME =
-    DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("jvm")).child(Name.identifier("internal"))
+fun coroutinesJvmInternalPackageFqName(languageVersionSettings: LanguageVersionSettings) =
+    coroutinesPackageFqName(languageVersionSettings).child(Name.identifier("jvm")).child(Name.identifier("internal"))
 
-@JvmField
-val CONTINUATION_ASM_TYPE = DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME.topLevelClassAsmType()
+fun continuationAsmType(languageVersionSettings: LanguageVersionSettings) =
+    continuationInterfaceFqName(languageVersionSettings).topLevelClassAsmType()
 
-@JvmField
-val COROUTINE_CONTEXT_ASM_TYPE =
-    DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("CoroutineContext")).topLevelClassAsmType()
+fun continuationAsmTypes() = listOf(
+    continuationAsmType(LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3)),
+    continuationAsmType(LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_2, ApiVersion.KOTLIN_1_2))
+)
 
-@JvmField
-val COROUTINE_IMPL_ASM_TYPE = COROUTINES_JVM_INTERNAL_PACKAGE_FQ_NAME.child(Name.identifier("CoroutineImpl")).topLevelClassAsmType()
+fun coroutineContextAsmType(languageVersionSettings: LanguageVersionSettings) =
+    coroutinesPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineContext")).topLevelClassAsmType()
 
-private val COROUTINES_INTRINSICS_FILE_FACADE_INTERNAL_NAME =
-    DescriptorUtils.COROUTINES_INTRINSICS_PACKAGE_FQ_NAME.child(Name.identifier("IntrinsicsKt")).topLevelClassAsmType()
+fun coroutineImplAsmType(languageVersionSettings: LanguageVersionSettings) =
+    coroutinesJvmInternalPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineImpl")).topLevelClassAsmType()
 
-private val INTERNAL_COROUTINE_INTRINSICS_OWNER_INTERNAL_NAME =
-    COROUTINES_JVM_INTERNAL_PACKAGE_FQ_NAME.child(Name.identifier("CoroutineIntrinsics")).topLevelClassInternalName()
+private fun coroutinesIntrinsicsFileFacadeInternalName(languageVersionSettings: LanguageVersionSettings) =
+    coroutinesIntrinsicsPackageFqName(languageVersionSettings).child(Name.identifier("IntrinsicsKt")).topLevelClassAsmType()
+
+private fun internalCoroutineIntrinsicsOwnerInternalName(languageVersionSettings: LanguageVersionSettings) =
+    coroutinesJvmInternalPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineIntrinsics")).topLevelClassInternalName()
 
 private val NORMALIZE_CONTINUATION_METHOD_NAME = "normalizeContinuation"
 private val GET_CONTEXT_METHOD_NAME = "getContext"
@@ -176,14 +186,15 @@ private fun NewResolvedCallImpl<VariableDescriptor>.asDummyOldResolvedCall(bindi
     )
 }
 
-fun ResolvedCall<*>.isSuspendNoInlineCall(codegen: ExpressionCodegen): Boolean {
+fun ResolvedCall<*>.isSuspendNoInlineCall(codegen: ExpressionCodegen, languageVersionSettings: LanguageVersionSettings): Boolean {
     val isInlineLambda = this.safeAs<VariableAsFunctionResolvedCall>()
         ?.variableCall?.resultingDescriptor?.safeAs<ValueParameterDescriptor>()
         ?.let { it.isCrossinline || (!it.isNoinline && codegen.context.functionDescriptor.isInline) } == true
 
     val functionDescriptor = resultingDescriptor as? FunctionDescriptor ?: return false
     if (!functionDescriptor.isSuspend) return false
-    if (functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm() || functionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm()) return true
+    if (functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm(languageVersionSettings) ||
+        functionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm(languageVersionSettings)) return true
     return !(functionDescriptor.isInline || isInlineLambda)
 }
 
@@ -257,14 +268,15 @@ fun ModuleDescriptor.getContinuationOfTypeOrAny(kotlinType: KotlinType) =
         )
     } ?: module.builtIns.nullableAnyType
 
-fun FunctionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm() =
-    getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineOrReturn() == true
+fun FunctionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm(languageVersionSettings: LanguageVersionSettings) =
+    getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineOrReturn(languageVersionSettings) == true
 
 fun createMethodNodeForSuspendCoroutineOrReturn(
     functionDescriptor: FunctionDescriptor,
-    typeMapper: KotlinTypeMapper
+    typeMapper: KotlinTypeMapper,
+    languageVersionSettings: LanguageVersionSettings
 ): MethodNode {
-    assert(functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm()) {
+    assert(functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm(languageVersionSettings)) {
         "functionDescriptor must be kotlin.coroutines.intrinsics.suspendOrReturn"
     }
 
@@ -279,13 +291,7 @@ fun createMethodNodeForSuspendCoroutineOrReturn(
     node.visitVarInsn(Opcodes.ALOAD, 0)
     node.visitVarInsn(Opcodes.ALOAD, 1)
 
-    node.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        INTERNAL_COROUTINE_INTRINSICS_OWNER_INTERNAL_NAME,
-        NORMALIZE_CONTINUATION_METHOD_NAME,
-        Type.getMethodDescriptor(CONTINUATION_ASM_TYPE, CONTINUATION_ASM_TYPE),
-        false
-    )
+    invokeNormalizeContinuation(node, languageVersionSettings)
 
     node.visitMethodInsn(
         Opcodes.INVOKEINTERFACE,
@@ -300,14 +306,25 @@ fun createMethodNodeForSuspendCoroutineOrReturn(
     return node
 }
 
-fun FunctionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm() =
-    getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineUninterceptedOrReturn() == true
+private fun invokeNormalizeContinuation(node: MethodNode, languageVersionSettings: LanguageVersionSettings) {
+    node.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        internalCoroutineIntrinsicsOwnerInternalName(languageVersionSettings),
+        NORMALIZE_CONTINUATION_METHOD_NAME,
+        Type.getMethodDescriptor(continuationAsmType(languageVersionSettings), continuationAsmType(languageVersionSettings)),
+        false
+    )
+}
+
+fun FunctionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm(languageVersionSettings: LanguageVersionSettings) =
+    getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION)?.isBuiltInSuspendCoroutineUninterceptedOrReturn(languageVersionSettings) == true
 
 fun createMethodNodeForIntercepted(
     functionDescriptor: FunctionDescriptor,
-    typeMapper: KotlinTypeMapper
+    typeMapper: KotlinTypeMapper,
+    languageVersionSettings: LanguageVersionSettings
 ): MethodNode {
-    assert(functionDescriptor.isBuiltInIntercepted()) {
+    assert(functionDescriptor.isBuiltInIntercepted(languageVersionSettings)) {
         "functionDescriptor must be kotlin.coroutines.intrinsics.intercepted"
     }
 
@@ -321,21 +338,19 @@ fun createMethodNodeForIntercepted(
 
     node.visitVarInsn(Opcodes.ALOAD, 0)
 
-    node.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        INTERNAL_COROUTINE_INTRINSICS_OWNER_INTERNAL_NAME,
-        NORMALIZE_CONTINUATION_METHOD_NAME,
-        Type.getMethodDescriptor(CONTINUATION_ASM_TYPE, CONTINUATION_ASM_TYPE),
-        false
-    )
+    invokeNormalizeContinuation(node, languageVersionSettings)
+
     node.visitInsn(Opcodes.ARETURN)
     node.visitMaxs(1, 1)
 
     return node
 }
 
-fun createMethodNodeForCoroutineContext(functionDescriptor: FunctionDescriptor): MethodNode {
-    assert(functionDescriptor.isBuiltInCoroutineContext()) {
+fun createMethodNodeForCoroutineContext(
+    functionDescriptor: FunctionDescriptor,
+    languageVersionSettings: LanguageVersionSettings
+): MethodNode {
+    assert(functionDescriptor.isBuiltInCoroutineContext(languageVersionSettings)) {
         "functionDescriptor must be kotlin.coroutines.intrinsics.coroutineContext property getter"
     }
 
@@ -344,7 +359,7 @@ fun createMethodNodeForCoroutineContext(functionDescriptor: FunctionDescriptor):
             Opcodes.ASM5,
             Opcodes.ACC_STATIC,
             "fake",
-            Type.getMethodDescriptor(COROUTINE_CONTEXT_ASM_TYPE),
+            Type.getMethodDescriptor(coroutineContextAsmType(languageVersionSettings)),
             null, null
         )
 
@@ -352,24 +367,29 @@ fun createMethodNodeForCoroutineContext(functionDescriptor: FunctionDescriptor):
 
     addFakeContinuationMarker(v)
 
-    v.invokeinterface(
-        CONTINUATION_ASM_TYPE.internalName,
-        GET_CONTEXT_METHOD_NAME,
-        Type.getMethodDescriptor(COROUTINE_CONTEXT_ASM_TYPE)
-    )
-    v.areturn(COROUTINE_CONTEXT_ASM_TYPE)
+    invokeGetContext(v, languageVersionSettings)
 
     node.visitMaxs(1, 1)
 
     return node
 }
 
+private fun invokeGetContext(v: InstructionAdapter, languageVersionSettings: LanguageVersionSettings) {
+    v.invokeinterface(
+        continuationAsmType(languageVersionSettings).internalName,
+        GET_CONTEXT_METHOD_NAME,
+        Type.getMethodDescriptor(coroutineContextAsmType(languageVersionSettings))
+    )
+    v.areturn(coroutineContextAsmType(languageVersionSettings))
+}
+
 
 fun createMethodNodeForSuspendCoroutineUninterceptedOrReturn(
     functionDescriptor: FunctionDescriptor,
-    typeMapper: KotlinTypeMapper
+    typeMapper: KotlinTypeMapper,
+    languageVersionSettings: LanguageVersionSettings
 ): MethodNode {
-    assert(functionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm()) {
+    assert(functionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm(languageVersionSettings)) {
         "functionDescriptor must be kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn"
     }
 
@@ -408,9 +428,9 @@ fun FunctionDescriptor.getOriginalSuspendFunctionView(bindingContext: BindingCon
     else
         this
 
-fun InstructionAdapter.loadCoroutineSuspendedMarker() {
+fun InstructionAdapter.loadCoroutineSuspendedMarker(languageVersionSettings: LanguageVersionSettings) {
     invokestatic(
-        COROUTINES_INTRINSICS_FILE_FACADE_INTERNAL_NAME.internalName,
+        coroutinesIntrinsicsFileFacadeInternalName(languageVersionSettings).internalName,
         "get$COROUTINE_SUSPENDED_NAME",
         Type.getMethodDescriptor(AsmTypes.OBJECT_TYPE),
         false

@@ -19,6 +19,8 @@ package org.jetbrains.kotlin.resolve.calls.checkers
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.restrictsSuspensionFqName
+import org.jetbrains.kotlin.config.isBuiltInCoroutineContext
 import org.jetbrains.kotlin.coroutines.hasSuspendFunctionType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -26,15 +28,11 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyGetterDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.hasRestrictsSuspensionAnnotation
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.resolve.scopes.HierarchicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
@@ -46,16 +44,11 @@ import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val COROUTINE_CONTEXT_1_2_20_FQ_NAME = DescriptorUtils.COROUTINES_INTRINSICS_PACKAGE_FQ_NAME.child(Name.identifier("coroutineContext"))
-val COROUTINE_CONTEXT_FQ_NAME = DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME.child(Name.identifier("coroutineContext"))
+fun FunctionDescriptor.isBuiltInCoroutineContext(languageFeatureSettings: LanguageVersionSettings) =
+    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCoroutineContext(languageFeatureSettings) == true
 
-fun FqName.isBuiltInCorouineContext() =
-    this == COROUTINE_CONTEXT_1_2_20_FQ_NAME || this == COROUTINE_CONTEXT_FQ_NAME
-
-fun FunctionDescriptor.isBuiltInCoroutineContext() =
-    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCorouineContext() == true
-
-fun PropertyDescriptor.isBuiltInCoroutineContext() = this.fqNameSafe.isBuiltInCorouineContext()
+fun PropertyDescriptor.isBuiltInCoroutineContext(languageFeatureSettings: LanguageVersionSettings) =
+    this.fqNameSafe.isBuiltInCoroutineContext(languageFeatureSettings)
 
 object CoroutineSuspendCallChecker : CallChecker {
     private val ALLOWED_SCOPE_KINDS = setOf(LexicalScopeKind.FUNCTION_INNER_SCOPE, LexicalScopeKind.FUNCTION_HEADER_FOR_DESTRUCTURING)
@@ -64,10 +57,7 @@ object CoroutineSuspendCallChecker : CallChecker {
         val descriptor = resolvedCall.candidateDescriptor
         when (descriptor) {
             is FunctionDescriptor -> if (!descriptor.isSuspend) return
-            is PropertyDescriptor -> when (descriptor.fqNameSafe) {
-                COROUTINE_CONTEXT_1_2_20_FQ_NAME, COROUTINE_CONTEXT_FQ_NAME -> {}
-                else -> return
-            }
+            is PropertyDescriptor -> if (!descriptor.isBuiltInCoroutineContext(context.languageVersionSettings)) return
             else -> return
         }
 
@@ -153,7 +143,7 @@ private fun checkRestrictsSuspension(
     val enclosingSuspendReceiverValue = enclosingCallableDescriptor.extensionReceiverParameter?.value ?: return
 
     fun ReceiverValue.isRestrictsSuspensionReceiver() = (type.supertypes() + type).any {
-        it.constructor.declarationDescriptor?.hasRestrictsSuspensionAnnotation() == true
+        it.constructor.declarationDescriptor?.annotations?.hasAnnotation(restrictsSuspensionFqName(context.languageVersionSettings)) == true
     }
 
     infix fun ReceiverValue.sameInstance(other: ReceiverValue?): Boolean {

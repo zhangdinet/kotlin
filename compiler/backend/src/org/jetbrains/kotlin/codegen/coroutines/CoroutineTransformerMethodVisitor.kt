@@ -21,12 +21,14 @@ import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.TransformationMethodVisitor
+import org.jetbrains.kotlin.codegen.coroutines.coroutineImplAsmType
 import org.jetbrains.kotlin.codegen.inline.*
 import org.jetbrains.kotlin.codegen.optimization.DeadCodeEliminationMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.common.*
 import org.jetbrains.kotlin.codegen.optimization.fixStack.FixStackMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.fixStack.top
 import org.jetbrains.kotlin.codegen.optimization.transformer.MethodTransformer
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.utils.sure
@@ -52,6 +54,7 @@ class CoroutineTransformerMethodVisitor(
     private val isForNamedFunction: Boolean,
     private val shouldPreserveClassInitialization: Boolean,
     private val lineNumber: Int,
+    private val languageVersionSettings: LanguageVersionSettings,
     // It's only matters for named functions, may differ from '!isStatic(access)' in case of DefaultImpls
     private val needDispatchReceiver: Boolean = false,
     // May differ from containingClassInternalName in case of DefaultImpls
@@ -128,7 +131,7 @@ class CoroutineTransformerMethodVisitor(
             insertBefore(
                 actualCoroutineStart,
                 insnListOf(
-                    *withInstructionAdapter { loadCoroutineSuspendedMarker() }.toArray(),
+                    *withInstructionAdapter { loadCoroutineSuspendedMarker(languageVersionSettings) }.toArray(),
                     tableSwitchLabel,
                     // Allow debugger to stop on enter into suspend function
                     LineNumberNode(lineNumber, tableSwitchLabel),
@@ -181,7 +184,7 @@ class CoroutineTransformerMethodVisitor(
         else
             FieldInsnNode(
                 Opcodes.GETFIELD,
-                COROUTINE_IMPL_ASM_TYPE.internalName,
+                coroutineImplAsmType(languageVersionSettings).internalName,
                 COROUTINE_LABEL_FIELD_NAME, Type.INT_TYPE.descriptor
             )
 
@@ -197,7 +200,7 @@ class CoroutineTransformerMethodVisitor(
         else
             FieldInsnNode(
                 Opcodes.PUTFIELD,
-                COROUTINE_IMPL_ASM_TYPE.internalName,
+                coroutineImplAsmType(languageVersionSettings).internalName,
                 COROUTINE_LABEL_FIELD_NAME, Type.INT_TYPE.descriptor
             )
 
@@ -597,6 +600,22 @@ class CoroutineTransformerMethodVisitor(
 
         return
     }
+
+    private fun getParameterTypesIndicesForCoroutineConstructor(
+        desc: String,
+        containingFunctionAccess: Int,
+        needDispatchReceiver: Boolean,
+        thisName: String
+    ): Collection<Pair<Type, Int>> {
+        return mutableListOf<Pair<Type, Int>>().apply {
+            if (needDispatchReceiver) {
+                add(Type.getObjectType(thisName) to 0)
+            }
+            val continuationIndex =
+                getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
+            add(continuationAsmType(languageVersionSettings) to continuationIndex)
+        }
+    }
 }
 
 internal fun InstructionAdapter.generateContinuationConstructorCall(
@@ -698,22 +717,6 @@ private fun getParameterTypesForCoroutineConstructor(desc: String, hasDispatchRe
             Type.getArgumentTypes(desc).last()
 
 private fun isStatic(access: Int) = access and Opcodes.ACC_STATIC != 0
-
-private fun getParameterTypesIndicesForCoroutineConstructor(
-    desc: String,
-    containingFunctionAccess: Int,
-    needDispatchReceiver: Boolean,
-    thisName: String
-): Collection<Pair<Type, Int>> {
-    return mutableListOf<Pair<Type, Int>>().apply {
-        if (needDispatchReceiver) {
-            add(Type.getObjectType(thisName) to 0)
-        }
-        val continuationIndex =
-            getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
-        add(CONTINUATION_ASM_TYPE to continuationIndex)
-    }
-}
 
 private fun getAllParameterTypes(desc: String, hasDispatchReceiver: Boolean, thisName: String) =
     listOfNotNull(if (!hasDispatchReceiver) null else Type.getObjectType(thisName)).toTypedArray() +

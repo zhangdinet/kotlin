@@ -21,6 +21,7 @@ import com.intellij.util.SmartList
 import org.jetbrains.kotlin.backend.common.COROUTINE_SUSPENDED_NAME
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.coroutinesIntrinsicsPackageFqName
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -78,7 +79,7 @@ fun generateDelegateCall(
         args.add(JsNameRef(jsParamName))
     }
 
-    val intrinsic = context.intrinsics().getFunctionIntrinsic(toDescriptor)
+    val intrinsic = context.intrinsics().getFunctionIntrinsic(toDescriptor, context)
     val invocation = if (intrinsic.exists() && intrinsic is FunctionIntrinsicWithReceiverComputed) {
         intrinsic.apply(thisObject, args, context)
     } else {
@@ -165,7 +166,7 @@ fun JsFunction.fillCoroutineMetadata(
     descriptor: FunctionDescriptor,
     hasController: Boolean
 ) {
-    val suspendPropertyDescriptor = context.currentModule.getPackage(DescriptorUtils.COROUTINES_INTRINSICS_PACKAGE_FQ_NAME)
+    val suspendPropertyDescriptor = context.currentModule.getPackage(coroutinesIntrinsicsPackageFqName(context.languageVersionSettings))
         .memberScope
         .getContributedVariables(COROUTINE_SUSPENDED_NAME, NoLookupLocation.FROM_BACKEND).first()
 

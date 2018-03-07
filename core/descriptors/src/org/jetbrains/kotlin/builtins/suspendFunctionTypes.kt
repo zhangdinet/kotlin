@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.impl.MutableClassDescriptor
 import org.jetbrains.kotlin.descriptors.impl.TypeParameterDescriptorImpl
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -31,22 +32,23 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
+private val CONTINUATION_INTERFACE_FQ_NAME_SHORT = Name.identifier("Continuation")
 
 val FAKE_CONTINUATION_CLASS_DESCRIPTOR =
-        MutableClassDescriptor(
-                EmptyPackageFragmentDescriptor(ErrorUtils.getErrorModule(), DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME),
-                ClassKind.INTERFACE, /* isInner = */ false, /* isExternal = */ false,
-                DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME.shortName(), SourceElement.NO_SOURCE
-        ).apply {
-            modality = Modality.ABSTRACT
-            visibility = Visibilities.PUBLIC
-            setTypeParameterDescriptors(
-                    TypeParameterDescriptorImpl.createWithDefaultBound(
-                            this, Annotations.EMPTY, false, Variance.IN_VARIANCE, Name.identifier("T"), 0
-                    ).let(::listOf)
-            )
-            createTypeConstructor()
-        }
+    MutableClassDescriptor(
+        ErrorUtils.getErrorModule(),
+        ClassKind.INTERFACE, /* isInner = */ false, /* isExternal = */ false,
+        CONTINUATION_INTERFACE_FQ_NAME_SHORT, SourceElement.NO_SOURCE
+    ).apply {
+        modality = Modality.ABSTRACT
+        visibility = Visibilities.PUBLIC
+        setTypeParameterDescriptors(
+            TypeParameterDescriptorImpl.createWithDefaultBound(
+                this, Annotations.EMPTY, false, Variance.IN_VARIANCE, Name.identifier("T"), 0
+            ).let(::listOf)
+        )
+        createTypeConstructor()
+    }
 
 
 fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType): SimpleType {
@@ -79,9 +81,7 @@ fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType): SimpleTy
     }
 
     val continuationArgumentType = funType.getValueParameterTypesFromFunctionType().lastOrNull()?.type ?: return null
-    if (continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe != DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME
-        || continuationArgumentType.arguments.size != 1
-    ) {
+    if (isContinuation(continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe) || continuationArgumentType.arguments.size != 1) {
         return null
     }
 
@@ -97,4 +97,8 @@ fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType): SimpleTy
             suspendReturnType,
             suspendFunction = true
     ).makeNullableAsSpecified(funType.isMarkedNullable)
+}
+
+private fun isContinuation(name: FqName?): Boolean {
+    return name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL || name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
 }

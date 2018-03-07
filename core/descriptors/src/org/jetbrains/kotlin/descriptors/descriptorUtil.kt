@@ -33,7 +33,8 @@ fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: Lookup
 }
 
 fun ModuleDescriptor.findContinuationClassDescriptorOrNull(lookupLocation: LookupLocation) =
-        resolveClassByFqName(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME, lookupLocation)
+    resolveClassByFqName(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE, lookupLocation)
+            ?: resolveClassByFqName(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL, lookupLocation)
 
 fun ModuleDescriptor.findContinuationClassDescriptor(lookupLocation: LookupLocation) =
         findContinuationClassDescriptorOrNull(lookupLocation).sure { "Continuation interface is not found" }

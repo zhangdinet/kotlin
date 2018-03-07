@@ -49,8 +49,8 @@ public final class Intrinsics {
     }
 
     @NotNull
-    public FunctionIntrinsic getFunctionIntrinsic(@NotNull FunctionDescriptor descriptor) {
-        return functionIntrinsics.getIntrinsic(descriptor);
+    public FunctionIntrinsic getFunctionIntrinsic(@NotNull FunctionDescriptor descriptor, @NotNull TranslationContext context) {
+        return functionIntrinsics.getIntrinsic(descriptor, context);
     }
 
     @NotNull

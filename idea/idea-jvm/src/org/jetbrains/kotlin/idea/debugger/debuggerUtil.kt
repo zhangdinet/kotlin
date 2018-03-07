@@ -25,8 +25,8 @@ import com.intellij.psi.PsiElement
 import com.sun.jdi.*
 import com.sun.tools.jdi.LocalVariableImpl
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
-import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
 import org.jetbrains.kotlin.codegen.coroutines.DO_RESUME_METHOD_NAME
+import org.jetbrains.kotlin.codegen.coroutines.continuationAsmTypes
 import org.jetbrains.kotlin.idea.codeInsight.CodeInsightUtils
 import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.refactoring.getLineEndOffset
@@ -160,8 +160,12 @@ fun isInSuspendMethod(location: Location): Boolean {
     val method = location.method()
     val signature = method.signature()
 
-    return signature.contains(CONTINUATION_ASM_TYPE.toString()) ||
-           (method.name() == DO_RESUME_METHOD_NAME && signature == DO_RESUME_SIGNATURE)
+    for (continuationAsmType in continuationAsmTypes()) {
+        if (signature.contains(continuationAsmType.toString()) ||
+            (method.name() == DO_RESUME_METHOD_NAME && signature == DO_RESUME_SIGNATURE)
+        ) return true
+    }
+    return false
 }
 
 fun suspendFunctionFirstLineLocation(location: Location): Int? {

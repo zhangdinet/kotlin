@@ -307,7 +307,7 @@ allprojects {
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile> {
         kotlinOptions {
-            freeCompilerArgs = commonCompilerArgs + listOf("-Xnormalize-constructor-calls=enable")
+            freeCompilerArgs = commonCompilerArgs + listOf("-Xnormalize-constructor-calls=enable", "-Xskip-metadata-version-check")
         }
     }
 

@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.inline.addFakeContinuationConstructorCallMarker
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.JVMConstructorCallNormalizationMode
+import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtFunction
@@ -46,6 +48,7 @@ class SuspendFunctionGenerationStrategy(
 ) : FunctionGenerationStrategy.CodegenBased(state) {
 
     private lateinit var codegen: ExpressionCodegen
+    private val languageVersionSettings: LanguageVersionSettings = state.configuration.languageVersionSettings
 
     private val classBuilderForCoroutineState by lazy {
         state.factory.newVisitor(
@@ -69,14 +72,14 @@ class SuspendFunctionGenerationStrategy(
                 originalSuspendDescriptor.dispatchReceiverParameter != null,
                 containingClassInternalNameOrNull()
             )
-        }
         return CoroutineTransformerMethodVisitor(
-            mv, access, name, desc, null, null, containingClassInternalName, this::classBuilderForCoroutineState,
-            isForNamedFunction = true,
-            lineNumber = CodegenUtil.getLineNumberForElement(declaration, false) ?: 0,
-            shouldPreserveClassInitialization = constructorCallNormalizationMode.shouldPreserveClassInitialization,
-            needDispatchReceiver = originalSuspendDescriptor.dispatchReceiverParameter != null,
-            internalNameForDispatchReceiver = containingClassInternalNameOrNull()
+                mv, access, name, desc, null, null, containingClassInternalName, this::classBuilderForCoroutineState,
+                isForNamedFunction = true,
+                element = declaration,
+                shouldPreserveClassInitialization = constructorCallNormalizationMode.shouldPreserveClassInitialization,
+                needDispatchReceiver = originalSuspendDescriptor.dispatchReceiverParameter != null,
+                internalNameForDispatchReceiver = containingClassInternalNameOrNull(),
+                languageVersionSettings = languageVersionSettings
         )
     }
 

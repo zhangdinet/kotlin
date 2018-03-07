@@ -21,6 +21,8 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.backend.common.CommonCoroutineCodegenUtilKt;
+import org.jetbrains.kotlin.config.CommonConfigurationKeysKt;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.CallableDescriptor;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor;
@@ -334,7 +336,8 @@ public class JsInliner extends JsVisitorWithContextImpl {
 
     private void inline(@NotNull JsInvocation call, @NotNull JsContext context) {
         DeclarationDescriptor callDescriptor = MetadataProperties.getDescriptor(call);
-        if (isSuspendWithCurrentContinuation(callDescriptor)) {
+        if (isSuspendWithCurrentContinuation(callDescriptor,
+                                             CommonConfigurationKeysKt.getLanguageVersionSettings(config.getConfiguration()))) {
             inlineSuspendWithCurrentContinuation(call, context);
             return;
         }
@@ -493,9 +496,13 @@ public class JsInliner extends JsVisitorWithContextImpl {
         }.accept(statement);
     }
 
-    private static boolean isSuspendWithCurrentContinuation(@Nullable DeclarationDescriptor descriptor) {
+    private static boolean isSuspendWithCurrentContinuation(
+            @Nullable DeclarationDescriptor descriptor,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
         if (!(descriptor instanceof FunctionDescriptor)) return false;
-        return CommonCoroutineCodegenUtilKt.isBuiltInSuspendCoroutineOrReturn((FunctionDescriptor) descriptor.getOriginal());
+        return CommonCoroutineCodegenUtilKt
+                .isBuiltInSuspendCoroutineOrReturn((FunctionDescriptor) descriptor.getOriginal(), languageVersionSettings);
     }
 
     private void inlineSuspendWithCurrentContinuation(@NotNull JsInvocation call, @NotNull JsContext context) {

@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.js.translate.utils.JsAstUtils
 import org.jetbrains.kotlin.js.translate.utils.TranslationUtils
 
 object InterceptedFIF: FunctionIntrinsicFactory {
-    override fun getIntrinsic(descriptor: FunctionDescriptor): FunctionIntrinsic? {
-        if (!descriptor.isBuiltInIntercepted()) return null
+    override fun getIntrinsic(descriptor: FunctionDescriptor, context: TranslationContext): FunctionIntrinsic? {
+        if (!descriptor.isBuiltInIntercepted(context.languageVersionSettings)) return null
         return Intrinsic
     }
 

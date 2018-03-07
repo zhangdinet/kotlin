@@ -25,12 +25,13 @@ import org.jetbrains.kotlin.js.translate.callTranslator.CallInfo
 import org.jetbrains.kotlin.js.translate.context.TranslationContext
 import org.jetbrains.kotlin.js.translate.intrinsic.functions.basic.FunctionIntrinsic
 
-object SuspendCoroutineUninterceptedOrReturnFIF: FunctionIntrinsicFactory {
-    override fun getIntrinsic(descriptor: FunctionDescriptor): FunctionIntrinsic? {
-        if (!descriptor.isBuiltInSuspendCoroutineUninterceptedOrReturn()) return null
+object SuspendCoroutineUninterceptedOrReturnFIF : FunctionIntrinsicFactory {
+    override fun getIntrinsic(descriptor: FunctionDescriptor, context: TranslationContext): FunctionIntrinsic? {
+        if (!descriptor.isBuiltInSuspendCoroutineUninterceptedOrReturn(context.languageVersionSettings)) return null
         return Intrinsic
     }
-    object Intrinsic: FunctionIntrinsic() {
+
+    object Intrinsic : FunctionIntrinsic() {
         override fun apply(callInfo: CallInfo, arguments: List<JsExpression>, context: TranslationContext): JsExpression {
             val lambda = arguments.first()
             val continuation = arguments.last()
