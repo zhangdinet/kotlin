@@ -8,8 +8,8 @@ package org.jetbrains.kotlin.idea.inspections
 import com.intellij.codeInspection.*
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
+import org.jetbrains.kotlin.idea.core.normalize
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
-import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.addRemoveModifier.sortModifiers
 import org.jetbrains.kotlin.psi.psiUtil.allChildren
@@ -51,7 +51,7 @@ class SortModifiersInspection : AbstractKotlinInspection(), CleanupLocalInspecti
                     message,
                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
                     isOnTheFly,
-                    SortModifiersFix(sortedModifiers)
+                    SortModifiersFix()
                 )
                 holder.registerProblem(descriptor)
             }
@@ -59,22 +59,13 @@ class SortModifiersInspection : AbstractKotlinInspection(), CleanupLocalInspecti
     }
 }
 
-private class SortModifiersFix(private val modifiers: List<KtModifierKeywordToken>) : LocalQuickFix {
+private class SortModifiersFix : LocalQuickFix {
     override fun getName() = "Sort modifiers"
 
     override fun getFamilyName() = name
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-        val list = descriptor.psiElement as? KtModifierList ?: return
-        val owner = list.parent as? KtModifierListOwner ?: return
-
-        modifiers.forEach { owner.removeModifier(it) }
-        // We add visibility / modality modifiers after all others,
-        // because they can be redundant or not depending on others (e.g. override)
-        modifiers
-            .partition { it in KtTokens.VISIBILITY_MODIFIERS || it in KtTokens.MODALITY_MODIFIERS }
-            .let { it.second + it.first }
-            .forEach { owner.addModifier(it) }
+        (descriptor.psiElement as? KtModifierList)?.normalize()
     }
 }
 
