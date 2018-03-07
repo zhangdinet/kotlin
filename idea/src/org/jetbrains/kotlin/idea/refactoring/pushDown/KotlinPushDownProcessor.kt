@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.codeInsight.shorten.addToShorteningWaitSet
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.KotlinMemberInfo
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.KtPsiClassWrapper
 import org.jetbrains.kotlin.idea.refactoring.pullUp.*
@@ -181,7 +182,7 @@ class KotlinPushDownProcessor(
                         if (member.hasModifier(KtTokens.PRIVATE_KEYWORD)) {
                             member.addModifier(KtTokens.PROTECTED_KEYWORD)
                         }
-                        makeAbstract(member, memberDescriptor, TypeSubstitutor.EMPTY, context.sourceClass)
+                        makeAbstract(member, memberDescriptor, TypeSubstitutor.EMPTY)
                         member.typeReference?.addToShorteningWaitSet()
                     }
                     else {

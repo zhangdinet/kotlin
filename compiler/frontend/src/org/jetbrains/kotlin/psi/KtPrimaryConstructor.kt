@@ -36,7 +36,7 @@ class KtPrimaryConstructor : KtConstructor<KtPrimaryConstructor> {
         return getConstructorKeyword() ?: addBefore(KtPsiFactory(this).createConstructorKeyword(), valueParameterList!!)
     }
 
-    override fun addModifier(modifier: KtModifierKeywordToken) {
+    override fun addModifierUnchecked(modifier: KtModifierKeywordToken) {
         val modifierList = modifierList
         if (modifierList != null) {
             addModifier(modifierList, modifier)

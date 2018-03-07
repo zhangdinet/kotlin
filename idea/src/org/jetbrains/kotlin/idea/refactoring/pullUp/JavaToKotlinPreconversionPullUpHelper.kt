@@ -29,10 +29,10 @@ import com.intellij.refactoring.util.classMembers.MemberInfo
 import com.intellij.util.VisibilityUtil
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.idea.codeInsight.shorten.addToShorteningWaitSet
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.getOrCreateCompanionObject
 import org.jetbrains.kotlin.idea.refactoring.j2k
 import org.jetbrains.kotlin.idea.refactoring.j2kText
-import org.jetbrains.kotlin.idea.core.setVisibility
 import org.jetbrains.kotlin.idea.refactoring.safeDelete.removeOverrideModifier
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.load.java.JvmAbi
@@ -154,7 +154,7 @@ class JavaToKotlinPreconversionPullUpHelper(
         if (member is PsiField || member is PsiMethod) {
             val visibilityModifier = VisibilityUtil.getVisibilityModifier(member.modifierList)
             if (visibilityModifier == PsiModifier.PROTECTED || visibilityModifier == PsiModifier.PACKAGE_LOCAL) {
-                convertedDeclaration.setVisibility(KtTokens.PUBLIC_KEYWORD)
+                convertedDeclaration.addModifier(KtTokens.PUBLIC_KEYWORD)
             }
         }
         val newDeclaration = membersToDummyDeclarations[originalMember]?.replace(convertedDeclaration) as KtNamedDeclaration

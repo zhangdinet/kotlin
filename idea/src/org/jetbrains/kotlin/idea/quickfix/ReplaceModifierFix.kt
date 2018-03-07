@@ -39,7 +39,7 @@ class ReplaceModifierFix(
     override fun getFamilyName() = "Replace modifier"
 
     override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-        element?.addModifier(replacement)
+        element?.addModifierUnchecked(replacement)
     }
 
     companion object : KotlinSingleIntentionActionFactory() {

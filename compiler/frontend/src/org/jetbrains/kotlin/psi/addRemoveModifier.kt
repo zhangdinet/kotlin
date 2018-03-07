@@ -71,15 +71,6 @@ internal fun addModifier(modifierList: KtModifierList, modifier: KtModifierKeywo
         ?.mapNotNull { modifierList.getModifier(it) }
         ?.firstOrNull()
 
-    if (modifier == FINAL_KEYWORD && !modifierList.hasModifier(OVERRIDE_KEYWORD)) {
-        if (modifierToReplace != null) {
-            modifierToReplace.delete()
-            if (modifierList.firstChild == null) {
-                modifierList.delete()
-            }
-        }
-        return
-    }
     if (modifierToReplace != null && modifierList.firstChild == modifierList.lastChild) {
         modifierToReplace.replace(newModifier)
     } else {

@@ -26,12 +26,12 @@ import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaMethodDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.shorten.addToShorteningWaitSet
-import org.jetbrains.kotlin.idea.core.setVisibility
 import org.jetbrains.kotlin.idea.core.toKeywordToken
 import org.jetbrains.kotlin.idea.refactoring.dropOverrideKeywordIfNecessary
 import org.jetbrains.kotlin.idea.refactoring.replaceListPsiAndKeepDelimiters
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.core.ShortenReferences.Options
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.refactoring.changeSignature.*
 import org.jetbrains.kotlin.idea.refactoring.dropOperatorKeywordIfNecessary
 import org.jetbrains.kotlin.name.Name
@@ -224,8 +224,8 @@ class KotlinCallableDefinitionUsage<T : PsiElement>(
     private fun changeVisibility(changeInfo: KotlinChangeInfo, element: PsiElement) {
         val newVisibilityToken = changeInfo.newVisibility.toKeywordToken()
         when (element) {
-            is KtCallableDeclaration -> element.setVisibility(newVisibilityToken)
-            is KtClass -> element.createPrimaryConstructorIfAbsent().setVisibility(newVisibilityToken)
+            is KtCallableDeclaration -> element.addModifier(newVisibilityToken)
+            is KtClass -> element.createPrimaryConstructorIfAbsent().addModifier(newVisibilityToken)
             else -> throw AssertionError("Invalid element: " + element.getElementTextWithContext())
         }
     }

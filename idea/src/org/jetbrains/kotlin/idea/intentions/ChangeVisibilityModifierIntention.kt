@@ -23,10 +23,7 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.idea.core.canBePrivate
-import org.jetbrains.kotlin.idea.core.canBeProtected
-import org.jetbrains.kotlin.idea.core.setVisibility
-import org.jetbrains.kotlin.idea.core.toDescriptor
+import org.jetbrains.kotlin.idea.core.*
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
@@ -84,7 +81,7 @@ open class ChangeVisibilityModifierIntention protected constructor(
     }
 
     override fun applyTo(element: KtDeclaration, editor: Editor?) {
-        element.setVisibility(modifier)
+        element.addModifier(modifier)
         if (element is KtPropertyAccessor) element.modifierList?.nextSibling?.replace(KtPsiFactory(element).createWhiteSpace())
     }
 

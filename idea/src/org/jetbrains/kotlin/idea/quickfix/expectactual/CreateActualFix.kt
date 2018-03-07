@@ -203,7 +203,7 @@ class CreateActualFunctionFix(
 
 private fun KtModifierListOwner.replaceExpectModifier(actualNeeded: Boolean) {
     if (actualNeeded) {
-        addModifier(KtTokens.ACTUAL_KEYWORD)
+        addModifierUnchecked(KtTokens.ACTUAL_KEYWORD)
     } else {
         removeModifier(KtTokens.HEADER_KEYWORD)
         removeModifier(KtTokens.EXPECT_KEYWORD)

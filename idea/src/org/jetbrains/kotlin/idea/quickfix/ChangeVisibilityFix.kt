@@ -23,32 +23,33 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.canBePrivate
 import org.jetbrains.kotlin.idea.core.canBeProtected
-import org.jetbrains.kotlin.idea.core.setVisibility
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.resolve.ExposedVisibilityChecker
 
 open class ChangeVisibilityFix(
-        element: KtModifierListOwner,
+        element: KtDeclaration,
         private val elementName: String,
         private val visibilityModifier: KtModifierKeywordToken
-) : KotlinQuickFixAction<KtModifierListOwner>(element) {
+) : KotlinQuickFixAction<KtDeclaration>(element) {
 
     override fun getText() = "Make '$elementName' $visibilityModifier"
     override fun getFamilyName() = "Make $visibilityModifier"
 
     override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-        element?.setVisibility(visibilityModifier)
+        element?.addModifier(visibilityModifier)
     }
 
-    protected class ChangeToPublicFix(element: KtModifierListOwner, elementName: String) :
+    protected class ChangeToPublicFix(element: KtDeclaration, elementName: String) :
             ChangeVisibilityFix(element, elementName, KtTokens.PUBLIC_KEYWORD), HighPriorityAction
 
-    protected class ChangeToProtectedFix(element: KtModifierListOwner, elementName: String) :
+    protected class ChangeToProtectedFix(element: KtDeclaration, elementName: String) :
             ChangeVisibilityFix(element, elementName, KtTokens.PROTECTED_KEYWORD) {
 
         override fun isAvailable(project: Project, editor: Editor?, file: KtFile): Boolean {
@@ -57,10 +58,10 @@ open class ChangeVisibilityFix(
         }
     }
 
-    protected class ChangeToInternalFix(element: KtModifierListOwner, elementName: String) :
+    protected class ChangeToInternalFix(element: KtDeclaration, elementName: String) :
             ChangeVisibilityFix(element, elementName, KtTokens.INTERNAL_KEYWORD)
 
-    protected class ChangeToPrivateFix(element: KtModifierListOwner, elementName: String) :
+    protected class ChangeToPrivateFix(element: KtDeclaration, elementName: String) :
             ChangeVisibilityFix(element, elementName, KtTokens.PRIVATE_KEYWORD), HighPriorityAction {
 
         override fun isAvailable(project: Project, editor: Editor?, file: KtFile): Boolean {
@@ -71,7 +72,7 @@ open class ChangeVisibilityFix(
 
     companion object {
         fun create(
-                declaration: KtModifierListOwner,
+                declaration: KtDeclaration,
                 descriptor: DeclarationDescriptorWithVisibility,
                 targetVisibility: Visibility
         ) : IntentionAction? {

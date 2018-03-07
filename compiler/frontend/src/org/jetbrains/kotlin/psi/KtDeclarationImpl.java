@@ -46,7 +46,7 @@ public abstract class KtDeclarationImpl extends KtExpressionImpl implements KtDe
     }
 
     @Override
-    public void addModifier(@NotNull KtModifierKeywordToken modifier) {
+    public void addModifierUnchecked(@NotNull KtModifierKeywordToken modifier) {
         AddRemoveModifierKt.addModifier(this, modifier);
     }
 

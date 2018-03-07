@@ -32,10 +32,7 @@ import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.codeInsight.shorten.addToShorteningWaitSet
-import org.jetbrains.kotlin.idea.core.dropDefaultValue
-import org.jetbrains.kotlin.idea.core.getOrCreateCompanionObject
-import org.jetbrains.kotlin.idea.core.replaced
-import org.jetbrains.kotlin.idea.core.setType
+import org.jetbrains.kotlin.idea.core.*
 import org.jetbrains.kotlin.idea.inspections.CONSTRUCTOR_VAL_VAR_MODIFIERS
 import org.jetbrains.kotlin.idea.refactoring.createJavaField
 import org.jetbrains.kotlin.idea.refactoring.dropOverrideKeywordIfNecessary
@@ -484,8 +481,7 @@ class KotlinPullUpHelper(
                     makeAbstract(
                         memberCopy,
                         data.memberDescriptors[member] as CallableMemberDescriptor,
-                        data.sourceToTargetClassSubstitutor,
-                        data.targetClass
+                        data.sourceToTargetClassSubstitutor
                     )
                 }
 

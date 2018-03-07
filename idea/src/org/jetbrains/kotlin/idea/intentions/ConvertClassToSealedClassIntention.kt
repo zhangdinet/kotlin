@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.idea.intentions
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
@@ -39,10 +40,6 @@ class ConvertClassToSealedClassIntention : SelfTargetingRangeIntention<KtClass>(
     }
 
     override fun applyTo(element: KtClass, editor: Editor?) {
-        element.modifierList?.run {
-            getModifier(OPEN_KEYWORD)?.delete()
-            getModifier(ABSTRACT_KEYWORD)?.delete()
-        }
         element.addModifier(SEALED_KEYWORD)
 
         element.primaryConstructor?.run {

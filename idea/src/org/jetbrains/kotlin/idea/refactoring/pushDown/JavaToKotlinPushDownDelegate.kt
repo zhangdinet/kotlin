@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaMemberDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.getOrCreateCompanionObject
 import org.jetbrains.kotlin.idea.refactoring.isInterfaceClass
 import org.jetbrains.kotlin.idea.refactoring.j2k
@@ -109,7 +110,7 @@ class JavaToKotlinPushDownDelegate : JavaPushDownDelegate() {
             }
         }
 
-        if (hasAbstractMembers && !subClass.isInterfaceClass()) {
+        if (hasAbstractMembers) {
             subClass.addModifier(KtTokens.ABSTRACT_KEYWORD)
         }
     }

@@ -27,7 +27,7 @@ public interface KtModifierListOwner extends PsiElement, KtAnnotated {
 
     boolean hasModifier(@NotNull KtModifierKeywordToken modifier);
 
-    void addModifier(@NotNull KtModifierKeywordToken modifier);
+    void addModifierUnchecked(@NotNull KtModifierKeywordToken modifier);
     void removeModifier(@NotNull KtModifierKeywordToken modifier);
 
     @NotNull

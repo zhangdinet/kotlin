@@ -50,7 +50,7 @@ public class KtModifierListOwnerStub<T extends StubElement<?>> extends KtElement
     }
 
     @Override
-    public void addModifier(@NotNull KtModifierKeywordToken modifier) {
+    public void addModifierUnchecked(@NotNull KtModifierKeywordToken modifier) {
         AddRemoveModifierKt.addModifier(this, modifier);
     }
 

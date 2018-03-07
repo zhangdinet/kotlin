@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.shorten.addToShorteningWaitSet
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.idea.core.setType
 import org.jetbrains.kotlin.idea.refactoring.isAbstract
@@ -119,13 +120,12 @@ fun KtClassOrObject.getSuperTypeEntryByDescriptor(
     }
 }
 
-fun makeAbstract(member: KtCallableDeclaration,
-                 originalMemberDescriptor: CallableMemberDescriptor,
-                 substitutor: TypeSubstitutor,
-                 targetClass: KtClass) {
-    if (!targetClass.isInterface()) {
-        member.addModifier(KtTokens.ABSTRACT_KEYWORD)
-    }
+fun makeAbstract(
+    member: KtCallableDeclaration,
+    originalMemberDescriptor: CallableMemberDescriptor,
+    substitutor: TypeSubstitutor
+) {
+    member.addModifier(KtTokens.ABSTRACT_KEYWORD)
 
     val builtIns = originalMemberDescriptor.builtIns
     if (member.typeReference == null) {

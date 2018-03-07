@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.asJava.toLightMethods
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.isInheritable
 import org.jetbrains.kotlin.idea.core.isOverridable
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
@@ -42,7 +43,7 @@ import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 class KotlinFinalClassOrFunSpringInspection : AbstractKotlinInspection() {
-    class QuickFix<T: KtModifierListOwner>(private val element: T) : LocalQuickFix {
+    class QuickFix<T : KtDeclaration>(private val element: T) : LocalQuickFix {
         override fun getName(): String {
             return "Make ${ElementDescriptionUtil.getElementDescription(element, HighlightUsagesDescriptionLocation.INSTANCE)} open"
         }

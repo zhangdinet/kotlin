@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
 import org.jetbrains.kotlin.idea.core.CollectingNameValidator
 import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.compareDescriptors
 import org.jetbrains.kotlin.idea.refactoring.introduce.insertDeclaration
 import org.jetbrains.kotlin.idea.util.getResolutionScope
@@ -254,7 +255,7 @@ fun IntroduceTypeAliasDescriptor.generateTypeAlias(previewOnly: Boolean = false)
     else {
         psiFactory.createTypeAlias(name, typeParameterNames, originalElement.text)
     }
-    if (visibility != null && visibility != KtTokens.DEFAULT_VISIBILITY_KEYWORD) {
+    if (visibility != null) {
         typeAlias.addModifier(visibility)
     }
 

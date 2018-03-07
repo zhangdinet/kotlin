@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory3
 import org.jetbrains.kotlin.idea.core.toDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import java.util.*
@@ -32,12 +31,12 @@ import java.util.*
 object ChangeVisibilityOnExposureFactory : KotlinIntentionActionsFactory() {
 
     private fun addFixToTargetVisibility(
-            modifierListOwner: KtModifierListOwner,
-            descriptor: DeclarationDescriptorWithVisibility,
-            targetVisibility: Visibility,
-            boundVisibility: Visibility,
-            protectedAllowed: Boolean,
-            fixes: MutableList<IntentionAction>
+        declaration: KtDeclaration,
+        descriptor: DeclarationDescriptorWithVisibility,
+        targetVisibility: Visibility,
+        boundVisibility: Visibility,
+        protectedAllowed: Boolean,
+        fixes: MutableList<IntentionAction>
     ) {
         val possibleVisibilities = when (targetVisibility) {
             PROTECTED -> if (protectedAllowed) listOf(boundVisibility, PROTECTED) else listOf(boundVisibility)
@@ -45,7 +44,7 @@ object ChangeVisibilityOnExposureFactory : KotlinIntentionActionsFactory() {
             boundVisibility -> listOf(boundVisibility)
             else -> listOf()
         }
-        possibleVisibilities.mapNotNullTo(fixes) { ChangeVisibilityFix.create(modifierListOwner, descriptor, it) }
+        possibleVisibilities.mapNotNullTo(fixes) { ChangeVisibilityFix.create(declaration, descriptor, it) }
     }
 
     override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> {
@@ -55,7 +54,7 @@ object ChangeVisibilityOnExposureFactory : KotlinIntentionActionsFactory() {
         val exposedDiagnostic = factory.cast(diagnostic)
         val exposedDescriptor = exposedDiagnostic.b.descriptor as? DeclarationDescriptorWithVisibility ?: return emptyList()
         val exposedDeclaration =
-                DescriptorToSourceUtils.getSourceFromDescriptor(exposedDescriptor) as? KtModifierListOwner ?: return emptyList()
+                DescriptorToSourceUtils.getSourceFromDescriptor(exposedDescriptor) as? KtDeclaration ?: return emptyList()
         val exposedVisibility = exposedDiagnostic.c
         val userVisibility = exposedDiagnostic.a
         val (targetUserVisibility, targetExposedVisibility) = when (exposedVisibility.relation(userVisibility)) {

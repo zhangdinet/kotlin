@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+import org.jetbrains.kotlin.idea.core.addModifier
 import org.jetbrains.kotlin.idea.core.quickfix.QuickFixUtil
 import org.jetbrains.kotlin.idea.inspections.KotlinUniversalQuickFix
 import org.jetbrains.kotlin.idea.refactoring.canRefactor
@@ -56,11 +57,16 @@ open class AddModifierFix(
     override fun getFamilyName() = "Add modifier"
 
     override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-        element?.addModifier(modifier)
+        val element = element
+        if (element is KtDeclaration) {
+            element.addModifier(modifier)
+        } else {
+            element?.addModifierUnchecked(modifier)
+        }
 
         if (modifier == KtTokens.ABSTRACT_KEYWORD && (element is KtProperty || element is KtNamedFunction)) {
-            element?.containingClass()?.run {
-                if (!hasModifier(KtTokens.ABSTRACT_KEYWORD) && !hasModifier(KtTokens.SEALED_KEYWORD)) {
+            element.containingClass()?.run {
+                if (!hasModifier(KtTokens.SEALED_KEYWORD)) {
                     addModifier(KtTokens.ABSTRACT_KEYWORD)
                 }
             }

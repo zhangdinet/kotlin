@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory3
 import org.jetbrains.kotlin.idea.caches.resolve.findModuleDescriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.DescriptorUtils
@@ -42,7 +42,7 @@ object MakeVisibleFactory : KotlinIntentionActionsFactory() {
         @Suppress("UNCHECKED_CAST")
         val factory = diagnostic.factory as DiagnosticFactory3<*, DeclarationDescriptor, *, DeclarationDescriptor>
         val descriptor = factory.cast(diagnostic).c as? DeclarationDescriptorWithVisibility ?: return emptyList()
-        val declaration = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? KtModifierListOwner ?: return emptyList()
+        val declaration = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? KtDeclaration ?: return emptyList()
 
         if (declaration.hasModifier(KtTokens.SEALED_KEYWORD) && descriptor is ClassConstructorDescriptor) return emptyList()
 

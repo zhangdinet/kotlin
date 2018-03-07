@@ -228,20 +228,6 @@ fun KtDeclaration.toDescriptor(): DeclarationDescriptor? {
     return descriptor
 }
 
-//TODO: code style option whether to insert redundant 'public' keyword or not
-fun KtModifierListOwner.setVisibility(visibilityModifier: KtModifierKeywordToken) {
-    if (this is KtDeclaration) {
-        val defaultVisibilityKeyword = implicitVisibility()
-
-        if (visibilityModifier == defaultVisibilityKeyword) {
-            this.visibilityModifierType()?.let { removeModifier(it) }
-            return
-        }
-    }
-
-    addModifier(visibilityModifier)
-}
-
 fun KtDeclaration.implicitVisibility(): KtModifierKeywordToken? =
         when {
             this is KtConstructor<*> -> {
@@ -334,6 +320,26 @@ fun KtDeclaration.implicitModality(): KtModifierKeywordToken {
     }
 
     return predictedModality
+}
+
+fun KtDeclaration.addModifier(modifier: KtModifierKeywordToken) {
+    if (modifier in KtTokens.VISIBILITY_MODIFIERS) {
+        val implicitVisibilityModifier = implicitVisibility()
+
+        if (modifier == implicitVisibilityModifier) {
+            this.visibilityModifierType()?.let { removeModifier(it) }
+            return
+        }
+    } else if (modifier in KtTokens.MODALITY_MODIFIERS) {
+        val implicitModalityModifier = implicitModality()
+
+        if (modifier == implicitModalityModifier) {
+            this.modalityModifierType()?.let { removeModifier(it) }
+            return
+        }
+    }
+
+    addModifierUnchecked(modifier)
 }
 
 fun mapModality(accurateModality: Modality): KtModifierKeywordToken = when (accurateModality) {
