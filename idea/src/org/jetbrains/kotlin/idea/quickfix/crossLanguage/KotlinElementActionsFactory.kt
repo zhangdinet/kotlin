@@ -23,12 +23,15 @@ import com.intellij.lang.jvm.JvmElement
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.lang.jvm.JvmModifiersOwner
 import com.intellij.lang.jvm.actions.*
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.SuggestedNameInfo
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForFacade
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
+import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.asJava.toLightMethods
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -37,7 +40,9 @@ import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.MutablePackageFragmentDescriptor
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
+import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.core.appendModifier
 import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
 import org.jetbrains.kotlin.idea.quickfix.RemoveModifierFix
@@ -60,6 +65,7 @@ import org.jetbrains.kotlin.load.java.structure.impl.JavaTypeParameterImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.jetbrains.kotlin.resolve.annotations.JVM_FIELD_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.resolve.annotations.JVM_STATIC_ANNOTATION_FQ_NAME
@@ -396,6 +402,47 @@ class KotlinElementActionsFactory : JvmElementActionsFactory() {
         }
         return listOf(action)
     }
+
+    override fun createAddAnnotationActions(target: JvmModifiersOwner, request: CreateAnnotationRequest): List<IntentionAction> {
+        val declaration = (target as? KtLightElement<*, *>)?.kotlinOrigin as? KtModifierListOwner ?: return emptyList()
+        if (declaration.language != KotlinLanguage.INSTANCE) return emptyList()
+        return listOf(CreateAnnotationAction(declaration, request))
+    }
+
+    private class CreateAnnotationAction(
+        target: KtModifierListOwner,
+        val request: CreateAnnotationRequest
+    ) : IntentionAction {
+
+        private val pointer = target.createSmartPointer()
+
+        override fun startInWriteAction(): Boolean = true
+
+        override fun getText(): String = "Add @" + StringUtilRt.getShortName(request.qualifiedName); // TODO: i11n
+
+        override fun getFamilyName(): String = "create annotation family " // TODO: i11n
+
+        override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = pointer.element != null
+
+
+        override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+            val target = pointer.element ?: return
+
+            val entry = target.addAnnotationEntry(KtPsiFactory(target).createAnnotationEntry("@${request.qualifiedName}${
+            request.attributes.joinToString(
+                ", ",
+                "(",
+                ")"
+            ) { p -> "${p.first} = \"${(p.second as? JvmAnnotationMemberValue.StringLiteral)?.value}\"" }
+            }"))
+
+            ShortenReferences.DEFAULT.process(entry)
+
+        }
+
+
+    }
+
 }
 
 private fun JvmPsiConversionHelper.asPsiType(param: Pair<SuggestedNameInfo, List<ExpectedType>>): PsiType? =
