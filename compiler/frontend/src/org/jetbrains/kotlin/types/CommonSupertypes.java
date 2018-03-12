@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.types;
 
+import com.intellij.openapi.util.Ref;
 import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -189,9 +190,12 @@ public class CommonSupertypes {
         Set<TypeConstructor> commonSuperclasses = null;
 
         List<TypeConstructor> order = null;
+
+        Ref<SimpleType> errorInSuperTypes = new Ref<>();
+
         for (SimpleType type : types) {
             Set<TypeConstructor> visited = new HashSet<>();
-            order = topologicallySortSuperclassesAndRecordAllInstances(type, constructorToAllInstances, visited);
+            order = topologicallySortSuperclassesAndRecordAllInstances(type, constructorToAllInstances, visited, errorInSuperTypes);
 
             if (commonSuperclasses == null) {
                 commonSuperclasses = visited;
@@ -213,6 +217,12 @@ public class CommonSupertypes {
                 result.put(superConstructor, constructorToAllInstances.get(superConstructor));
                 markAll(superConstructor, notSource);
             }
+        }
+
+        if (result.isEmpty() && !errorInSuperTypes.isNull()) {
+            // Fallback to error-type as common supertype
+            TypeConstructor errorTypeConstructor = errorInSuperTypes.get().getConstructor();
+            result.put(errorTypeConstructor, constructorToAllInstances.get(errorTypeConstructor));
         }
 
         return result;
@@ -351,10 +361,21 @@ public class CommonSupertypes {
             @NotNull Map<TypeConstructor, Set<SimpleType>> constructorToAllInstances,
             @NotNull Set<TypeConstructor> visited
     ) {
+        return topologicallySortSuperclassesAndRecordAllInstances(type, constructorToAllInstances, visited, new Ref<>());
+    }
+
+    @NotNull
+    public static List<TypeConstructor> topologicallySortSuperclassesAndRecordAllInstances(
+            @NotNull SimpleType type,
+            @NotNull Map<TypeConstructor, Set<SimpleType>> constructorToAllInstances,
+            @NotNull Set<TypeConstructor> visited,
+            @NotNull Ref<SimpleType> errorInSupertypes
+    ) {
         return DFS.dfs(
                 Collections.singletonList(type),
                 current -> {
                     TypeSubstitutor substitutor = TypeSubstitutor.create(current);
+                    if (KotlinTypeKt.isError(current)) errorInSupertypes.setIfNull(current);
                     Collection<KotlinType> supertypes = current.getConstructor().getSupertypes();
                     List<SimpleType> result = new ArrayList<>(supertypes.size());
                     for (KotlinType supertype : supertypes) {

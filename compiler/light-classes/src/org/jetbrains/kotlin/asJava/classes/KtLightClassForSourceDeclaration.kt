@@ -64,6 +64,7 @@ import org.jetbrains.kotlin.psi.psiUtil.hasExpectModifier
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.psi.stubs.KotlinClassOrObjectStub
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.types.ErrorUtils
 import java.util.*
 import javax.swing.Icon
 
@@ -391,6 +392,7 @@ abstract class KtLightClassForSourceDeclaration(protected val classOrObject: KtC
 
         private fun checkSuperTypeByFQName(classDescriptor: ClassDescriptor, qualifiedName: String, deep: Boolean): Boolean {
             if (CommonClassNames.JAVA_LANG_OBJECT == qualifiedName) return true
+            if (ErrorUtils.isError(classDescriptor)) return false
 
             if (qualifiedName == DescriptorUtils.getFqName(classDescriptor).asString()) return true
 
