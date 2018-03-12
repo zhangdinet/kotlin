@@ -1,0 +1,12 @@
+package
+
+public fun foo(): kotlin.Unit
+public fun </*0*/ T> select(/*0*/ vararg xs: T /*kotlin.Array<out T>*/): T
+
+public open class A : [ERROR : <LOOP IN SUPERTYPES>] {
+    public constructor A()
+}
+
+public open class B : [ERROR : <LOOP IN SUPERTYPES>] {
+    public constructor B()
+}
