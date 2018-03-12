@@ -24,6 +24,8 @@ import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ExternalLibraryDescriptor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.ThreadTracker
+import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
 import org.jetbrains.kotlin.idea.configuration.*
@@ -411,7 +413,17 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         for (scriptFile in files) {
             val psiFile = runReadAction { PsiManager.getInstance(myProject).findFile(scriptFile) as? KtFile } ?: continue
             runInEdtAndWait {
+                val before = ThreadTracker.getThreads()
                 ScriptDependenciesManager.updateScriptDependenciesSynchronously(scriptFile, myProject)
+                val after = ThreadTracker.getThreads()
+
+                val leakedTreads = (after - before).filter { !it.name.contains("ApplicationImpl pooled thread ") }
+                if (leakedTreads.size == 1) {
+                    // This a workaround for the leaked thread in gradle dependencies resolver.
+                    // see org.gradle.kotlin.dsl.resolver.ResolverEventLogger
+                    leakedTreads.single().interrupt()
+                }
+
                 val bindingContext = psiFile.analyzeWithContent()
                 val errors = bindingContext.diagnostics.filter { it.severity == Severity.ERROR }
                 assert(errors.isEmpty()) {
