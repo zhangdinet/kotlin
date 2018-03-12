@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.codegen.coroutines.CoroutineCodegenUtilKt;
 import org.jetbrains.kotlin.codegen.coroutines.SuspendFunctionGenerationStrategy;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotated;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
@@ -158,7 +159,7 @@ public class FunctionCodegen {
             @NotNull FunctionGenerationStrategy strategy
     ) {
         if (CoroutineCodegenUtilKt.isSuspendFunctionNotSuspensionView(descriptor)) {
-            generateMethod(origin, CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(descriptor, bindingContext), strategy);
+            generateMethod(origin, CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(descriptor, state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines), bindingContext), strategy);
             return;
         }
 

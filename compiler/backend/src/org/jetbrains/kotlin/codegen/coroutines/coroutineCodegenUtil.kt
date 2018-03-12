@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.codegen.ExpressionCodegen
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.coroutinesPackageFqName
 import org.jetbrains.kotlin.config.continuationInterfaceFqName
@@ -109,11 +110,12 @@ val INITIAL_SUSPEND_DESCRIPTOR_FOR_DO_RESUME = object : FunctionDescriptor.UserD
 // and fake `this` expression that used as argument for second parameter
 fun ResolvedCall<*>.replaceSuspensionFunctionWithRealDescriptor(
     project: Project,
-    bindingContext: BindingContext
+    bindingContext: BindingContext,
+    isReleaseCoroutines: Boolean
 ): ResolvedCallWithRealDescriptor? {
     if (this is VariableAsFunctionResolvedCall) {
         val replacedFunctionCall =
-            functionCall.replaceSuspensionFunctionWithRealDescriptor(project, bindingContext)
+            functionCall.replaceSuspensionFunctionWithRealDescriptor(project, bindingContext, isReleaseCoroutines)
                     ?: return null
 
         @Suppress("UNCHECKED_CAST")
@@ -130,9 +132,9 @@ fun ResolvedCall<*>.replaceSuspensionFunctionWithRealDescriptor(
     val newCandidateDescriptor =
         when (function) {
             is FunctionImportedFromObject ->
-                getOrCreateJvmSuspendFunctionView(function.callableFromObject, bindingContext).asImportedFromObject()
+                getOrCreateJvmSuspendFunctionView(function.callableFromObject, isReleaseCoroutines, bindingContext).asImportedFromObject()
             is SimpleFunctionDescriptor ->
-                getOrCreateJvmSuspendFunctionView(function, bindingContext)
+                getOrCreateJvmSuspendFunctionView(function, isReleaseCoroutines, bindingContext)
             else ->
                 throw AssertionError("Unexpected suspend function descriptor: $function")
         }
@@ -207,7 +209,11 @@ fun CallableDescriptor.isSuspendFunctionNotSuspensionView(): Boolean {
 // and return type Any?
 // This function returns a function descriptor reflecting how the suspend function looks from point of view of JVM
 @JvmOverloads
-fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(function: D, bindingContext: BindingContext? = null): D {
+fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(
+    function: D,
+    isReleaseCoroutines: Boolean,
+    bindingContext: BindingContext? = null
+): D {
     assert(function.isSuspend) {
         "Suspended function is expected, but $function was found"
     }
@@ -216,14 +222,19 @@ fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(function: D, bind
     bindingContext?.get(CodegenBinding.SUSPEND_FUNCTION_TO_JVM_VIEW, function)?.let { return it as D }
 
     val continuationParameter = ValueParameterDescriptorImpl(
-        function, null, function.valueParameters.size, Annotations.EMPTY, Name.identifier("continuation"),
+        containingDeclaration = function,
+        original = null,
+        index = function.valueParameters.size,
+        annotations = Annotations.EMPTY,
+        name = Name.identifier("continuation"),
         // Add j.l.Object to invoke(), because that is the type of parameters we have in FunctionN+1
-        if (function.containingDeclaration.safeAs<ClassDescriptor>()?.defaultType?.isBuiltinFunctionalType == true)
+        outType = if (function.containingDeclaration.safeAs<ClassDescriptor>()?.defaultType?.isBuiltinFunctionalType == true)
             function.builtIns.nullableAnyType
         else
-            function.getContinuationParameterTypeOfSuspendFunction(),
-        /* declaresDefaultValue = */ false, /* isCrossinline = */ false,
-        /* isNoinline = */ false, /* varargElementType = */ null, SourceElement.NO_SOURCE
+            function.getContinuationParameterTypeOfSuspendFunction(isReleaseCoroutines),
+        declaresDefaultValue = false, isCrossinline = false,
+        isNoinline = false, varargElementType = null,
+        source = SourceElement.NO_SOURCE
     )
 
     return function.createCustomCopy {
@@ -257,11 +268,14 @@ fun <D : FunctionDescriptor> D.createCustomCopy(
     return result as D
 }
 
-private fun FunctionDescriptor.getContinuationParameterTypeOfSuspendFunction() =
-    module.getContinuationOfTypeOrAny(returnType!!)
+private fun FunctionDescriptor.getContinuationParameterTypeOfSuspendFunction(isReleaseCoroutines: Boolean) =
+    module.getContinuationOfTypeOrAny(returnType!!, isReleaseCoroutines)
 
-fun ModuleDescriptor.getContinuationOfTypeOrAny(kotlinType: KotlinType) =
-    module.findContinuationClassDescriptorOrNull(NoLookupLocation.FROM_BACKEND)?.defaultType?.let {
+fun ModuleDescriptor.getContinuationOfTypeOrAny(kotlinType: KotlinType, isReleaseCoroutines: Boolean) =
+    module.findContinuationClassDescriptorOrNull(
+        NoLookupLocation.FROM_BACKEND,
+        isReleaseCoroutines
+    )?.defaultType?.let {
         KotlinTypeFactory.simpleType(
             it,
             arguments = listOf(kotlinType.asTypeProjection())
@@ -422,9 +436,9 @@ fun <D : CallableDescriptor?> D.unwrapInitialDescriptorForSuspendFunction(): D =
     this.safeAs<SimpleFunctionDescriptor>()?.getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION) as D ?: this
 
 
-fun FunctionDescriptor.getOriginalSuspendFunctionView(bindingContext: BindingContext): FunctionDescriptor =
+fun FunctionDescriptor.getOriginalSuspendFunctionView(bindingContext: BindingContext, isReleaseCoroutines: Boolean): FunctionDescriptor =
     if (isSuspend)
-        getOrCreateJvmSuspendFunctionView(unwrapInitialDescriptorForSuspendFunction().original, bindingContext)
+        getOrCreateJvmSuspendFunctionView(unwrapInitialDescriptorForSuspendFunction().original, isReleaseCoroutines, bindingContext)
     else
         this
 

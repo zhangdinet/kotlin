@@ -185,6 +185,15 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                 assertDirectivesToNull(explicitLanguageVersionSettings, explicitLanguageVersion);
                 explicitLanguageVersion = LanguageVersion.fromVersionString(version);
             }
+            if (!InTextDirectivesUtils.findLinesWithPrefixesRemoved(testFile.content, "// COMMON_COROUTINES_TEST").isEmpty()) {
+                assert(explicitLanguageVersion == null) : "Cannot use both COMMON_COROUTINES_TEST and LANGUAGE_VERSION";
+                assert(!testFile.content.contains("COROUTINES_PACKAGE")) : "Must replace COROUTINES_PACKAGE prior to tests compilation";
+                if (testFile.content.contains("kotlin.coroutines.experimental")) {
+                    explicitLanguageVersion = LanguageVersion.KOTLIN_1_2;
+                } else {
+                    explicitLanguageVersion = LanguageVersion.KOTLIN_1_3;
+                }
+            }
 
             Map<String, String> directives = KotlinTestUtils.parseDirectives(testFile.content);
             LanguageVersionSettings fileLanguageVersionSettings = parseLanguageVersionSettings(directives);

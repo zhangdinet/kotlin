@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.config.CommonConfigurationKeysKt;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
@@ -134,7 +135,7 @@ public class TranslationContext {
             FunctionDescriptor function = (FunctionDescriptor) declarationDescriptor;
             if (function.isSuspend()) {
                 ClassDescriptor continuationDescriptor =
-                        DescriptorUtilKt.findContinuationClassDescriptor(getCurrentModule(), NoLookupLocation.FROM_BACKEND);
+                        DescriptorUtilKt.findContinuationClassDescriptor(getCurrentModule(), NoLookupLocation.FROM_BACKEND, getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines));
 
                 return new LocalVariableDescriptor(
                         declarationDescriptor,

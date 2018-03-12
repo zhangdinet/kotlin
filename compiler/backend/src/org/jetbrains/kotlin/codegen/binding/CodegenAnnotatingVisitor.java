@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.codegen.when.SwitchCodegenProvider;
 import org.jetbrains.kotlin.codegen.when.WhenByEnumsMapping;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.coroutines.CoroutineUtilKt;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
@@ -509,7 +510,7 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
         if (functionDescriptor instanceof SimpleFunctionDescriptor && functionDescriptor.isSuspend()) {
             SimpleFunctionDescriptor jvmSuspendFunctionView =
                     CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(
-                            (SimpleFunctionDescriptor) functionDescriptor
+                            (SimpleFunctionDescriptor) functionDescriptor, languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
                     );
 
             // This is a very subtle place (hack).

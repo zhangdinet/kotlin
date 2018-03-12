@@ -2236,7 +2236,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
     public StackValue invokeFunction(@NotNull Call call, @NotNull ResolvedCall<?> resolvedCall, @NotNull StackValue receiver) {
         ResolvedCallWithRealDescriptor callWithRealDescriptor =
                 CoroutineCodegenUtilKt.replaceSuspensionFunctionWithRealDescriptor(
-                        resolvedCall, state.getProject(), state.getBindingContext()
+                        resolvedCall, state.getProject(), state.getBindingContext(), state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines)
                 );
         if (callWithRealDescriptor != null) {
             prepareCoroutineArgumentForSuspendCall(resolvedCall, callWithRealDescriptor.getFakeContinuationExpression());
@@ -2501,7 +2501,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         FunctionDescriptor original =
                 CoroutineCodegenUtilKt.getOriginalSuspendFunctionView(
                         unwrapInitialSignatureDescriptor(DescriptorUtils.unwrapFakeOverride((FunctionDescriptor) descriptor.getOriginal())),
-                        bindingContext
+                        bindingContext, state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines)
                 );
         if (isDefaultCompilation) {
             return new InlineCodegenForDefaultBody(original, this, state, new PsiSourceCompilerForInline(this, callElement));
@@ -3576,7 +3576,8 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
             ResolvedCallWithRealDescriptor callWithRealDescriptor =
                     CoroutineCodegenUtilKt.replaceSuspensionFunctionWithRealDescriptor(
-                            resolvedCall, state.getProject(), state.getBindingContext()
+                            resolvedCall, state.getProject(), state.getBindingContext(),
+                            state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines)
                     );
             if (callWithRealDescriptor != null) {
                 prepareCoroutineArgumentForSuspendCall(resolvedCall, callWithRealDescriptor.getFakeContinuationExpression());

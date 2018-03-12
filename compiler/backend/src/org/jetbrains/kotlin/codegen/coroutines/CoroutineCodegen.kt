@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.codegen.context.ClosureContext
 import org.jetbrains.kotlin.codegen.context.MethodContext
 import org.jetbrains.kotlin.codegen.serialization.JvmSerializerExtension
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.coroutines.isSuspendLambda
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -147,7 +148,7 @@ class CoroutineCodegenForLambda private constructor(
         funDescriptor.createCustomCopy {
             setName(Name.identifier(SUSPEND_FUNCTION_CREATE_METHOD_NAME))
             setReturnType(
-                    funDescriptor.module.getContinuationOfTypeOrAny(builtIns.unitType)
+                    funDescriptor.module.getContinuationOfTypeOrAny(builtIns.unitType, state.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines))
             )
             // 'create' method should not inherit initial descriptor for suspend function from original descriptor
             putUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION, null)
@@ -339,7 +340,11 @@ class CoroutineCodegenForLambda private constructor(
                     expressionCodegen,
                     declaration,
                     expressionCodegen.context.intoCoroutineClosure(
-                            getOrCreateJvmSuspendFunctionView(originalSuspendLambdaDescriptor, expressionCodegen.state.bindingContext),
+                            getOrCreateJvmSuspendFunctionView(
+                                originalSuspendLambdaDescriptor,
+                                expressionCodegen.state.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines),
+                                expressionCodegen.state.bindingContext
+                            ),
                             originalSuspendLambdaDescriptor, expressionCodegen, expressionCodegen.state.typeMapper
                     ),
                     classBuilder,

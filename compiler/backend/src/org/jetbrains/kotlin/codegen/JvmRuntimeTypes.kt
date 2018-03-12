@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.builtins.createFunctionType
 import org.jetbrains.kotlin.codegen.coroutines.coroutinesJvmInternalPackageFqName
 import org.jetbrains.kotlin.codegen.coroutines.getOrCreateJvmSuspendFunctionView
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.coroutines.isSuspendLambda
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -32,7 +33,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.KotlinType
 
-class JvmRuntimeTypes(module: ModuleDescriptor, languageVersionSettings: LanguageVersionSettings) {
+class JvmRuntimeTypes(module: ModuleDescriptor, private val languageVersionSettings: LanguageVersionSettings) {
     private val kotlinJvmInternalPackage = MutablePackageFragmentDescriptor(module, FqName("kotlin.jvm.internal"))
     private val kotlinCoroutinesJvmInternalPackage =
         MutablePackageFragmentDescriptor(module, coroutinesJvmInternalPackageFqName(languageVersionSettings))
@@ -70,7 +71,7 @@ class JvmRuntimeTypes(module: ModuleDescriptor, languageVersionSettings: Languag
 
         val actualFunctionDescriptor =
                 if (descriptor.isSuspend)
-                    getOrCreateJvmSuspendFunctionView(descriptor)
+                    getOrCreateJvmSuspendFunctionView(descriptor, languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines))
                 else
                     descriptor
 
