@@ -390,8 +390,9 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
             runInEdtAndWait {
                 ScriptDependenciesManager.updateScriptDependenciesSynchronously(scriptFile, myProject)
                 val bindingContext = psiFile.analyzeWithContent()
-                assert(bindingContext.diagnostics.isEmpty()) {
-                    bindingContext.diagnostics.joinToString(
+                val errors = bindingContext.diagnostics.filter { it.severity == Severity.ERROR }
+                assert(errors.isEmpty()) {
+                    errors.joinToString(
                         separator = "\n",
                         prefix = "Compilation error for ${scriptFile.path}:\n${psiFile.text}\n"
                     ) {
