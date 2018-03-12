@@ -22,11 +22,14 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.CompilerModuleExtension
+import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.AsyncResult
+import com.intellij.util.PathUtil
 import org.jdom.Element
 import org.jdom.Text
 import org.jetbrains.idea.maven.importing.MavenImporter
@@ -139,6 +142,43 @@ class KotlinMavenImporter : MavenImporter(KOTLIN_PLUGIN_GROUP_ID, KOTLIN_PLUGIN_
         }
     }
 
+    private fun getDefaultOutputFile(mavenProject: MavenProject, goal: String): String? {
+        val buildDirectory = PathUtil.toSystemIndependentName(mavenProject.buildDirectory)
+        return when (goal) {
+            // see org.jetbrains.kotlin.maven.K2JSCompilerMojo
+            PomFile.KotlinGoals.Js -> "$buildDirectory/js/${mavenProject.mavenId.artifactId}.js"
+            // org.jetbrains.kotlin.maven.KotlinTestJSCompilerMojo
+            PomFile.KotlinGoals.TestJs -> "$buildDirectory/test-js/${mavenProject.mavenId.artifactId}-tests.js"
+            else -> null
+        }
+    }
+
+    private fun configureJSOutputPaths(
+        mavenProject: MavenProject,
+        modifiableRootModel: ModifiableRootModel,
+        facetSettings: KotlinFacetSettings,
+        arguments: K2JSCompilerArguments,
+        goals: Collection<String>
+    ) {
+        val compilerModuleExtension = modifiableRootModel.getModuleExtension(CompilerModuleExtension::class.java) ?: return
+        goals.forEach { goal ->
+            val outputFilePath = arguments.outputFile ?: getDefaultOutputFile(mavenProject, goal) ?: return@forEach
+
+            val outputFile = File(outputFilePath)
+            val outputDir = outputFile.parentFile ?: outputFile.absoluteFile?.parentFile ?: return@forEach
+            when (goal) {
+                PomFile.KotlinGoals.Js -> {
+                    compilerModuleExtension.setCompilerOutputPath(outputDir.absolutePath)
+                    facetSettings.productionOutputPath = outputFilePath
+                }
+                PomFile.KotlinGoals.TestJs -> {
+                    compilerModuleExtension.setCompilerOutputPathForTests(outputDir.absolutePath)
+                    facetSettings.testOutputPath = outputFilePath
+                }
+            }
+        }
+    }
+
     private fun getCompilerArgumentsByConfigurationElement(
         mavenProject: MavenProject,
         configuration: Element?,
@@ -215,6 +255,7 @@ class KotlinMavenImporter : MavenImporter(KOTLIN_PLUGIN_GROUP_ID, KOTLIN_PLUGIN_
         val platform = detectPlatform(mavenProject)
 
         kotlinFacet.configureFacet(compilerVersion, LanguageFeature.Coroutines.defaultState, platform, modifiableModelsProvider)
+        val facetSettings = kotlinFacet.configuration.settings
         val configuredPlatform = kotlinFacet.configuration.settings.targetPlatformKind!!
         val configuration = mavenPlugin.configurationElement
         val sharedArguments = getCompilerArgumentsByConfigurationElement(mavenProject, configuration, configuredPlatform)
@@ -224,6 +265,11 @@ class KotlinMavenImporter : MavenImporter(KOTLIN_PLUGIN_GROUP_ID, KOTLIN_PLUGIN_
         parseCompilerArgumentsToFacet(sharedArguments, emptyList(), kotlinFacet, modifiableModelsProvider)
         if (executionArguments != null) {
             parseCompilerArgumentsToFacet(executionArguments, emptyList(), kotlinFacet, modifiableModelsProvider)
+        }
+        (facetSettings.compilerArguments as? K2JSCompilerArguments)?.let { jsArguments ->
+            val modifiableRootModel = modifiableModelsProvider.getModifiableRootModel(module)
+            val goals = mavenPlugin.executions.flatMapTo(LinkedHashSet()) { it.goals }
+            configureJSOutputPaths(mavenProject, modifiableRootModel, facetSettings, jsArguments, goals)
         }
         MavenProjectImportHandler.getInstances(module.project).forEach { it(kotlinFacet, mavenProject) }
         setImplementedModuleName(kotlinFacet, mavenProject, module)
