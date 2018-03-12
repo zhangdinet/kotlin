@@ -95,7 +95,7 @@ class AnonymousObjectTransformationInfo internal constructor(
 
     override fun shouldRegenerate(sameModule: Boolean): Boolean =
             !alreadyRegenerated &&
-            (!lambdasToInline.isEmpty() || !sameModule || capturedOuterRegenerated || needReification || capturesAnonymousObjectThatMustBeRegenerated)
+            (!lambdasToInline.isEmpty() || !sameModule || capturedOuterRegenerated || needReification || capturesAnonymousObjectThatMustBeRegenerated || isStaticOrigin)
 
     override fun canRemoveAfterTransformation(): Boolean {
         // Note: It is unsafe to remove anonymous class that is referenced by GETSTATIC within lambda
