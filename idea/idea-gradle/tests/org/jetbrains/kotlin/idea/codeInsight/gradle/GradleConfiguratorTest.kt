@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.test.testFramework.runWriteAction
+import org.jetbrains.plugins.gradle.tooling.annotation.TargetVersions
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import java.io.File
@@ -81,8 +82,30 @@ class GradleConfiguratorTest : GradleImportingTestCase() {
         }
     }
 
+    @TargetVersions("3.5")
     @Test
     fun testConfigureGSK() {
+        val files = configureByFiles()
+
+        importProject()
+        checkForDiagnostics(files)
+
+        runInEdtAndWait {
+            runWriteAction {
+                val configurator = findGradleModuleConfigurator()
+                val collector = createConfigureKotlinNotificationCollector(myProject)
+                configurator.configureWithVersion(myProject, listOf(myTestFixture.module), "1.1.2", collector)
+
+                importProject()
+                checkFiles(files)
+                checkForDiagnostics(files)
+            }
+        }
+    }
+
+    @TargetVersions("4.5")
+    @Test
+    fun testConfigureGSK45() {
         val files = configureByFiles()
 
         importProject()
