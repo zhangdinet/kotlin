@@ -84,6 +84,7 @@ public class KotlinTypeMapper {
     private final String moduleName;
     private final boolean isJvm8Target;
     private final boolean isJvm8TargetWithDefaults;
+    private final boolean isReleaseCoroutines;
 
     private final TypeMappingConfiguration<Type> typeMappingConfiguration = new TypeMappingConfiguration<Type>() {
         @NotNull
@@ -111,6 +112,11 @@ public class KotlinTypeMapper {
                 throw new IllegalStateException(generateErrorMessageForErrorType(kotlinType, descriptor));
             }
         }
+
+        @Override
+        public boolean releaseCoroutines() {
+            return isReleaseCoroutines;
+        }
     };
 
     private static final TypeMappingConfiguration<Type> staticTypeMappingConfiguration = new TypeMappingConfiguration<Type>() {
@@ -136,6 +142,11 @@ public class KotlinTypeMapper {
         public void processErrorType(@NotNull KotlinType kotlinType, @NotNull ClassDescriptor descriptor) {
             throw new IllegalStateException(generateErrorMessageForErrorType(kotlinType, descriptor));
         }
+
+        @Override
+        public boolean releaseCoroutines() {
+            throw new IllegalStateException("Unexpected static type mapping of continuation");
+        }
     };
 
     public KotlinTypeMapper(
@@ -144,7 +155,8 @@ public class KotlinTypeMapper {
             @NotNull IncompatibleClassTracker incompatibleClassTracker,
             @NotNull String moduleName,
             boolean isJvm8Target,
-            boolean isJvm8TargetWithDefaults
+            boolean isJvm8TargetWithDefaults,
+            boolean isReleaseCoroutines
     ) {
         this.bindingContext = bindingContext;
         this.classBuilderMode = classBuilderMode;
@@ -152,6 +164,7 @@ public class KotlinTypeMapper {
         this.moduleName = moduleName;
         this.isJvm8Target = isJvm8Target;
         this.isJvm8TargetWithDefaults = isJvm8TargetWithDefaults;
+        this.isReleaseCoroutines = isReleaseCoroutines;
     }
 
     @NotNull

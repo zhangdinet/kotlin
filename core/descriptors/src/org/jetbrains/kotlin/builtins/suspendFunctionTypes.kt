@@ -81,7 +81,7 @@ fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType): SimpleTy
     }
 
     val continuationArgumentType = funType.getValueParameterTypesFromFunctionType().lastOrNull()?.type ?: return null
-    if (isContinuation(continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe) || continuationArgumentType.arguments.size != 1) {
+    if (!isContinuation(continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe) || continuationArgumentType.arguments.size != 1) {
         return null
     }
 

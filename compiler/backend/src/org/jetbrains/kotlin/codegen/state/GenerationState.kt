@@ -188,8 +188,13 @@ class GenerationState private constructor(
     )
     val bindingContext: BindingContext = bindingTrace.bindingContext
     val typeMapper: KotlinTypeMapper = KotlinTypeMapper(
-        this.bindingContext, classBuilderMode, IncompatibleClassTrackerImpl(extraJvmDiagnosticsTrace),
-        this.moduleName, isJvm8Target, isJvm8TargetWithDefaults
+        this.bindingContext,
+        classBuilderMode,
+        IncompatibleClassTrackerImpl(extraJvmDiagnosticsTrace),
+        this.moduleName,
+        isJvm8Target,
+        isJvm8TargetWithDefaults,
+        configuration.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
     )
     val intrinsics: IntrinsicMethods = run {
         val shouldUseConsistentEquals = languageVersionSettings.supportsFeature(LanguageFeature.ThrowNpeOnExplicitEqualsForBoxedNull) &&

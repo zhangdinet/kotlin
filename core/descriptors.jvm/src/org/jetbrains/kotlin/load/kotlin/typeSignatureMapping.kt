@@ -43,6 +43,7 @@ interface TypeMappingConfiguration<out T : Any> {
     fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): T?
     fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String?
     fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor)
+    fun releaseCoroutines(): Boolean
 }
 
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
@@ -63,7 +64,7 @@ fun <T : Any> mapType(
         )
     }
 
-    mapBuiltInType(kotlinType, factory, mode)?.let { builtInType ->
+    mapBuiltInType(kotlinType, factory, mode, typeMappingConfiguration.releaseCoroutines())?.let { builtInType ->
         val jvmType = factory.boxTypeIfNeeded(builtInType, mode.needPrimitiveBoxing)
         writeGenericType(kotlinType, jvmType, mode)
         return jvmType
@@ -175,8 +176,25 @@ fun hasVoidReturnType(descriptor: CallableDescriptor): Boolean {
             && descriptor !is PropertyGetterDescriptor
 }
 
-private fun <T : Any> mapBuiltInType(type: KotlinType, typeFactory: JvmTypeFactory<T>, mode: TypeMappingMode): T? {
+private fun continuationInternalName(releaseCoroutines: Boolean): String {
+    val fqName =
+        if (releaseCoroutines) DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
+        else DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
+    return JvmClassName.byClassId(ClassId.topLevel(fqName)).internalName
+}
+
+
+private fun <T : Any> mapBuiltInType(
+    type: KotlinType,
+    typeFactory: JvmTypeFactory<T>,
+    mode: TypeMappingMode,
+    releaseCoroutines: Boolean
+): T? {
     val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
+
+    if (descriptor === FAKE_CONTINUATION_CLASS_DESCRIPTOR) {
+        return typeFactory.createObjectType(continuationInternalName(releaseCoroutines))
+    }
 
     val primitiveType = KotlinBuiltIns.getPrimitiveType(descriptor)
     if (primitiveType != null) {

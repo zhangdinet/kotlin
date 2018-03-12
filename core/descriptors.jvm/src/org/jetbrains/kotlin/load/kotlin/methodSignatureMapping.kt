@@ -166,4 +166,6 @@ internal object TypeMappingConfigurationImpl : TypeMappingConfiguration<JvmType>
     override fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor) {
         // DO nothing
     }
+
+    override fun releaseCoroutines() = false
 }
