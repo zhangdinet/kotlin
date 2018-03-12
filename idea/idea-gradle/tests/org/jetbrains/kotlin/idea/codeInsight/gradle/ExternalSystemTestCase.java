@@ -39,6 +39,7 @@ import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.junit.After;
 import org.junit.Before;
 
@@ -161,6 +162,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
             EdtTestUtil.runInEdtAndWait(new ThrowableRunnable<Throwable>() {
                 @Override
                 public void run() throws Throwable {
+                    GradleDaemonServices.stopDaemons();
                     CompilerTestUtil.disableExternalCompiler(myProject);
                     tearDownFixtures();
                 }
