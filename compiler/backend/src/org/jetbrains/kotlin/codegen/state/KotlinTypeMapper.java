@@ -145,7 +145,7 @@ public class KotlinTypeMapper {
 
         @Override
         public boolean releaseCoroutines() {
-            throw new IllegalStateException("Unexpected static type mapping of continuation");
+            return false;
         }
     };
 

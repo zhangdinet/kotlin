@@ -44,11 +44,11 @@ import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-fun FunctionDescriptor.isBuiltInCoroutineContext(languageFeatureSettings: LanguageVersionSettings) =
-    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCoroutineContext(languageFeatureSettings) == true
+fun FunctionDescriptor.isBuiltInCoroutineContext() =
+    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCoroutineContext() == true
 
-fun PropertyDescriptor.isBuiltInCoroutineContext(languageFeatureSettings: LanguageVersionSettings) =
-    this.fqNameSafe.isBuiltInCoroutineContext(languageFeatureSettings)
+fun PropertyDescriptor.isBuiltInCoroutineContext() =
+    this.fqNameSafe.isBuiltInCoroutineContext()
 
 object CoroutineSuspendCallChecker : CallChecker {
     private val ALLOWED_SCOPE_KINDS = setOf(LexicalScopeKind.FUNCTION_INNER_SCOPE, LexicalScopeKind.FUNCTION_HEADER_FOR_DESTRUCTURING)
@@ -57,7 +57,7 @@ object CoroutineSuspendCallChecker : CallChecker {
         val descriptor = resolvedCall.candidateDescriptor
         when (descriptor) {
             is FunctionDescriptor -> if (!descriptor.isSuspend) return
-            is PropertyDescriptor -> if (!descriptor.isBuiltInCoroutineContext(context.languageVersionSettings)) return
+            is PropertyDescriptor -> if (!descriptor.isBuiltInCoroutineContext()) return
             else -> return
         }
 

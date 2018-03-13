@@ -9,11 +9,17 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 
-fun coroutinesPackageFqName(languageFeatureSettings: LanguageVersionSettings) =
-    if (languageFeatureSettings.supportsFeature(LanguageFeature.ReleaseCoroutines))
+fun coroutinesPackageFqName(languageFeatureSettings: LanguageVersionSettings): FqName {
+    val isReleaseCoroutines = languageFeatureSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
+    return coroutinesPackageFqName(isReleaseCoroutines)
+}
+
+private fun coroutinesPackageFqName(isReleaseCoroutines: Boolean): FqName {
+    return if (isReleaseCoroutines)
         DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_RELEASE
     else
         DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL
+}
 
 fun coroutinesIntrinsicsPackageFqName(languageFeatureSettings: LanguageVersionSettings) =
     coroutinesPackageFqName(languageFeatureSettings).child(Name.identifier("intrinsics"))
@@ -24,5 +30,7 @@ fun continuationInterfaceFqName(languageFeatureSettings: LanguageVersionSettings
 fun restrictsSuspensionFqName(languageFeatureSettings: LanguageVersionSettings) =
     coroutinesPackageFqName(languageFeatureSettings).child(Name.identifier("RestrictsSuspension"))
 
-fun FqName.isBuiltInCoroutineContext(languageFeatureSettings: LanguageVersionSettings) =
-    this == coroutinesPackageFqName(languageFeatureSettings).child(Name.identifier("coroutineContext"))
+fun FqName.isBuiltInCoroutineContext() =
+    this == coroutinesPackageFqName(true).child(Name.identifier("coroutineContext")) ||
+            this == coroutinesPackageFqName(false).child(Name.identifier("coroutineContext")) ||
+            this == coroutinesPackageFqName(false).child(Name.identifier("intrinsics")).child(Name.identifier("coroutineContext"))
