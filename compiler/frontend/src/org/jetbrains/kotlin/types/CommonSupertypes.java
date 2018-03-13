@@ -153,7 +153,8 @@ public class CommonSupertypes {
                         .append("- TypeConstructor class: ").append(type.getConstructor().getClass()).append('\n')
                         .append('\n');
             }
-            throw new IllegalStateException("There is no common supertype for: " + types + " \n" + info.toString());
+
+            return ErrorUtils.createErrorType("There is no common supertype for: " + types + " \n" + info.toString());
         }
 
         // constructor of the supertype -> all of its instantiations occurring as supertypes
