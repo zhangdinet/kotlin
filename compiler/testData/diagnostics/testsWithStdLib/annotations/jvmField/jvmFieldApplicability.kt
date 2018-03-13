@@ -1,4 +1,4 @@
-// !LANGUAGE: +NestedClassesInAnnotations
+// !LANGUAGE: +NestedClassesInAnnotations -JvmFieldInInterface
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE
 
 <!WRONG_ANNOTATION_TARGET!>@kotlin.jvm.JvmField<!>

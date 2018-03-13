@@ -927,7 +927,8 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
         boolean isNonCompanionObject = isNonCompanionObject(descriptor);
         boolean isInterfaceCompanion = isCompanionObjectInInterfaceNotIntrinsic(descriptor);
         boolean isMappedIntrinsicCompanionObject = isMappedIntrinsicCompanionObject(descriptor);
-        if (isNonCompanionObject || isInterfaceCompanion || isMappedIntrinsicCompanionObject) {
+        boolean objectWithBackingFieldsInOuter = isCompanionObjectWithBackingFieldsInOuter(descriptor);
+        if (isNonCompanionObject || (isInterfaceCompanion && !objectWithBackingFieldsInOuter) || isMappedIntrinsicCompanionObject) {
             ExpressionCodegen clInitCodegen = createOrGetClInitCodegen();
             InstructionAdapter v = clInitCodegen.v;
             markLineNumberForElement(element.getPsiOrParent(), v);
@@ -955,7 +956,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                 );
             }
         }
-        else if (isCompanionObjectWithBackingFieldsInOuter(descriptor)) {
+        else if (objectWithBackingFieldsInOuter) {
             ImplementationBodyCodegen parentCodegen = (ImplementationBodyCodegen) getParentCodegen();
             ExpressionCodegen parentClInitCodegen = parentCodegen.createOrGetClInitCodegen();
             InstructionAdapter parentVisitor = parentClInitCodegen.v;

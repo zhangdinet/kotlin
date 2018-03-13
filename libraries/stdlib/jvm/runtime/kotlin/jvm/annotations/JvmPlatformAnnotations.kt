@@ -108,7 +108,7 @@ public annotation class Throws(vararg val exceptionClasses: KClass<out Throwable
  * for more information.
  */
 @Target(AnnotationTarget.FIELD)
-@Retention(AnnotationRetention.BINARY)
+@Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 public annotation class JvmField
 

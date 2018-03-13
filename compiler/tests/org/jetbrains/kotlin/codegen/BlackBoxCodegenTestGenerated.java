@@ -11493,9 +11493,27 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("interface.kt")
+        public void testInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interface.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("interfaceCompanionWithKotlin.kt")
+        public void testInterfaceCompanionWithKotlin() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceCompanionWithKotlin.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("publicField.kt")
         public void testPublicField() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/publicField.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("reflectionInInterface.kt")
+        public void testReflectionInInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/reflectionInInterface.kt");
             doTest(fileName);
         }
 

@@ -12381,6 +12381,18 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
         }
 
+        @TestMetadata("interface.kt")
+        public void testInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interface.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("interfaceWithConst.kt")
+        public void testInterfaceWithConst() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceWithConst.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("publicField.kt")
         public void testPublicField() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/publicField.kt");
@@ -12391,6 +12403,12 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 return;
             }
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
+        @TestMetadata("reflectionInInterface.kt")
+        public void testReflectionInInterface() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/reflectionInInterface.kt");
+            doTest(fileName);
         }
 
         @TestMetadata("simpleMemberProperty.kt")

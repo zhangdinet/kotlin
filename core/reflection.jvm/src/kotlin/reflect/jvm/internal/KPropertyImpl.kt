@@ -59,7 +59,7 @@ internal abstract class KPropertyImpl<out R> private constructor(
             is KotlinProperty -> {
                 val descriptor = jvmSignature.descriptor
                 JvmProtoBufUtil.getJvmFieldSignature(jvmSignature.proto, jvmSignature.nameResolver, jvmSignature.typeTable)?.let {
-                    val owner = if (JvmAbi.isCompanionObjectWithBackingFieldsInOuter(descriptor.containingDeclaration)) {
+                    val owner = if (JvmAbi.isPropertyWithBackingFieldInOuterClass(descriptor)) {
                         container.jClass.enclosingClass
                     }
                     else descriptor.containingDeclaration.let { containingDeclaration ->
