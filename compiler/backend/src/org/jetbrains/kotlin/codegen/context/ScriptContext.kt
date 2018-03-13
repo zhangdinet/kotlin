@@ -18,19 +18,26 @@ package org.jetbrains.kotlin.codegen.context
 
 import org.jetbrains.kotlin.codegen.FieldInfo
 import org.jetbrains.kotlin.codegen.OwnerKind
-import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor
+import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
+import org.jetbrains.org.objectweb.asm.Type
+import kotlin.reflect.KClass
 
 class ScriptContext(
-    typeMapper: KotlinTypeMapper,
+    val typeMapper: KotlinTypeMapper,
     val scriptDescriptor: ScriptDescriptor,
     val earlierScripts: List<ScriptDescriptor>,
     contextDescriptor: ClassDescriptor,
@@ -46,14 +53,46 @@ class ScriptContext(
             return FieldInfo.createForHiddenField(state.typeMapper.mapClass(scriptDescriptor), AsmTypes.OBJECT_TYPE, scriptResultFieldName)
         }
 
+    val script = DescriptorToSourceUtils.getSourceFromDescriptor(scriptDescriptor) as KtScript?
+            ?: error("Declaration should be present for script: $scriptDescriptor")
+
     init {
-        val script = DescriptorToSourceUtils.getSourceFromDescriptor(scriptDescriptor) as KtScript?
-                ?: error("Declaration should be present for script: $scriptDescriptor")
         val lastDeclaration = script.declarations.lastOrNull()
         if (lastDeclaration is KtAnonymousInitializer) {
             this.lastStatement = lastDeclaration.body
         } else {
             this.lastStatement = null
+        }
+    }
+
+    fun getImplicitReceiverName(index: Int): String = "\$\$implicitReceiver$index"
+
+    fun getImplicitReceiverType(index: Int): Type? {
+        val receivers = script.kotlinScriptDefinition.value.implicitReceivers
+        val kClass = receivers.getOrNull(index)?.classifier as? KClass<*>
+        return kClass?.java?.canonicalName?.replace('.', '/')?.let { internalName ->
+            Type.getObjectType(internalName)
+        }
+    }
+
+    fun getOuterReceiverExpression(prefix: StackValue?, thisOrOuterClass: ClassDescriptor): StackValue {
+        receiverDescriptors.forEachIndexed { index, outerReceiver ->
+            if (outerReceiver == thisOrOuterClass) {
+                return getImplicitReceiverType(index)?.let { type ->
+                    val owner = typeMapper.mapType(scriptDescriptor)
+                    StackValue.field(type, owner, getImplicitReceiverName(index), false, prefix ?: StackValue.LOCAL_0)
+                } ?: error("Invalid script receiver: ${thisOrOuterClass.fqNameSafe}")
+            }
+        }
+        error("Script receiver not found: ${thisOrOuterClass.fqNameSafe}")
+    }
+
+    val receiverDescriptors: List<ClassDescriptor> by lazy {
+        val receivers = script.kotlinScriptDefinition.value.implicitReceivers
+        receivers.map { receiver ->
+            val receiverClassId = receiver.classifier?.let { it as? KClass<*> }?.java?.classId
+            receiverClassId?.let { scriptDescriptor.module.findClassAcrossModuleDependencies(it) }
+                    ?: error("missing ${scriptDescriptor.name} script dependency: ${receiverClassId?.asSingleFqName() ?: FqName(receiver.toString())}")
         }
     }
 
@@ -69,3 +108,6 @@ class ScriptContext(
         return "Script: " + contextDescriptor.name.asString()
     }
 }
+
+private val Class<*>.classId: ClassId
+    get() = enclosingClass?.classId?.createNestedClassId(Name.identifier(simpleName)) ?: ClassId.topLevel(FqName(name))
