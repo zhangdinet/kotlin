@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.FqName
 
 interface FirImport : FirElement {
@@ -14,4 +15,7 @@ interface FirImport : FirElement {
     val isAllUnder: Boolean
 
     val aliasName: String?
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitImport(this, data)
 }

@@ -5,4 +5,9 @@
 
 package org.jetbrains.kotlin.fir.types
 
-interface FirDynamicType : FirTypeWithNullability
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
+
+interface FirDynamicType : FirTypeWithNullability {
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitDynamicType(this, data)
+}

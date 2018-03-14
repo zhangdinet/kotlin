@@ -5,5 +5,10 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
+
 // Probably not a function
-interface FirAnonymousInitializer : FirDeclarationWithBody
+interface FirAnonymousInitializer : FirDeclarationWithBody {
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitAnonymousInitializer(this, data)
+}

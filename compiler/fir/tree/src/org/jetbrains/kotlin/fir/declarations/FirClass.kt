@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.fir.types.FirType
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirClass : FirDeclarationContainer, FirMemberDeclaration {
     // including delegated types
@@ -17,4 +18,17 @@ interface FirClass : FirDeclarationContainer, FirMemberDeclaration {
     val isCompanion: Boolean
 
     val isData: Boolean
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitClass(this, data)
+
+    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+        super.acceptChildren(visitor, data)
+        for (superType in superTypes) {
+            superType.accept(visitor, data)
+        }
+        for (declaration in declarations) {
+            declaration.accept(visitor, data)
+        }
+    }
 }

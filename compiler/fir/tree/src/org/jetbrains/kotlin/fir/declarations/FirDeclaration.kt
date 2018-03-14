@@ -6,8 +6,12 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 
 interface FirDeclaration : FirElement {
     val declarationKind: IrDeclarationKind
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitDeclaration(this, data)
 }

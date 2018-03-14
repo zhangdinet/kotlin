@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirExpression
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirValueParameter : @VisitedSupertype FirDeclaration, FirTypedDeclaration, FirNamedDeclaration {
     val isCrossinline: Boolean
@@ -16,4 +17,12 @@ interface FirValueParameter : @VisitedSupertype FirDeclaration, FirTypedDeclarat
     val isVararg: Boolean
 
     val defaultValue: FirExpression?
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitValueParameter(this, data)
+
+    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+        super<FirTypedDeclaration>.acceptChildren(visitor, data)
+        defaultValue?.accept(visitor, data)
+    }
 }

@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.descriptors.Visibility
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirPropertyAccessor : FirFunction {
     val isGetter: Boolean
@@ -13,4 +14,7 @@ interface FirPropertyAccessor : FirFunction {
     val isSetter: Boolean get() = !isGetter
 
     val visibility: Visibility
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitPropertyAccessor(this, data)
 }

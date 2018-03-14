@@ -9,9 +9,14 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.types.FirDelegatedType
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 class FirDelegatedTypeImpl(
     session: FirSession,
     psi: PsiElement?,
     override val delegate: FirExpression?
-) : FirAbstractAnnotatedType(session, psi, isNullable = false), FirDelegatedType
+) : FirAbstractAnnotatedType(session, psi, isNullable = false), FirDelegatedType {
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R {
+        return super<FirDelegatedType>.accept(visitor, data)
+    }
+}

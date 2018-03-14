@@ -9,7 +9,16 @@ import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirTypedDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirNamedDeclaration
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirVariable : @VisitedSupertype FirDeclaration, FirTypedDeclaration, FirNamedDeclaration, FirStatement {
     val initializer: FirExpression?
+
+    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
+        visitor.visitVariable(this, data)
+
+    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+        initializer?.accept(visitor, data)
+        super<FirTypedDeclaration>.acceptChildren(visitor, data)
+    }
 }
