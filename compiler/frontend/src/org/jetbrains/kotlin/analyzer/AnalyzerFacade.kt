@@ -110,8 +110,12 @@ class ResolverForProjectImpl<M : ModuleInfo>(
         }
     }
 
+    // Protected by ("projectContext.storageManager.lock")
     private val descriptorByModule = mutableMapOf<M, ModuleData>()
+
+    // Protected by ("projectContext.storageManager.lock")
     private val moduleInfoByDescriptor = mutableMapOf<ModuleDescriptorImpl, M>()
+
     val modules = modules.toSet()
 
     override fun tryGetResolverForModule(moduleInfo: M): ResolverForModule? {
@@ -161,6 +165,9 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                 }
                 return@compute delegateResolver.resolverForModuleDescriptor(descriptor)
             }
+
+            assert(module in modules) { "Module is not from the set of modules" }
+
             resolverByModuleDescriptor.getOrPut(descriptor) {
                 ResolverForModuleComputationTracker.getInstance(projectContext.project)?.onResolverComputed(module)
 
