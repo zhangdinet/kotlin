@@ -1,0 +1,28 @@
+/*
+ * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the license/LICENSE.txt file.
+ */
+
+
+apply { plugin("kotlin") }
+apply { plugin("jps-compatible") }
+
+jvmTarget = "1.6"
+
+dependencies {
+    val compile by configurations
+
+    compile(project(":compiler:psi"))
+
+    compile(intellijCoreDep()) { includeJars("intellij-core", "annotations", "trove4j", "picocontainer") }
+    compile(intellijDep()) { includeJars("guava", rootProject = rootProject) }
+}
+
+
+sourceSets {
+    "main" {
+        projectDefault()
+    }
+    "test" {}
+}
+
