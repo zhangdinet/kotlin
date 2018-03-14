@@ -3,7 +3,6 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-@file:JvmVersion
 @file:JvmName("CoroutineIntrinsics")
 package kotlin.coroutines.jvm.internal
 

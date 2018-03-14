@@ -9,7 +9,6 @@ package kotlin.coroutines
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.intrinsics.createCoroutineUnchecked
 import kotlin.coroutines.intrinsics.suspendCoroutineOrReturn
-import kotlin.internal.InlineOnly
 
 /**
  * Starts coroutine with receiver type [R] and result type [T].
@@ -93,7 +92,6 @@ public suspend inline fun <T> suspendCoroutine(crossinline block: (Continuation<
  */
 @SinceKotlin("1.3")
 @Suppress("WRONG_MODIFIER_TARGET")
-@InlineOnly
 public suspend inline val coroutineContext: CoroutineContext
     get() {
         throw NotImplementedError("Implemented as intrinsic")
@@ -101,7 +99,6 @@ public suspend inline val coroutineContext: CoroutineContext
 
 // INTERNAL DECLARATIONS
 
-@kotlin.internal.InlineOnly
 @SinceKotlin("1.3")
 internal inline fun processBareContinuationResume(completion: Continuation<*>, block: () -> Any?) {
     try {

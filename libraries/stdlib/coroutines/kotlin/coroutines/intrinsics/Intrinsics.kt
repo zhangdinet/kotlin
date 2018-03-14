@@ -27,7 +27,6 @@ import kotlin.coroutines.*
  * continuation instance.
  */
 @SinceKotlin("1.3")
-@kotlin.internal.InlineOnly
 @Suppress("UNUSED_PARAMETER")
 public suspend inline fun <T> suspendCoroutineOrReturn(crossinline block: (Continuation<T>) -> Any?): T =
         suspendCoroutineUninterceptedOrReturn { cont -> block(cont.intercepted()) }
@@ -39,7 +38,6 @@ public suspend inline fun <T> suspendCoroutineOrReturn(crossinline block: (Conti
  * Unlike [suspendCoroutineOrReturn] it does not intercept continuation.
  */
 @SinceKotlin("1.3")
-@kotlin.internal.InlineOnly
 public suspend inline fun <T> suspendCoroutineUninterceptedOrReturn(crossinline block: (Continuation<T>) -> Any?): T =
         throw NotImplementedError("Implementation of suspendCoroutineUninterceptedOrReturn is intrinsic")
 
@@ -47,7 +45,6 @@ public suspend inline fun <T> suspendCoroutineUninterceptedOrReturn(crossinline 
  * Intercept continuation with [ContinuationInterceptor].
  */
 @SinceKotlin("1.3")
-@kotlin.internal.InlineOnly
 public inline fun <T> Continuation<T>.intercepted(): Continuation<T> =
         throw NotImplementedError("Implementation of intercepted is intrinsic")
 
@@ -71,7 +68,6 @@ public val COROUTINE_SUSPENDED: Any = Any()
  * state machine of the coroutine and may result in arbitrary behaviour or exception.
  */
 @SinceKotlin("1.3")
-@kotlin.jvm.JvmVersion
 public fun <T> (suspend () -> T).createCoroutineUnchecked(
         completion: Continuation<T>
 ): Continuation<Unit> =
@@ -94,7 +90,6 @@ public fun <T> (suspend () -> T).createCoroutineUnchecked(
  * state machine of the coroutine and may result in arbitrary behaviour or exception.
  */
 @SinceKotlin("1.3")
-@kotlin.jvm.JvmVersion
 public fun <R, T> (suspend R.() -> T).createCoroutineUnchecked(
         receiver: R,
         completion: Continuation<T>
@@ -109,7 +104,6 @@ public fun <R, T> (suspend R.() -> T).createCoroutineUnchecked(
 
 // INTERNAL DEFINITIONS
 
-@kotlin.jvm.JvmVersion
 @SinceKotlin("1.3")
 private inline fun <T> buildContinuationByInvokeCall(
         completion: Continuation<T>,
