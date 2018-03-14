@@ -18,6 +18,7 @@ package kotlin.reflect.jvm.internal.components
 
 import org.jetbrains.kotlin.descriptors.PackagePartProvider
 import org.jetbrains.kotlin.load.kotlin.ModuleMapping
+import org.jetbrains.kotlin.load.kotlin.create
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
 import java.util.concurrent.ConcurrentHashMap

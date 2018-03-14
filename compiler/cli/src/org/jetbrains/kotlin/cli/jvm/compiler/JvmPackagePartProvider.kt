@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.PackagePartProvider
 import org.jetbrains.kotlin.load.kotlin.ModuleMapping
 import org.jetbrains.kotlin.load.kotlin.PackageParts
+import org.jetbrains.kotlin.load.kotlin.create
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
 import java.io.EOFException
@@ -71,7 +72,7 @@ class JvmPackagePartProvider(
 
     override fun getAnnotationsOnBinaryModule(moduleName: String): List<ClassId> {
         return loadedModules.mapNotNull { (_, mapping, name) ->
-            if (name == moduleName) mapping.moduleData.annotations else null
+            if (name == moduleName) mapping.moduleData.annotations.map(ClassId::fromString) else null
         }.flatten()
     }
 
