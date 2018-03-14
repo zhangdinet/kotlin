@@ -6,10 +6,8 @@
 package org.jetbrains.kotlin.fir.visitors.generator
 
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtVisitorVoid
+import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 class DataCollector {
 
@@ -25,12 +23,23 @@ class DataCollector {
             }
 
             override fun visitClass(klass: KtClass) {
-                if (klass.isInterface() && klass.name != null) {
-                    packagePerClass[klass.name!!] = file.packageFqName
-                    references[klass.name!!] =
-                            klass.superTypeListEntries.mapNotNull {
-                                it.typeAsUserType?.referencedName
-                            }
+                val className = klass.name
+                if (klass.isInterface() && className != null) {
+                    packagePerClass[className] = file.packageFqName
+
+                    val manual = klass.superTypeListEntries.find {
+                        it.typeReference?.findDescendantOfType<KtAnnotationEntry> {
+                            it.shortName?.asString() == VISITED_SUPERTYPE_ANNOTATION_NAME
+                        } != null
+                    }
+                    if (manual != null) {
+                        references[className] = listOfNotNull(manual.typeAsUserType?.referencedName)
+                    } else {
+                        references[className] =
+                                klass.superTypeListEntries.mapNotNull {
+                                    it.typeAsUserType?.referencedName
+                                }
+                    }
                 }
 
                 super.visitClass(klass)

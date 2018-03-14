@@ -18,6 +18,7 @@ const val FIR_ELEMENT_CLASS_NAME = "FirElement"
 const val VISITOR_PACKAGE = "org.jetbrains.kotlin.fir.visitors"
 const val SIMPLE_VISITOR_NAME = "FirVisitor"
 const val UNIT_VISITOR_NAME = "FirVisitorVoid"
+const val VISITED_SUPERTYPE_ANNOTATION_NAME = "VisitedSupertype"
 
 fun main(args: Array<String>) {
 
