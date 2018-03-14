@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.kotlinp
 
 import kotlinx.metadata.InconsistentKotlinMetadataException
 import kotlinx.metadata.jvm.KotlinClassFile
+import kotlinx.metadata.jvm.KotlinModuleFile
 import java.io.File
 
 object Kotlinp {
@@ -30,4 +31,11 @@ object Kotlinp {
             throw KotlinpException("inconsistent Kotlin metadata: ${e.message}")
         }
     }
+
+    internal fun renderModuleFile(moduleFile: KotlinModuleFile?): String =
+        if (moduleFile != null) ModuleFilePrinter().print(moduleFile)
+        else buildString { appendln("unsupported file") }
+
+    internal fun readModuleFile(file: File): KotlinModuleFile? =
+        KotlinModuleFile.read(file.readBytes())
 }

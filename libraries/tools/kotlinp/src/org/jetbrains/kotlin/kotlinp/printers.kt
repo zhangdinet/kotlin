@@ -600,6 +600,37 @@ class MultiFileClassFacadePrinter : AbstractPrinter<KotlinClassFile.MultiFileCla
         }
 }
 
+class ModuleFilePrinter : ModuleVisitor() {
+    private val sb = StringBuilder().apply {
+        appendln("module {")
+    }
+
+    override fun visitPackageParts(fqName: String, fileFacades: List<String>, multiFileClassParts: Map<String, String>) {
+        val presentableFqName = if (fqName.isEmpty()) "<root>" else fqName
+        sb.appendln("  package $presentableFqName {")
+        for (fileFacade in fileFacades) {
+            sb.appendln("    $fileFacade")
+        }
+        for ((multiFileClassPart, facade) in multiFileClassParts) {
+            sb.appendln("    $multiFileClassPart ($facade)")
+        }
+        sb.appendln("  }")
+    }
+
+    override fun visitAnnotation(annotation: Annotation) {
+        // TODO
+    }
+
+    override fun visitEnd() {
+        sb.appendln("}")
+    }
+
+    fun print(file: KotlinModuleFile): String {
+        file.accept(this)
+        return sb.toString()
+    }
+}
+
 private val VISIBILITY_FLAGS_MAP = mapOf(
     Flags.isInternal to "internal",
     Flags.isPrivate to "private",

@@ -26,7 +26,12 @@ fun compileAndPrintAllFiles(file: File, disposable: Disposable, tmpdir: File, co
     compile(file, disposable, tmpdir) { outputFile ->
         when (outputFile.extension) {
             "kotlin_module" -> {
-                // TODO: support kotlin_module files
+                val moduleFile = Kotlinp.readModuleFile(outputFile)
+                // TODO: transformModuleFile
+                for ((sb, moduleFileToRender) in listOf(read to moduleFile, readWriteRead to moduleFile)) {
+                    sb.appendFileName(outputFile.relativeTo(tmpdir))
+                    sb.append(Kotlinp.renderModuleFile(moduleFileToRender))
+                }
             }
             "class" -> {
                 val classFile = Kotlinp.readClassFile(outputFile)!!
