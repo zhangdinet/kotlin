@@ -30,7 +30,7 @@ import org.jetbrains.org.objectweb.asm.tree.MethodNode
 class OptimizationMethodVisitor(
     delegate: MethodVisitor,
     private val disableOptimization: Boolean,
-    private val constructorCallNormalizationMode: JVMConstructorCallNormalizationMode,
+    constructorCallNormalizationMode: JVMConstructorCallNormalizationMode,
     access: Int,
     name: String,
     desc: String,
@@ -52,7 +52,7 @@ class OptimizationMethodVisitor(
     }
 
     companion object {
-        private val MEMORY_LIMIT_BY_METHOD_MB = 50
+        private const val MEMORY_LIMIT_BY_METHOD_MB = 50
 
         val normalizationMethodTransformer = CompositeMethodTransformer(
             FixStackWithLabelNormalizationMethodTransformer(),
