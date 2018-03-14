@@ -1,11 +1,17 @@
-description = 'Merge utility for Kotlin Standard Library for JS'
+description = "Merge utility for Kotlin Standard Library for JS"
 
-apply plugin: 'kotlin'
+plugins {
+    kotlin("jvm")
+}
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-compiler:$bootstrapKotlinVersion"
+    compile(project(":js:js.ast"))
+    compile(project(":js:js.parser"))
+    compile(project(":js:js.translator"))
+
+    runtime(intellijCoreDep())
 }
 
 sourceSets {
-    main.kotlin.srcDirs += 'src'
+    "main" { projectDefault() }
 }
