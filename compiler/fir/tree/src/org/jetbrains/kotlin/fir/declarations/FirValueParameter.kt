@@ -5,9 +5,10 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 
-interface FirValueParameter : FirTypedDeclaration, FirNamedDeclaration {
+interface FirValueParameter : @VisitedSupertype FirDeclaration, FirTypedDeclaration, FirNamedDeclaration {
     val isCrossinline: Boolean
 
     val isNoinline: Boolean

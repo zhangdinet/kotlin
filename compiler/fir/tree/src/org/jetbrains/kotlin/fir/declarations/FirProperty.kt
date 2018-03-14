@@ -5,11 +5,12 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirVariable
 
 // May be should not inherit FirVariable
-interface FirProperty : FirCallableMember, FirVariable {
+interface FirProperty : @VisitedSupertype FirDeclaration, FirCallableMember, FirVariable {
     // Should it be nullable or have some default?
     val getter: FirPropertyAccessor
 

@@ -5,9 +5,10 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.types.FirType
 
 // Good name needed (something with receiver, type parameters, return type, and name)
-interface FirCallableMember : FirMemberDeclaration, FirTypedDeclaration {
+interface FirCallableMember : @VisitedSupertype FirDeclaration, FirMemberDeclaration, FirTypedDeclaration {
     val receiverType: FirType?
 }

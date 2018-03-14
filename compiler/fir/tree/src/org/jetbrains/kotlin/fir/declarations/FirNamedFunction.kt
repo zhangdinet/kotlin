@@ -5,5 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
-interface FirNamedFunction : FirFunction, FirCallableMember {
+import org.jetbrains.kotlin.fir.VisitedSupertype
+
+interface FirNamedFunction : @VisitedSupertype FirFunction, FirCallableMember {
 }

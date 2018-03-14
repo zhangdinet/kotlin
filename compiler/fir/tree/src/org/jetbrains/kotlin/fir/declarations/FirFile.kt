@@ -5,10 +5,11 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
 import org.jetbrains.kotlin.name.FqName
 
-interface FirFile : FirPackageFragment, FirDeclaration, FirAnnotationContainer {
+interface FirFile : @VisitedSupertype FirPackageFragment, FirDeclaration, FirAnnotationContainer {
     val packageFqName: FqName
 
     val imports: List<FirImport>
