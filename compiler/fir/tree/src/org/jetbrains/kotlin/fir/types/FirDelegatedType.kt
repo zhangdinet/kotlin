@@ -7,6 +7,6 @@ package org.jetbrains.kotlin.fir.types
 
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 
-interface FirDelegatedType : FirExplicitType {
+interface FirDelegatedType : FirUserType {
     val delegate: FirExpression
 }

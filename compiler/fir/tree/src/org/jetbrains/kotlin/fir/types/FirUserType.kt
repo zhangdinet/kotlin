@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.types
 
-import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.name.Name
 
-interface FirResolvedType : FirTypeWithNullability {
-    val type: KotlinType
+interface FirUserType : FirTypeWithNullability, FirTypeProjectionContainer {
+    val name: Name
 }

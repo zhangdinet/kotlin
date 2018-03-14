@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.types
 
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
 
-interface FirType : FirElement {
+interface FirType : FirElement, FirAnnotationContainer {
 }

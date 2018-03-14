@@ -11,5 +11,6 @@ import org.jetbrains.kotlin.fir.types.FirType
 interface FirAnnotationCall : FirCall {
     val annotationType: FirType
 
-    val useSiteTarget: AnnotationUseSiteTarget
+    // May be should be not-null (with correct default target)
+    val useSiteTarget: AnnotationUseSiteTarget?
 }

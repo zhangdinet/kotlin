@@ -8,5 +8,5 @@ package org.jetbrains.kotlin.fir.declarations
 import org.jetbrains.kotlin.fir.expressions.FirBody
 
 interface FirDeclarationWithBody : FirDeclaration {
-    val body: FirBody
+    val body: FirBody?
 }

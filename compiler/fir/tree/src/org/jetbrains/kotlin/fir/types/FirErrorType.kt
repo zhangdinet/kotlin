@@ -5,8 +5,4 @@
 
 package org.jetbrains.kotlin.fir.types
 
-import org.jetbrains.kotlin.types.KotlinType
-
-interface FirResolvedType : FirTypeWithNullability {
-    val type: KotlinType
-}
+interface FirErrorType : FirType

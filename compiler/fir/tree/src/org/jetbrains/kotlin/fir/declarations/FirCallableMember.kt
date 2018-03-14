@@ -9,5 +9,5 @@ import org.jetbrains.kotlin.fir.types.FirType
 
 // Good name needed (something with receiver, type parameters, return type, and name)
 interface FirCallableMember : FirMemberDeclaration, FirTypedDeclaration {
-    val receiverType: FirType
+    val receiverType: FirType?
 }

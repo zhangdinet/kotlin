@@ -5,5 +5,4 @@
 
 package org.jetbrains.kotlin.fir.types
 
-interface FirExplicitType : FirType, FirTypeProjectionContainer {
-}
+interface FirDynamicType : FirTypeWithNullability
