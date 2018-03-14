@@ -13,7 +13,7 @@ import kotlin.coroutines.*
  * This function is designed to be used from inside of [suspendCoroutineOrReturn] to resume the execution of suspended
  * coroutine using a reference to the suspending function.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 @Suppress("UNCHECKED_CAST")
 public inline fun <T> (suspend () -> T).startCoroutineUninterceptedOrReturn(
         completion: Continuation<T>
@@ -26,7 +26,7 @@ public inline fun <T> (suspend () -> T).startCoroutineUninterceptedOrReturn(
  * This function is designed to be used from inside of [suspendCoroutineOrReturn] to resume the execution of suspended
  * coroutine using a reference to the suspending function.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 @Suppress("UNCHECKED_CAST")
 public inline fun <R, T> (suspend R.() -> T).startCoroutineUninterceptedOrReturn(
         receiver: R,

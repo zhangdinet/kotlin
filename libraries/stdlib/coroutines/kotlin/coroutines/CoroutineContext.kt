@@ -10,7 +10,7 @@ package kotlin.coroutines
  * An indexed set is a mix between a set and a map.
  * Every element in this set has a unique [Key]. Keys are compared _by reference_.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public interface CoroutineContext {
     /**
      * Returns the element with the given [key] from this context or `null`.

@@ -10,13 +10,13 @@ import kotlin.coroutines.CoroutineContext.*
 /**
  * Base class for [CoroutineContext.Element] implementations.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public abstract class AbstractCoroutineContextElement(public override val key: Key<*>) : Element
 
 /**
  * An empty coroutine context.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public object EmptyCoroutineContext : CoroutineContext {
     public override fun <E : Element> get(key: Key<E>): E? = null
     public override fun <R> fold(initial: R, operation: (R, Element) -> R): R = initial
@@ -30,7 +30,7 @@ public object EmptyCoroutineContext : CoroutineContext {
 
 // this class is not exposed, but is hidden inside implementations
 // this is a left-biased list, so that `plus` works naturally
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 internal class CombinedContext(val left: CoroutineContext, val element: Element) : CoroutineContext {
     override fun <E : Element> get(key: Key<E>): E? {
         var cur = this

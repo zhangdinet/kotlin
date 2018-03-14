@@ -26,7 +26,7 @@ import kotlin.coroutines.*
  * in the same stackframe where suspension function is run. Use [suspendCoroutine] as a safer way to obtain current
  * continuation instance.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 @Suppress("UNUSED_PARAMETER")
 public suspend inline fun <T> suspendCoroutineOrReturn(crossinline block: (Continuation<T>) -> Any?): T =
         suspendCoroutineUninterceptedOrReturn { cont -> block(cont.intercepted()) }
@@ -37,14 +37,14 @@ public suspend inline fun <T> suspendCoroutineOrReturn(crossinline block: (Conti
  *
  * Unlike [suspendCoroutineOrReturn] it does not intercept continuation.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public suspend inline fun <T> suspendCoroutineUninterceptedOrReturn(crossinline block: (Continuation<T>) -> Any?): T =
         throw NotImplementedError("Implementation of suspendCoroutineUninterceptedOrReturn is intrinsic")
 
 /**
  * Intercept continuation with [ContinuationInterceptor].
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public inline fun <T> Continuation<T>.intercepted(): Continuation<T> =
         throw NotImplementedError("Implementation of intercepted is intrinsic")
 
@@ -52,7 +52,7 @@ public inline fun <T> Continuation<T>.intercepted(): Continuation<T> =
  * This value is used as a return value of [suspendCoroutineOrReturn] `block` argument to state that
  * the execution was suspended and will not return any result immediately.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public val COROUTINE_SUSPENDED: Any = Any()
 
 // JVM declarations
@@ -67,7 +67,7 @@ public val COROUTINE_SUSPENDED: Any = Any()
  * This function is _unchecked_. Repeated invocation of any resume function on the resulting continuation corrupts the
  * state machine of the coroutine and may result in arbitrary behaviour or exception.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public fun <T> (suspend () -> T).createCoroutineUnchecked(
         completion: Continuation<T>
 ): Continuation<Unit> =
@@ -89,7 +89,7 @@ public fun <T> (suspend () -> T).createCoroutineUnchecked(
  * This function is _unchecked_. Repeated invocation of any resume function on the resulting continuation corrupts the
  * state machine of the coroutine and may result in arbitrary behaviour or exception.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public fun <R, T> (suspend R.() -> T).createCoroutineUnchecked(
         receiver: R,
         completion: Continuation<T>
@@ -104,7 +104,7 @@ public fun <R, T> (suspend R.() -> T).createCoroutineUnchecked(
 
 // INTERNAL DEFINITIONS
 
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private inline fun <T> buildContinuationByInvokeCall(
         completion: Continuation<T>,
         crossinline block: () -> Any?

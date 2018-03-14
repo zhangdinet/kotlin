@@ -7162,7 +7162,7 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                 catch (Throwable ignore) {
                     return;
                 }
-                throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+                throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
             }
 
             public void testAllFilesPresentInMultiModule() throws Exception {

@@ -38,7 +38,7 @@ public class ForTestCompileRuntime {
 
     @NotNull
     public static File coroutinesJarForTests() {
-        return assertExists(new File("dist/kotlinc/lib/kotlin-coroutines.jar"));
+        return assertExists(new File("dist/kotlinc/lib/kotlin-stdlib-coroutines.jar"));
     }
 
     @NotNull

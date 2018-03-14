@@ -17,7 +17,7 @@ import kotlin.coroutines.intrinsics.*
  * @sample samples.collections.Sequences.Building.buildSequenceYieldAll
  * @sample samples.collections.Sequences.Building.buildFibonacciSequence
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public fun <T> buildSequence(builderAction: suspend SequenceBuilder<T>.() -> Unit): Sequence<T> = Sequence { buildIterator(builderAction) }
 
 /**
@@ -26,7 +26,7 @@ public fun <T> buildSequence(builderAction: suspend SequenceBuilder<T>.() -> Uni
  * @sample samples.collections.Sequences.Building.buildIterator
  * @sample samples.collections.Iterables.Building.iterable
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public fun <T> buildIterator(builderAction: suspend SequenceBuilder<T>.() -> Unit): Iterator<T> {
     val iterator = SequenceBuilderIterator<T>()
     iterator.nextStep = builderAction.createCoroutineUnchecked(receiver = iterator, completion = iterator)
@@ -43,7 +43,7 @@ public fun <T> buildIterator(builderAction: suspend SequenceBuilder<T>.() -> Uni
  * @sample samples.collections.Sequences.Building.buildFibonacciSequence
  */
 @RestrictsSuspension
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public abstract class SequenceBuilder<in T> internal constructor() {
     /**
      * Yields a value to the [Iterator] being built.
@@ -82,22 +82,22 @@ public abstract class SequenceBuilder<in T> internal constructor() {
     public suspend fun yieldAll(sequence: Sequence<T>) = yieldAll(sequence.iterator())
 }
 
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private typealias State = Int
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_NotReady: State = 0
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_ManyNotReady: State = 1
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_ManyReady: State = 2
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_Ready: State = 3
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_Done: State = 4
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private const val State_Failed: State = 5
 
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 private class SequenceBuilderIterator<T> : SequenceBuilder<T>(), Iterator<T>, Continuation<Unit> {
     private var state = State_NotReady
     private var nextValue: T? = null

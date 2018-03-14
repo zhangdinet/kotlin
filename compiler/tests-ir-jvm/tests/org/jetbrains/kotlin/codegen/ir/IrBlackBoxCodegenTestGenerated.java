@@ -7178,7 +7178,7 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                 catch (Throwable ignore) {
                     return;
                 }
-                throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+                throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
             }
 
             @TestMetadata("inlineMultiModuleWithController.kt")

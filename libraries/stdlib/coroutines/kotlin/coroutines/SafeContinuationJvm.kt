@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 
 @PublishedApi
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 internal class SafeContinuation<in T>
 internal constructor(
         private val delegate: Continuation<T>,

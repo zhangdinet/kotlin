@@ -10,7 +10,7 @@ package kotlin.coroutines
  * The coroutines framework uses [ContinuationInterceptor.Key] to retrieve the interceptor and
  * intercepts all coroutine continuations with [interceptContinuation] invocations.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public interface ContinuationInterceptor : CoroutineContext.Element {
     /**
      * The key that defines *the* context interceptor.

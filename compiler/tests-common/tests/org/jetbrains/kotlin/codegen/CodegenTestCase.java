@@ -607,9 +607,6 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         boolean loadAndroidAnnotations = files.stream().anyMatch(it ->
                 InTextDirectivesUtils.isDirectiveDefined(it.content, "ANDROID_ANNOTATIONS")
         );
-        boolean loadCoroutines = files.stream().anyMatch(it ->
-                InTextDirectivesUtils.isDirectiveDefined(it.content, "COMMON_COROUTINES_TEST")
-        );
 
         List<String> javacOptions = extractJavacOptions(files);
         List<File> classpath = new ArrayList<>();

@@ -8,7 +8,7 @@ package kotlin.coroutines
 /**
  * Interface representing a continuation after a suspension point that returns value of type `T`.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 public interface Continuation<in T> {
     /**
      * Context of the coroutine that corresponds to this continuation.
@@ -32,7 +32,7 @@ public interface Continuation<in T> {
  * `suspend` functions. These `suspend` extensions can only invoke other member or extension `suspend` functions on this particular
  * receiver only and are restricted from calling arbitrary suspension functions.
  */
-@SinceKotlin("1.3")
+@SinceKotlin("1.2")
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 public annotation class RestrictsSuspension
