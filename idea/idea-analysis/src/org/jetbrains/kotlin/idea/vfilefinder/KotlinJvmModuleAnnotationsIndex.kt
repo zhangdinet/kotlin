@@ -9,6 +9,7 @@ import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.IOUtil
 import org.jetbrains.kotlin.load.kotlin.ModuleMapping
+import org.jetbrains.kotlin.load.kotlin.create
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
 import java.io.DataInput
@@ -45,7 +46,7 @@ object KotlinJvmModuleAnnotationsIndex : FileBasedIndexExtension<String, List<Cl
         val file = inputData.file
         try {
             val moduleMapping = ModuleMapping.create(inputData.content, file.toString(), DeserializationConfiguration.Default)
-            return@DataIndexer mapOf(file.nameWithoutExtension to moduleMapping.moduleData.annotations)
+            return@DataIndexer mapOf(file.nameWithoutExtension to moduleMapping.moduleData.annotations.map(ClassId::fromString))
         } catch (e: Exception) {
             // Exceptions are already reported in KotlinModuleMappingIndex
             emptyMap()
