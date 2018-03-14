@@ -72,7 +72,6 @@ jar {
     from("${rootDir}/dist/builtins")
     from sourceSets.builtins.output
     from sourceSets.experimental.output
-    from sourceSets.coroutines.output
 }
 
 task distJar(type: Jar) {
@@ -84,6 +83,14 @@ task distJar(type: Jar) {
     from sourceSets.builtins.output
     from sourceSets.main.output
     from sourceSets.experimental.output
+    from sourceSets.coroutines.output
+}
+
+task coroutinesJar(type: Jar) {
+    baseName = 'dist-kotlin-coroutines'
+    version = null
+    manifestAttributes(manifest, project, 'Main')
+    from("${rootDir}/dist/builtins")
     from sourceSets.coroutines.output
 }
 
@@ -106,7 +113,7 @@ artifacts {
 }
 
 dist {
-    [distJar, sourcesJar].forEach {
+    [distJar, sourcesJar, coroutinesJar].forEach {
         from(it) {
             rename('dist-', '')
         }

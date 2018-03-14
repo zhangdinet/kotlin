@@ -3,6 +3,7 @@
 // COMMON_COROUTINES_TEST
 import helpers.*
 import COROUTINES_PACKAGE.*
+import COROUTINES_PACKAGE.Continuation
 import COROUTINES_PACKAGE.intrinsics.*
 
 

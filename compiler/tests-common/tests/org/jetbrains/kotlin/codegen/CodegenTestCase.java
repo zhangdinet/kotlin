@@ -607,6 +607,9 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         boolean loadAndroidAnnotations = files.stream().anyMatch(it ->
                 InTextDirectivesUtils.isDirectiveDefined(it.content, "ANDROID_ANNOTATIONS")
         );
+        boolean loadCoroutines = files.stream().anyMatch(it ->
+                InTextDirectivesUtils.isDirectiveDefined(it.content, "COMMON_COROUTINES_TEST")
+        );
 
         List<String> javacOptions = extractJavacOptions(files);
         List<File> classpath = new ArrayList<>();
@@ -661,7 +664,11 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
     protected ConfigurationKind extractConfigurationKind(@NotNull List<TestFile> files) {
         boolean addRuntime = false;
         boolean addReflect = false;
+        boolean addCoroutines = false;
         for (TestFile file : files) {
+            if (InTextDirectivesUtils.isDirectiveDefined(file.content, "COMMON_COROUTINES_TEST")) {
+                addCoroutines = true;
+            }
             if (InTextDirectivesUtils.isDirectiveDefined(file.content, "WITH_RUNTIME")) {
                 addRuntime = true;
             }
@@ -671,6 +678,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         }
 
         return addReflect ? ConfigurationKind.ALL :
+               addCoroutines ? ConfigurationKind.WITH_COROUTINES :
                addRuntime ? ConfigurationKind.NO_KOTLIN_REFLECT :
                ConfigurationKind.JDK_ONLY;
     }
