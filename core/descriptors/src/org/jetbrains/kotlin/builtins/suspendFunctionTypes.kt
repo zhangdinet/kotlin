@@ -32,13 +32,11 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
-private val CONTINUATION_INTERFACE_FQ_NAME_SHORT = Name.identifier("Continuation")
-
 val FAKE_CONTINUATION_CLASS_DESCRIPTOR =
     MutableClassDescriptor(
-        ErrorUtils.getErrorModule(),
+        EmptyPackageFragmentDescriptor(ErrorUtils.getErrorModule(), DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL),
         ClassKind.INTERFACE, /* isInner = */ false, /* isExternal = */ false,
-        CONTINUATION_INTERFACE_FQ_NAME_SHORT, SourceElement.NO_SOURCE
+        DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL.shortName(), SourceElement.NO_SOURCE
     ).apply {
         modality = Modality.ABSTRACT
         visibility = Visibilities.PUBLIC

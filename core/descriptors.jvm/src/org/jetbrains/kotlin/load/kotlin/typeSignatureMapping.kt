@@ -48,6 +48,9 @@ interface TypeMappingConfiguration<out T : Any> {
 
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
 
+private val CONTINUATION_INTERNAL_NAME =
+    JvmClassName.byClassId(ClassId.topLevel(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL)).internalName
+
 fun <T : Any> mapType(
     kotlinType: KotlinType,
     factory: JvmTypeFactory<T>,
