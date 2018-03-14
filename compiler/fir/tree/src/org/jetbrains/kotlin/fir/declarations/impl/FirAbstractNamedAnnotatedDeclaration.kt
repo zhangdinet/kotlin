@@ -7,17 +7,13 @@ package org.jetbrains.kotlin.fir.declarations.impl
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
-import org.jetbrains.kotlin.fir.types.FirType
+import org.jetbrains.kotlin.fir.declarations.FirNamedDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.types.Variance
 
-class FirTypeParameterImpl(
+abstract class FirAbstractNamedAnnotatedDeclaration(
     session: FirSession,
     psi: PsiElement?,
-    name: Name,
-    override val variance: Variance
-) : FirAbstractNamedAnnotatedDeclaration(session, psi, IrDeclarationKind.TYPE_PARAMETER, name), FirTypeParameter {
-    override val bounds = mutableListOf<FirType>()
-}
+    declarationKind: IrDeclarationKind,
+    final override val name: Name
+) : FirAbstractAnnotatedDeclaration(session, psi, declarationKind), FirNamedDeclaration

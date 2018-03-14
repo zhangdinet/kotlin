@@ -9,23 +9,18 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
-import org.jetbrains.kotlin.fir.declarations.FirValueParameter
-import org.jetbrains.kotlin.fir.expressions.FirBody
+import org.jetbrains.kotlin.fir.declarations.FirCallableMember
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
 
-class FirMemberFunctionImpl(
+abstract class FirAbstractCallableMember(
     session: FirSession,
     psi: PsiElement?,
     declarationKind: IrDeclarationKind,
     name: Name,
     visibility: Visibility,
     modality: Modality,
-    receiverType: FirType?,
-    returnType: FirType,
-    override val body: FirBody?
-) : FirAbstractCallableMember(session, psi, declarationKind, name, visibility, modality, receiverType, returnType), FirNamedFunction {
-    override val valueParameters = mutableListOf<FirValueParameter>()
-}
+    final override val receiverType: FirType?,
+    final override val returnType: FirType
+) : FirAbstractMemberDeclaration(session, psi, declarationKind, name, visibility, modality), FirCallableMember

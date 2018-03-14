@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.expressions
 
 // Should we have FirBlockBody / FirExpressionBody?
-interface FirBody {
+// Is it FirExpression or just FirElement?
+interface FirBody : FirExpression {
     val statements: List<FirStatement>
 }

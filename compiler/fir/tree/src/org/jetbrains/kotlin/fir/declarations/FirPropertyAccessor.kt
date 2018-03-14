@@ -10,5 +10,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 interface FirPropertyAccessor : FirFunction {
     val isGetter: Boolean
 
+    val isSetter: Boolean get() = !isGetter
+
     val visibility: Visibility
 }

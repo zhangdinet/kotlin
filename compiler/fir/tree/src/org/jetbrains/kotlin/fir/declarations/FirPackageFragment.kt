@@ -7,5 +7,4 @@ package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirElement
 
-interface FirPackageFragment : FirElement, FirDeclarationContainer {
-}
+interface FirPackageFragment : FirElement, FirDeclarationContainer

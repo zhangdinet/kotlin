@@ -6,6 +6,12 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.name.FqName
 
 interface FirImport : FirElement {
+    val importedFqName: FqName?
+
+    val isAllUnder: Boolean
+
+    val aliasName: String?
 }

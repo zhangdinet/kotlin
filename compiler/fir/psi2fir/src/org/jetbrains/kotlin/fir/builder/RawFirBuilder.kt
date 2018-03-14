@@ -5,20 +5,18 @@
 
 package org.jetbrains.kotlin.fir.builder
 
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
-import org.jetbrains.kotlin.fir.declarations.FirValueParameter
-import org.jetbrains.kotlin.fir.declarations.impl.FirMemberFunctionImpl
-import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
-import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
+import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBody
 import org.jetbrains.kotlin.fir.expressions.impl.FirAnnotationCallImpl
+import org.jetbrains.kotlin.fir.expressions.impl.FirBlockBodyImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
 import org.jetbrains.kotlin.fir.types.FirUserType
 import org.jetbrains.kotlin.fir.types.FirType
@@ -76,14 +74,134 @@ class RawFirBuilder(val session: FirSession) {
             convertSafe<FirUserType>() ?: FirErrorTypeImpl(session, this, false)
 
         private fun KtExpression?.toFirBody(): FirBody? =
-            null
+            convertSafe()
+
+        private fun KtPropertyAccessor?.toFirPropertyAccessor(
+            property: KtProperty,
+            propertyType: FirType,
+            isGetter: Boolean
+        ): FirPropertyAccessor {
+            if (this == null) {
+                return FirDefaultPropertyAccessor(session, property, isGetter, propertyType)
+            }
+            val firAccessor = FirPropertyAccessorImpl(
+                session,
+                this,
+                isGetter,
+                visibility,
+                bodyExpression.toFirBody()
+            )
+            extractAnnotationsTo(firAccessor)
+            extractValueParametersTo(firAccessor)
+            if (!isGetter && firAccessor.valueParameters.isEmpty()) {
+                firAccessor.valueParameters += FirDefaultSetterValueParameter(session, this, propertyType)
+            }
+            return firAccessor
+        }
+
+        private fun KtModifierListOwner.extractAnnotationsTo(container: FirAbstractAnnotatedDeclaration) {
+            for (annotationEntry in annotationEntries) {
+                container.annotations += annotationEntry.convert<FirAnnotationCall>()
+            }
+        }
+
+        private fun KtTypeParameterListOwner.extractTypeParametersTo(container: FirAbstractMemberDeclaration) {
+            for (typeParameter in typeParameters) {
+                container.typeParameters += typeParameter.convert<FirTypeParameter>()
+            }
+        }
+
+        private fun KtDeclarationWithBody.extractValueParametersTo(container: FirAbstractFunction) {
+            for (valueParameter in valueParameters) {
+                container.valueParameters += valueParameter.convert<FirValueParameter>()
+            }
+        }
 
         override fun visitKtFile(file: KtFile, data: Unit): FirElement {
-            return super.visitKtFile(file, data) as FirFile
+            val firFile = FirFileImpl(session, file, file.packageFqName)
+            for (annotationEntry in file.annotationEntries) {
+                firFile.annotations += annotationEntry.convert<FirAnnotationCall>()
+            }
+            for (importDirective in file.importDirectives) {
+                firFile.imports += FirImportImpl(
+                    session,
+                    importDirective,
+                    importDirective.importedFqName,
+                    importDirective.isAllUnder,
+                    importDirective.aliasName
+                )
+            }
+            for (declaration in file.declarations) {
+                firFile.declarations += declaration.convert<FirDeclaration>()
+            }
+            return firFile
+        }
+
+        override fun visitClassOrObject(classOrObject: KtClassOrObject, data: Unit): FirElement {
+            val classKind = when (classOrObject) {
+                is KtObjectDeclaration -> ClassKind.OBJECT
+                is KtClass -> when {
+                    classOrObject.isInterface() -> ClassKind.INTERFACE
+                    classOrObject.isEnum() -> ClassKind.ENUM_CLASS
+                    classOrObject.isAnnotation() -> ClassKind.ANNOTATION_CLASS
+                    else -> ClassKind.CLASS
+                }
+                else -> throw AssertionError("Unexpected class or object: ${classOrObject.text}")
+            }
+            val firClass = FirClassImpl(
+                session,
+                classOrObject,
+                classOrObject.nameAsSafeName,
+                classOrObject.visibility,
+                classOrObject.modality,
+                classKind,
+                isCompanion = (classOrObject as? KtObjectDeclaration)?.isCompanion() == true,
+                isData = (classOrObject as? KtClass)?.isData() == true
+            )
+            classOrObject.extractAnnotationsTo(firClass)
+            classOrObject.extractTypeParametersTo(firClass)
+            for (superTypeListEntry in classOrObject.superTypeListEntries) {
+                when (superTypeListEntry) {
+                    is KtSuperTypeEntry -> {
+                        firClass.superTypes += superTypeListEntry.typeReference.toFirOrErrorType()
+                    }
+                    is KtSuperTypeCallEntry -> {
+                        firClass.superTypes += superTypeListEntry.calleeExpression.typeReference.toFirOrErrorType()
+                        // TODO: primary constructor!
+                    }
+                    is KtDelegatedSuperTypeEntry -> {
+                        firClass.superTypes += FirDelegatedTypeImpl(
+                            session,
+                            superTypeListEntry,
+                            superTypeListEntry.delegateExpression.convertSafe()
+                        ).apply {
+                            val typeReference = superTypeListEntry.typeReference
+                            for (annotationEntry in typeReference?.annotationEntries ?: emptyList()) {
+                                annotations += annotationEntry.convert<FirAnnotationCall>()
+                            }
+                        }
+                    }
+                }
+            }
+            for (declaration in classOrObject.declarations) {
+                firClass.declarations += declaration.convert<FirDeclaration>()
+            }
+            return firClass
+        }
+
+        override fun visitTypeAlias(typeAlias: KtTypeAlias, data: Unit): FirElement {
+            val firTypeAlias = FirTypeAliasImpl(
+                session,
+                typeAlias,
+                typeAlias.nameAsSafeName,
+                typeAlias.visibility,
+                typeAlias.getTypeReference().toFirOrErrorType()
+            )
+            typeAlias.extractAnnotationsTo(firTypeAlias)
+            return firTypeAlias
         }
 
         override fun visitNamedFunction(function: KtNamedFunction, data: Unit): FirElement {
-            function.bodyExpression
             val firFunction = FirMemberFunctionImpl(
                 session,
                 function,
@@ -95,16 +213,52 @@ class RawFirBuilder(val session: FirSession) {
                 function.typeReference.toFirOrImplicitType(),
                 function.bodyExpression.toFirBody()
             )
-            for (annotationEntry in function.annotationEntries) {
-                firFunction.annotations += annotationEntry.convert<FirAnnotationCall>()
-            }
-            for (typeParameter in function.typeParameters) {
-                firFunction.typeParameters += typeParameter.convert<FirTypeParameter>()
-            }
+            function.extractAnnotationsTo(firFunction)
+            function.extractTypeParametersTo(firFunction)
             for (valueParameter in function.valueParameters) {
                 firFunction.valueParameters += valueParameter.convert<FirValueParameter>()
             }
             return firFunction
+        }
+
+        override fun visitSecondaryConstructor(constructor: KtSecondaryConstructor, data: Unit): FirElement {
+            val firConstructor = FirSecondaryConstructorImpl(
+                session,
+                constructor,
+                constructor.visibility,
+                constructor.getDelegationCall().convert(),
+                constructor.bodyExpression.toFirBody()
+            )
+            constructor.extractValueParametersTo(firConstructor)
+            return super.visitSecondaryConstructor(constructor, data)
+        }
+
+        override fun visitAnonymousInitializer(initializer: KtAnonymousInitializer, data: Unit): FirElement {
+            return FirAnonymousInitializerImpl(
+                session,
+                initializer,
+                initializer.body.toFirBody()
+            )
+        }
+
+        override fun visitProperty(property: KtProperty, data: Unit): FirElement {
+            val propertyType = property.typeReference.toFirOrImplicitType()
+            val firProperty = FirMemberPropertyImpl(
+                session,
+                property,
+                property.nameAsSafeName,
+                property.visibility,
+                property.modality,
+                property.receiverTypeReference.convertSafe(),
+                propertyType,
+                property.initializer?.convert(),
+                property.getter.toFirPropertyAccessor(property, propertyType, isGetter = true),
+                property.setter.toFirPropertyAccessor(property, propertyType, isGetter = false),
+                property.delegateExpression?.convert()
+            )
+            property.extractAnnotationsTo(firProperty)
+            property.extractTypeParametersTo(firProperty)
+            return firProperty
         }
 
         override fun visitTypeReference(typeReference: KtTypeReference, data: Unit): FirElement {
@@ -171,9 +325,7 @@ class RawFirBuilder(val session: FirSession) {
                 parameter.nameAsSafeName,
                 parameter.variance
             )
-            for (annotationEntry in parameter.annotationEntries) {
-                firTypeParameter.annotations += annotationEntry.convert<FirAnnotationCall>()
-            }
+            parameter.extractAnnotationsTo(firTypeParameter)
             val extendsBound = parameter.extendsBound
             // TODO: handle where, here or (preferable) in parent
             if (extendsBound != null) {
@@ -194,10 +346,12 @@ class RawFirBuilder(val session: FirSession) {
                 isNoinline = parameter.hasModifier(KtTokens.NOINLINE_KEYWORD),
                 isVararg = parameter.isVarArg
             )
-            for (annotationEntry in parameter.annotationEntries) {
-                firValueParameter.annotations += annotationEntry.convert<FirAnnotationCall>()
-            }
+            parameter.extractAnnotationsTo(firValueParameter)
             return firValueParameter
+        }
+
+        override fun visitBlockExpression(expression: KtBlockExpression, data: Unit): FirElement {
+            return FirBlockBodyImpl(session, expression)
         }
 
         override fun visitExpression(expression: KtExpression, data: Unit): FirElement {

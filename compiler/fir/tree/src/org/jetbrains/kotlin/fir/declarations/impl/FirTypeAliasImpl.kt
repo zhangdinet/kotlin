@@ -6,18 +6,18 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
+import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.fir.types.FirType
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind.TYPEALIAS
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.types.Variance
 
-class FirTypeParameterImpl(
+class FirTypeAliasImpl(
     session: FirSession,
     psi: PsiElement?,
     name: Name,
-    override val variance: Variance
-) : FirAbstractNamedAnnotatedDeclaration(session, psi, IrDeclarationKind.TYPE_PARAMETER, name), FirTypeParameter {
-    override val bounds = mutableListOf<FirType>()
-}
+    visibility: Visibility,
+    override val abbreviatedType: FirType
+) : FirAbstractMemberDeclaration(session, psi, TYPEALIAS, name, visibility, Modality.FINAL), FirTypeAlias

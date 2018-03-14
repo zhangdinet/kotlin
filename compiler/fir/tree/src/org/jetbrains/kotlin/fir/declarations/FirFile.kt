@@ -5,6 +5,11 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
-interface FirFile : FirPackageFragment {
+import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
+import org.jetbrains.kotlin.name.FqName
+
+interface FirFile : FirPackageFragment, FirDeclaration, FirAnnotationContainer {
+    val packageFqName: FqName
+
     val imports: List<FirImport>
 }

@@ -6,26 +6,27 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
-import org.jetbrains.kotlin.fir.declarations.FirValueParameter
-import org.jetbrains.kotlin.fir.expressions.FirBody
+import org.jetbrains.kotlin.fir.declarations.FirClass
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
 
-class FirMemberFunctionImpl(
+class FirClassImpl(
     session: FirSession,
     psi: PsiElement?,
-    declarationKind: IrDeclarationKind,
     name: Name,
     visibility: Visibility,
     modality: Modality,
-    receiverType: FirType?,
-    returnType: FirType,
-    override val body: FirBody?
-) : FirAbstractCallableMember(session, psi, declarationKind, name, visibility, modality, receiverType, returnType), FirNamedFunction {
-    override val valueParameters = mutableListOf<FirValueParameter>()
+    override val classKind: ClassKind,
+    override val isCompanion: Boolean,
+    override val isData: Boolean
+) : FirAbstractMemberDeclaration(session, psi, IrDeclarationKind.CLASS, name, visibility, modality), FirClass {
+    override val superTypes = mutableListOf<FirType>()
+
+    override val declarations = mutableListOf<FirDeclaration>()
 }

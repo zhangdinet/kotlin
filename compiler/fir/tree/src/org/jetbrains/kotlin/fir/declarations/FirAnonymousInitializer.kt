@@ -6,7 +6,4 @@
 package org.jetbrains.kotlin.fir.declarations
 
 // Probably not a function
-@Deprecated("May be not needed")
-interface FirAnonymousInitializer : FirDeclarationWithBody {
-
-}
+interface FirAnonymousInitializer : FirDeclarationWithBody
