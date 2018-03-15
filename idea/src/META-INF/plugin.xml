@@ -160,6 +160,9 @@
       <action id="StoredExceptionsThrowToggleAction" class="org.jetbrains.kotlin.idea.actions.internal.StoredExceptionsThrowToggleAction"
               text="Throw cached PCE"/>
 
+      <action id="ShowFirAction" class="org.jetbrains.kotlin.idea.actions.internal.ShowFirAction"
+              text="Show RAW FIR Explorer"/>
+
       <add-to-group group-id="KotlinToolsGroup" anchor="last"/>
     </group>
 
