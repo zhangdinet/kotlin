@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.fir.types
 
 import org.jetbrains.kotlin.types.Variance
 
-interface FirTypeProjectionWithVariance {
+interface FirTypeProjectionWithVariance : FirTypeProjection {
     val variance: Variance
 
     val type: FirType
