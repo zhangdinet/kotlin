@@ -12,6 +12,11 @@ import org.jetbrains.kotlin.fir.declarations.FirNamedDeclaration
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirVariable : @VisitedSupertype FirDeclaration, FirTypedDeclaration, FirNamedDeclaration, FirStatement {
+    val isVar: Boolean
+
+    val isVal: Boolean
+        get() = !isVar
+
     val initializer: FirExpression?
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =

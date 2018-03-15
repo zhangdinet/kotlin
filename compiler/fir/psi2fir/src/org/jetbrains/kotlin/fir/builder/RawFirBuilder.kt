@@ -247,6 +247,7 @@ class RawFirBuilder(val session: FirSession) {
                 property.modality,
                 property.receiverTypeReference.convertSafe(),
                 propertyType,
+                property.isVar,
                 property.initializer?.convert(),
                 property.getter.toFirPropertyAccessor(property, propertyType, isGetter = true),
                 property.setter.toFirPropertyAccessor(property, propertyType, isGetter = false),

@@ -24,6 +24,7 @@ class FirMemberPropertyImpl(
     modality: Modality,
     receiverType: FirType?,
     returnType: FirType,
+    override val isVar: Boolean,
     override val initializer: FirExpression?,
     override val getter: FirPropertyAccessor,
     override val setter: FirPropertyAccessor,
