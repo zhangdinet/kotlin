@@ -119,7 +119,7 @@ class RawFirBuilder(val session: FirSession) {
         }
 
         override fun visitKtFile(file: KtFile, data: Unit): FirElement {
-            val firFile = FirFileImpl(session, file, file.packageFqName)
+            val firFile = FirFileImpl(session, file, file.name, file.packageFqName)
             for (annotationEntry in file.annotationEntries) {
                 firFile.annotations += annotationEntry.convert<FirAnnotationCall>()
             }

@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.FqName
 
 interface FirFile : @VisitedSupertype FirPackageFragment, FirDeclaration, FirAnnotationContainer {
+    val name: String
+
     val packageFqName: FqName
 
     val imports: List<FirImport>

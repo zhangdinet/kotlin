@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.name.FqName
 class FirFileImpl(
     session: FirSession,
     psi: PsiElement?,
+    override val name: String,
     override val packageFqName: FqName
 ) : FirAbstractAnnotatedDeclaration(session, psi, IrDeclarationKind.FILE), FirFile {
     override val imports = mutableListOf<FirImport>()
