@@ -15205,6 +15205,12 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                     doTest(fileName);
                 }
 
+                @TestMetadata("kt23260.kt")
+                public void testKt23260() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/properties/lateinit/local/kt23260.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("localLateinit.kt")
                 public void testLocalLateinit() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/properties/lateinit/local/localLateinit.kt");
