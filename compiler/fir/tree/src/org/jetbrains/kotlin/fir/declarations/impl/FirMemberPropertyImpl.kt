@@ -22,6 +22,7 @@ class FirMemberPropertyImpl(
     name: Name,
     visibility: Visibility,
     modality: Modality,
+    isOverride: Boolean,
     receiverType: FirType?,
     returnType: FirType,
     override val isVar: Boolean,
@@ -29,4 +30,5 @@ class FirMemberPropertyImpl(
     override val getter: FirPropertyAccessor,
     override val setter: FirPropertyAccessor,
     override val delegate: FirExpression?
-) : FirAbstractCallableMember(session, psi, PROPERTY, name, visibility, modality, receiverType, returnType), FirProperty
+) : FirAbstractCallableMember(session, psi, PROPERTY, name, visibility, modality, isOverride, receiverType, returnType),
+    FirProperty

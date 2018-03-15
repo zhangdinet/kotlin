@@ -21,6 +21,7 @@ abstract class FirAbstractCallableMember(
     name: Name,
     visibility: Visibility,
     modality: Modality,
+    final override val isOverride: Boolean,
     final override val receiverType: FirType?,
     final override val returnType: FirType
 ) : FirAbstractMemberDeclaration(session, psi, declarationKind, name, visibility, modality), FirCallableMember

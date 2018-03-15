@@ -207,6 +207,7 @@ class RawFirBuilder(val session: FirSession) {
                 function.nameAsSafeName,
                 function.visibility,
                 function.modality,
+                function.hasModifier(KtTokens.OVERRIDE_KEYWORD),
                 function.receiverTypeReference.convertSafe(),
                 function.typeReference.toFirOrImplicitType(),
                 function.bodyExpression.toFirBody()
@@ -247,6 +248,7 @@ class RawFirBuilder(val session: FirSession) {
                 property.nameAsSafeName,
                 property.visibility,
                 property.modality,
+                property.hasModifier(KtTokens.OVERRIDE_KEYWORD),
                 property.receiverTypeReference.convertSafe(),
                 propertyType,
                 property.isVar,

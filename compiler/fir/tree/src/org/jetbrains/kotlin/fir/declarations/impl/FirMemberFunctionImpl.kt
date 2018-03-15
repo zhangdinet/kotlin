@@ -23,9 +23,11 @@ class FirMemberFunctionImpl(
     name: Name,
     visibility: Visibility,
     modality: Modality,
+    isOverride: Boolean,
     receiverType: FirType?,
     returnType: FirType,
     override val body: FirBody?
-) : FirAbstractCallableMember(session, psi, declarationKind, name, visibility, modality, receiverType, returnType), FirNamedFunction {
+) : FirAbstractCallableMember(session, psi, declarationKind, name, visibility, modality, isOverride, receiverType, returnType),
+    FirNamedFunction {
     override val valueParameters = mutableListOf<FirValueParameter>()
 }

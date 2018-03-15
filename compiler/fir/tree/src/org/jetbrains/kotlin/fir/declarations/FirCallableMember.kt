@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 // Good name needed (something with receiver, type parameters, return type, and name)
 interface FirCallableMember : @VisitedSupertype FirDeclaration, FirMemberDeclaration, FirTypedDeclaration {
+    val isOverride: Boolean
+
     val receiverType: FirType?
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
