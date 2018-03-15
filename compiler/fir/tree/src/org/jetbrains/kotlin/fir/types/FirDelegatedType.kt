@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 interface FirDelegatedType : FirType {
     val delegate: FirExpression?
 
+    val type: FirType
+
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitDelegatedType(this, data)
 

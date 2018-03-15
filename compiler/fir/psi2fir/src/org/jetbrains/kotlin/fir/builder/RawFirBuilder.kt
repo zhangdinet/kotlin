@@ -171,16 +171,11 @@ class RawFirBuilder(val session: FirSession) {
                         // TODO: primary constructor!
                     }
                     is KtDelegatedSuperTypeEntry -> {
+                        val type = superTypeListEntry.typeReference.toFirOrErrorType()
                         firClass.superTypes += FirDelegatedTypeImpl(
-                            session,
-                            superTypeListEntry,
+                            type,
                             superTypeListEntry.delegateExpression.convertSafe()
-                        ).apply {
-                            val typeReference = superTypeListEntry.typeReference
-                            for (annotationEntry in typeReference?.annotationEntries ?: emptyList()) {
-                                annotations += annotationEntry.convert<FirAnnotationCall>()
-                            }
-                        }
+                        )
                     }
                 }
             }

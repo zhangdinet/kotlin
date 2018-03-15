@@ -5,18 +5,21 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
-import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.types.FirDelegatedType
+import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 class FirDelegatedTypeImpl(
-    session: FirSession,
-    psi: PsiElement?,
+    override val type: FirType,
     override val delegate: FirExpression?
-) : FirAbstractAnnotatedType(session, psi, isNullable = false), FirDelegatedType {
+) : FirType by type, FirDelegatedType {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R {
         return super<FirDelegatedType>.accept(visitor, data)
+    }
+
+    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+        type.acceptChildren(visitor, data)
+        delegate?.accept(visitor, data)
     }
 }
