@@ -95,11 +95,31 @@ class RawFirBuilder(val session: FirSession) {
                 bodyExpression.toFirBody()
             )
             extractAnnotationsTo(firAccessor)
-            extractValueParametersTo(firAccessor)
+            extractValueParametersTo(firAccessor, propertyType)
             if (!isGetter && firAccessor.valueParameters.isEmpty()) {
                 firAccessor.valueParameters += FirDefaultSetterValueParameter(session, this, propertyType)
             }
             return firAccessor
+        }
+
+        private fun KtParameter.toFirValueParameter(defaultType: FirType? = null): FirValueParameter {
+            val firValueParameter = FirValueParameterImpl(
+                session,
+                this,
+                hasValOrVar(),
+                nameAsSafeName,
+                when {
+                    typeReference != null -> typeReference.toFirOrErrorType()
+                    defaultType != null -> defaultType
+                    else -> null.toFirOrErrorType()
+                },
+                defaultValue?.convert(),
+                isCrossinline = hasModifier(KtTokens.CROSSINLINE_KEYWORD),
+                isNoinline = hasModifier(KtTokens.NOINLINE_KEYWORD),
+                isVararg = isVarArg
+            )
+            extractAnnotationsTo(firValueParameter)
+            return firValueParameter
         }
 
         private fun KtModifierListOwner.extractAnnotationsTo(container: FirAbstractAnnotatedDeclaration) {
@@ -114,9 +134,12 @@ class RawFirBuilder(val session: FirSession) {
             }
         }
 
-        private fun KtDeclarationWithBody.extractValueParametersTo(container: FirAbstractFunction) {
+        private fun KtDeclarationWithBody.extractValueParametersTo(
+            container: FirAbstractFunction,
+            defaultType: FirType? = null
+        ) {
             for (valueParameter in valueParameters) {
-                container.valueParameters += valueParameter.convert<FirValueParameter>()
+                container.valueParameters += valueParameter.toFirValueParameter(defaultType)
             }
         }
 
@@ -335,21 +358,8 @@ class RawFirBuilder(val session: FirSession) {
             return firTypeParameter
         }
 
-        override fun visitParameter(parameter: KtParameter, data: Unit): FirElement {
-            val firValueParameter = FirValueParameterImpl(
-                session,
-                parameter,
-                parameter.hasValOrVar(),
-                parameter.nameAsSafeName,
-                parameter.typeReference.toFirOrErrorType(),
-                parameter.defaultValue?.convert(),
-                isCrossinline = parameter.hasModifier(KtTokens.CROSSINLINE_KEYWORD),
-                isNoinline = parameter.hasModifier(KtTokens.NOINLINE_KEYWORD),
-                isVararg = parameter.isVarArg
-            )
-            parameter.extractAnnotationsTo(firValueParameter)
-            return firValueParameter
-        }
+        override fun visitParameter(parameter: KtParameter, data: Unit): FirElement =
+            parameter.toFirValueParameter()
 
         override fun visitBlockExpression(expression: KtBlockExpression, data: Unit): FirElement {
             return FirBlockBodyImpl(session, expression)
