@@ -89,6 +89,7 @@ class RawFirBuilder(val session: FirSession) {
                 this,
                 isGetter,
                 visibility,
+                returnTypeReference.toFirOrImplicitType(),
                 bodyExpression.toFirBody()
             )
             extractAnnotationsTo(firAccessor)

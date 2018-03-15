@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBody
 import org.jetbrains.kotlin.fir.types.FirType
+import org.jetbrains.kotlin.fir.types.impl.FirUnitType
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 
 class FirDefaultPropertyAccessor(
@@ -26,6 +27,9 @@ class FirDefaultPropertyAccessor(
 
     override val valueParameters: List<FirValueParameter> =
         if (isGetter) emptyList() else listOf(FirDefaultSetterValueParameter(session, psi, propertyType))
+
+    override val returnType: FirType =
+        if (isGetter) propertyType else FirUnitType(session, psi)
 
     override val body: FirBody? =
         null

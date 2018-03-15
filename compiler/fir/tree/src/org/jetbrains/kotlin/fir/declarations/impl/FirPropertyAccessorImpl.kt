@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.expressions.FirBody
+import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 
 class FirPropertyAccessorImpl(
@@ -17,5 +18,6 @@ class FirPropertyAccessorImpl(
     psi: PsiElement?,
     override val isGetter: Boolean,
     override val visibility: Visibility,
+    override val returnType: FirType,
     body: FirBody?
 ) : FirAbstractFunction(session, psi, IrDeclarationKind.PROPERTY_ACCESSOR, body), FirPropertyAccessor
