@@ -188,7 +188,7 @@ abstract class AbstractVisitorGenerator(val referencesData: DataCollector.Refere
 
 class SimpleVisitorGenerator(referencesData: DataCollector.ReferencesData) : AbstractVisitorGenerator(referencesData) {
     override fun Printer.generateContent() {
-        println("abstract class $SIMPLE_VISITOR_NAME<R, D> {")
+        println("abstract class $SIMPLE_VISITOR_NAME<out R, in D> {")
         indented {
             generateFunction(
                 "visitElement",
