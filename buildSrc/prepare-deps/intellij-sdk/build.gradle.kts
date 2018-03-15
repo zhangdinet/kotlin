@@ -7,6 +7,8 @@ import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIden
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator
 import java.io.File
 import org.gradle.internal.os.OperatingSystem
+import java.net.URI
+import java.nio.file.*
 
 val intellijUltimateEnabled: Boolean by rootProject.extra
 val intellijRepo: String by rootProject.extra
@@ -141,7 +143,45 @@ val unzipIntellijCore by tasks.creating { configureExtractFromConfigurationTask(
 val unzipJpsStandalone by tasks.creating { configureExtractFromConfigurationTask(`jps-standalone`) { zipTree(it.singleFile) } }
 
 val copyIntellijSdkSources by tasks.creating {
-    configureExtractFromConfigurationTask(sources) { it.singleFile }
+    dependsOn(sources, `asm-shaded-sources` )
+    inputs.files(sources, `asm-shaded-sources`)
+    val targetDir = File(repoDir, sources.name)
+    outputs.dirs(targetDir)
+    doFirst {
+        project.copy {
+            from(sources.singleFile)
+            into(targetDir)
+        }
+        val tmpDir = File(targetDir, "tmp")
+        project.copy {
+            from(zipTree(`asm-shaded-sources`.singleFile))
+            into(tmpDir)
+        }
+        val zipUri = URI.create("jar:" + File(targetDir, sources.singleFile.name).toURI())
+        val zipFS = try {
+            FileSystems.getFileSystem(zipUri)
+        } catch (_: FileSystemNotFoundException) {
+            FileSystems.newFileSystem(zipUri, mapOf<String, Any?>("create" to "true"))
+        }
+        fileTree(tmpDir).files.forEach {
+            if (!it.isDirectory && it.exists()) {
+                fun move() =
+                    Files.move(
+                        it.canonicalFile.toPath(),
+                        zipFS.getPath("/${it.toRelativeString(tmpDir)}"),
+                        StandardCopyOption.REPLACE_EXISTING
+                    )
+                try {
+                    move()
+                } catch (_: NoSuchFileException) {
+                    Files.createDirectories(zipFS.getPath("/${it.parentFile.toRelativeString(tmpDir)}"))
+                    move()
+                }
+            }
+        }
+        zipFS.close()
+        tmpDir.deleteRecursively()
+    }
 }
 
 val copyJpsBuildTest by tasks.creating { configureExtractFromConfigurationTask(`jps-build-test`) { it.singleFile } }
