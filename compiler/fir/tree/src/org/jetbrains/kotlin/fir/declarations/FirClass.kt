@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
+// May be all containers should be properties and not base classes
+// About descriptors: introduce something like FirDescriptor which is FirUnresolved at the beginning and FirSymbol(descriptor) at the end
 interface FirClass : FirDeclarationContainer, FirMemberDeclaration {
     // including delegated types
     val superTypes: List<FirType>
