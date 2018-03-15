@@ -230,4 +230,112 @@ abstract class FirVisitorVoid : FirVisitor<Unit, Nothing?>() {
         visitTypeProjection(typeProjection)
     }
 
+    final override fun visitAnonymousInitializer(anonymousInitializer: FirAnonymousInitializer, data: Nothing?) {
+        visitAnonymousInitializer(anonymousInitializer)
+    }
+
+    final override fun visitCallableMember(callableMember: FirCallableMember, data: Nothing?) {
+        visitCallableMember(callableMember)
+    }
+
+    final override fun visitErrorDeclaration(errorDeclaration: FirErrorDeclaration, data: Nothing?) {
+        visitErrorDeclaration(errorDeclaration)
+    }
+
+    final override fun visitProperty(property: FirProperty, data: Nothing?) {
+        visitProperty(property)
+    }
+
+    final override fun visitTypedDeclaration(typedDeclaration: FirTypedDeclaration, data: Nothing?) {
+        visitTypedDeclaration(typedDeclaration)
+    }
+
+    final override fun visitValueParameter(valueParameter: FirValueParameter, data: Nothing?) {
+        visitValueParameter(valueParameter)
+    }
+
+    final override fun visitVariable(variable: FirVariable, data: Nothing?) {
+        visitVariable(variable)
+    }
+
+    final override fun visitTypeAlias(typeAlias: FirTypeAlias, data: Nothing?) {
+        visitTypeAlias(typeAlias)
+    }
+
+    final override fun visitConstructor(constructor: FirConstructor, data: Nothing?) {
+        visitConstructor(constructor)
+    }
+
+    final override fun visitNamedFunction(namedFunction: FirNamedFunction, data: Nothing?) {
+        visitNamedFunction(namedFunction)
+    }
+
+    final override fun visitPropertyAccessor(propertyAccessor: FirPropertyAccessor, data: Nothing?) {
+        visitPropertyAccessor(propertyAccessor)
+    }
+
+    final override fun visitImport(import: FirImport, data: Nothing?) {
+        visitImport(import)
+    }
+
+    final override fun visitEnumEntry(enumEntry: FirEnumEntry, data: Nothing?) {
+        visitEnumEntry(enumEntry)
+    }
+
+    final override fun visitFile(file: FirFile, data: Nothing?) {
+        visitFile(file)
+    }
+
+    final override fun visitTypeParameter(typeParameter: FirTypeParameter, data: Nothing?) {
+        visitTypeParameter(typeParameter)
+    }
+
+    final override fun visitAnnotationCall(annotationCall: FirAnnotationCall, data: Nothing?) {
+        visitAnnotationCall(annotationCall)
+    }
+
+    final override fun visitConstructorCall(constructorCall: FirConstructorCall, data: Nothing?) {
+        visitConstructorCall(constructorCall)
+    }
+
+    final override fun visitBody(body: FirBody, data: Nothing?) {
+        visitBody(body)
+    }
+
+    final override fun visitDelegatedType(delegatedType: FirDelegatedType, data: Nothing?) {
+        visitDelegatedType(delegatedType)
+    }
+
+    final override fun visitErrorType(errorType: FirErrorType, data: Nothing?) {
+        visitErrorType(errorType)
+    }
+
+    final override fun visitImplicitType(implicitType: FirImplicitType, data: Nothing?) {
+        visitImplicitType(implicitType)
+    }
+
+    final override fun visitDynamicType(dynamicType: FirDynamicType, data: Nothing?) {
+        visitDynamicType(dynamicType)
+    }
+
+    final override fun visitFunctionType(functionType: FirFunctionType, data: Nothing?) {
+        visitFunctionType(functionType)
+    }
+
+    final override fun visitResolvedType(resolvedType: FirResolvedType, data: Nothing?) {
+        visitResolvedType(resolvedType)
+    }
+
+    final override fun visitUserType(userType: FirUserType, data: Nothing?) {
+        visitUserType(userType)
+    }
+
+    final override fun visitStarProjection(starProjection: FirStarProjection, data: Nothing?) {
+        visitStarProjection(starProjection)
+    }
+
+    final override fun visitTypeProjectionWithVariance(typeProjectionWithVariance: FirTypeProjectionWithVariance, data: Nothing?) {
+        visitTypeProjectionWithVariance(typeProjectionWithVariance)
+    }
+
 }
