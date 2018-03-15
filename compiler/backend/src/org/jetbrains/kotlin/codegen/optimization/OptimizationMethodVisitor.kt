@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.codegen.optimization.boxing.RedundantBoxingMethodTra
 import org.jetbrains.kotlin.codegen.optimization.boxing.StackPeepholeOptimizationsTransformer
 import org.jetbrains.kotlin.codegen.optimization.common.prepareForEmitting
 import org.jetbrains.kotlin.codegen.optimization.nullCheck.RedundantNullCheckMethodTransformer
+import org.jetbrains.kotlin.codegen.optimization.rangeLoops.RangeLoopOptimizationMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.transformer.CompositeMethodTransformer
 import org.jetbrains.kotlin.config.JVMConstructorCallNormalizationMode
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -65,6 +66,7 @@ class OptimizationMethodVisitor(
             RedundantCheckCastEliminationMethodTransformer(),
             ConstantConditionEliminationMethodTransformer(),
             RedundantBoxingMethodTransformer(),
+            RangeLoopOptimizationMethodTransformer(),
             StackPeepholeOptimizationsTransformer(),
             PopBackwardPropagationTransformer(),
             DeadCodeEliminationMethodTransformer(),

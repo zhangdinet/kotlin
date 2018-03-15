@@ -975,6 +975,12 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             doTest(fileName);
         }
 
+        @TestMetadata("forEachInRange.kt")
+        public void testForEachInRange() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/boxingOptimization/forEachInRange.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("intCompareTo.kt")
         public void testIntCompareTo() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/boxingOptimization/intCompareTo.kt");

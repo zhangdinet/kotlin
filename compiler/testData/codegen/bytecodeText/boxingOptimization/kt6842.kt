@@ -12,6 +12,7 @@ fun box(): Long {
     return (x1.first() + x2 + x3 + x4).toLong() + y1.first() + y2 + y3 + y4.toLong()
 }
 
-// 5 nextLong
-// 5 nextInt
+// 2 nextLong
+// 2 nextInt
+// 2 Iterable.iterator
 // 0 next\s*\(
