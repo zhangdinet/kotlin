@@ -24,6 +24,9 @@ class FirMemberFunctionImpl(
     visibility: Visibility,
     modality: Modality,
     isOverride: Boolean,
+    override val isOperator: Boolean,
+    override val isInfix: Boolean,
+    override val isInline: Boolean,
     receiverType: FirType?,
     returnType: FirType,
     override val body: FirBody?

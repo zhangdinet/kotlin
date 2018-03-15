@@ -9,6 +9,12 @@ import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirNamedFunction : @VisitedSupertype FirFunction, FirCallableMember {
+    val isOperator: Boolean
+
+    val isInfix: Boolean
+
+    val isInline: Boolean
+
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitNamedFunction(this, data)
 

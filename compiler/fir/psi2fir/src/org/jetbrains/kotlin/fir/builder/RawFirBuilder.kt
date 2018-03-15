@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
+import org.jetbrains.kotlin.types.Variance
 
 class RawFirBuilder(val session: FirSession) {
 
@@ -231,6 +232,9 @@ class RawFirBuilder(val session: FirSession) {
                 function.visibility,
                 function.modality,
                 function.hasModifier(KtTokens.OVERRIDE_KEYWORD),
+                function.hasModifier(KtTokens.OPERATOR_KEYWORD),
+                function.hasModifier(KtTokens.INFIX_KEYWORD),
+                function.hasModifier(KtTokens.INLINE_KEYWORD),
                 function.receiverTypeReference.convertSafe(),
                 function.typeReference.toFirOrImplicitType(),
                 function.bodyExpression.toFirBody()
@@ -298,10 +302,14 @@ class RawFirBuilder(val session: FirSession) {
                 is KtUserType -> {
                     val referenceExpression = unwrappedElement.referenceExpression
                     if (referenceExpression != null) {
-                        FirUserTypeImpl(
+                        val userType = FirUserTypeImpl(
                             session, typeReference, isNullable,
                             referenceExpression.getReferencedNameAsName()
                         )
+                        for (typeArgument in unwrappedElement.typeArguments) {
+                            userType.arguments += typeArgument.convert<FirTypeProjection>()
+                        }
+                        userType
                     } else {
                         FirErrorTypeImpl(session, typeReference, isNullable)
                     }
@@ -325,10 +333,6 @@ class RawFirBuilder(val session: FirSession) {
 
             for (annotationEntry in typeReference.annotationEntries) {
                 firType.annotations += annotationEntry.convert<FirAnnotationCall>()
-            }
-            if (typeElement == null || firType !is FirUserTypeImpl) return firType
-            for (typeArgument in typeElement.typeArgumentsAsTypes) {
-                firType.arguments += typeArgument.convert<FirTypeProjection>()
             }
             return firType
         }
@@ -356,6 +360,26 @@ class RawFirBuilder(val session: FirSession) {
                 firTypeParameter.bounds += extendsBound.convert<FirType>()
             }
             return firTypeParameter
+        }
+
+        override fun visitTypeProjection(typeProjection: KtTypeProjection, data: Unit): FirElement {
+            val projectionKind = typeProjection.projectionKind
+            if (projectionKind == KtProjectionKind.STAR) {
+                return FirStarProjectionImpl(session, typeProjection)
+            }
+            val typeReference = typeProjection.typeReference
+            val firType = typeReference.toFirOrErrorType()
+            return FirTypeProjectionWithVarianceImpl(
+                session,
+                typeProjection,
+                when (projectionKind) {
+                    KtProjectionKind.IN -> Variance.IN_VARIANCE
+                    KtProjectionKind.OUT -> Variance.OUT_VARIANCE
+                    KtProjectionKind.NONE -> Variance.INVARIANT
+                    KtProjectionKind.STAR -> throw AssertionError("* should not be here")
+                },
+                firType
+            )
         }
 
         override fun visitParameter(parameter: KtParameter, data: Unit): FirElement =
