@@ -15,8 +15,10 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBody
+import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirAnnotationCallImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirBlockBodyImpl
+import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionBodyImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
 import org.jetbrains.kotlin.fir.types.FirUserType
 import org.jetbrains.kotlin.fir.types.FirType
@@ -74,7 +76,7 @@ class RawFirBuilder(val session: FirSession) {
             convertSafe<FirUserType>() ?: FirErrorTypeImpl(session, this, false)
 
         private fun KtExpression?.toFirBody(): FirBody? =
-            convertSafe()
+            convertSafe<FirExpression>()?.let { it as? FirBody ?: FirExpressionBodyImpl(session, it) }
 
         private fun KtPropertyAccessor?.toFirPropertyAccessor(
             property: KtProperty,
