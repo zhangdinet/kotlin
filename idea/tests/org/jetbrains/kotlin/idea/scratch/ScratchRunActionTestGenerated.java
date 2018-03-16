@@ -27,6 +27,12 @@ public class ScratchRunActionTestGenerated extends AbstractScratchRunActionTest 
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/scratch"), Pattern.compile("^(.+)\\.kts$"), TargetBackend.ANY, false);
         }
 
+        @TestMetadata("extensionFunction.kts")
+        public void testExtensionFunction() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/scratch/extensionFunction.kts");
+            doCompilingTest(fileName);
+        }
+
         @TestMetadata("for.kts")
         public void testFor() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/scratch/for.kts");
@@ -94,6 +100,12 @@ public class ScratchRunActionTestGenerated extends AbstractScratchRunActionTest 
     public static class Repl extends AbstractScratchRunActionTest {
         public void testAllFilesPresentInRepl() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/scratch"), Pattern.compile("^(.+)\\.kts$"), TargetBackend.ANY, false);
+        }
+
+        @TestMetadata("extensionFunction.kts")
+        public void testExtensionFunction() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/scratch/extensionFunction.kts");
+            doReplTest(fileName);
         }
 
         @TestMetadata("for.kts")

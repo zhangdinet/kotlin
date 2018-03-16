@@ -1,0 +1,9 @@
+class A(val prop: Int)    // RESULT: class A
+
+fun A.ext() = prop    // RESULT: fun ExtensionFunction.A.ext(): Int
+
+class B {    // RESULT: class B
+    fun some() = A(1).ext()
+}
+
+B().some()    // RESULT: 1

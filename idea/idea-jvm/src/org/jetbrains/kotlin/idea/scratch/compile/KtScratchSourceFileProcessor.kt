@@ -38,14 +38,16 @@ class KtScratchSourceFileProcessor {
     fun process(file: ScratchFile): Result {
         val sourceProcessor = KtSourceProcessor()
         file.getExpressions().forEach {
-                sourceProcessor.process(it)
-            }
+            sourceProcessor.process(it)
+        }
 
         val codeResult =
             """
                 package $PACKAGE_NAME
 
                 ${sourceProcessor.imports.joinToString("\n") { it.text }}
+
+                ${sourceProcessor.topLevelBuilder}
 
                 object $OBJECT_NAME {
                     class $OBJECT_NAME {
@@ -63,6 +65,7 @@ class KtScratchSourceFileProcessor {
     }
 
     class KtSourceProcessor {
+        val topLevelBuilder = StringBuilder()
         val classBuilder = StringBuilder()
         val objectBuilder = StringBuilder()
         val imports = arrayListOf<KtImportDirective>()
@@ -81,7 +84,7 @@ class KtScratchSourceFileProcessor {
         }
 
         private fun processDeclaration(e: ScratchExpression, c: KtDeclaration) {
-            classBuilder.append(c.text).newLine()
+            topLevelBuilder.append(c.text).newLine()
 
             val descriptor = c.resolveToDescriptorIfAny() ?: return
 
