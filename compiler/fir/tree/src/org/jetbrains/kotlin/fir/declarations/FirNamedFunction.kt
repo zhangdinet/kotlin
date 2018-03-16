@@ -20,6 +20,9 @@ interface FirNamedFunction : @VisitedSupertype FirFunction, FirCallableMember {
 
     override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
         super<FirCallableMember>.acceptChildren(visitor, data)
-        super<FirFunction>.acceptChildren(visitor, data)
+        for (parameter in valueParameters) {
+            parameter.accept(visitor, data)
+        }
+        body?.accept(visitor, data)
     }
 }
