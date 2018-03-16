@@ -14,7 +14,7 @@ dependencies {
     val compile by configurations
     val compileOnly by configurations
 
-    compile(project(":compiler:psi"))
+    compileOnly(project(":compiler:psi"))
     compile(project(":core:descriptors"))
     generatorClasspath(project("visitors-generator"))
 
