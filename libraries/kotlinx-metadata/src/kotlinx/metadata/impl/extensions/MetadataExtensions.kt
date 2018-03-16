@@ -9,6 +9,7 @@ import kotlinx.metadata.*
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.metadata.deserialization.TypeTable
+import org.jetbrains.kotlin.metadata.serialization.StringTable
 import java.util.*
 
 interface MetadataExtensions {
@@ -21,6 +22,18 @@ interface MetadataExtensions {
     fun readTypeParameterExtensions(proto: ProtoBuf.TypeParameter, strings: NameResolver): TypeParameterVisitor.Extensions
 
     fun readTypeExtensions(proto: ProtoBuf.Type, strings: NameResolver): TypeVisitor.Extensions
+
+    fun createStringTable(): StringTable
+
+    fun writeFunctionExtensions(ext: FunctionVisitor.Extensions, proto: ProtoBuf.Function.Builder, strings: StringTable)
+
+    fun writePropertyExtensions(ext: PropertyVisitor.Extensions, proto: ProtoBuf.Property.Builder, strings: StringTable)
+
+    fun writeConstructorExtensions(ext: ConstructorVisitor.Extensions, proto: ProtoBuf.Constructor.Builder, strings: StringTable)
+
+    fun writeTypeParameterExtensions(ext: TypeParameterVisitor.Extensions, proto: ProtoBuf.TypeParameter.Builder, strings: StringTable)
+
+    fun writeTypeExtensions(ext: TypeVisitor.Extensions, proto: ProtoBuf.Type.Builder, strings: StringTable)
 
     companion object {
         val INSTANCE: MetadataExtensions by lazy {

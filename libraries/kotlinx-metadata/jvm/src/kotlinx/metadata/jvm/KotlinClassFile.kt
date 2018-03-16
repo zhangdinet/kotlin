@@ -9,8 +9,12 @@ import kotlinx.metadata.ClassVisitor
 import kotlinx.metadata.InconsistentKotlinMetadataException
 import kotlinx.metadata.LambdaVisitor
 import kotlinx.metadata.PackageVisitor
+import kotlinx.metadata.impl.ClassWriter
+import kotlinx.metadata.impl.LambdaWriter
+import kotlinx.metadata.impl.PackageWriter
 import kotlinx.metadata.impl.accept
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+import org.jetbrains.kotlin.metadata.jvm.serialization.JvmStringTable
 import kotlin.LazyThreadSafetyMode.PUBLICATION
 
 sealed class KotlinClassFile(val metadata: KotlinMetadata) {
@@ -25,6 +29,18 @@ sealed class KotlinClassFile(val metadata: KotlinMetadata) {
             val (strings, proto) = classData
             proto.accept(v, strings)
         }
+
+        class Writer : ClassWriter() {
+            fun write(
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.Class {
+                val (d1, d2) = JvmProtoBufUtil.writeData(t.build(), c.strings as JvmStringTable)
+                val metadata = KotlinMetadata(KotlinMetadata.CLASS_KIND, metadataVersion, bytecodeVersion, d1, d2, "", "", extraInt)
+                return KotlinClassFile.Class(metadata)
+            }
+        }
     }
 
     class FileFacade internal constructor(metadata: KotlinMetadata) : KotlinClassFile(metadata) {
@@ -37,6 +53,18 @@ sealed class KotlinClassFile(val metadata: KotlinMetadata) {
         fun accept(v: PackageVisitor) {
             val (strings, proto) = packageData
             proto.accept(v, strings)
+        }
+
+        class Writer : PackageWriter() {
+            fun write(
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.FileFacade {
+                val (d1, d2) = JvmProtoBufUtil.writeData(t.build(), c.strings as JvmStringTable)
+                val metadata = KotlinMetadata(KotlinMetadata.FILE_FACADE_KIND, metadataVersion, bytecodeVersion, d1, d2, "", "", extraInt)
+                return KotlinClassFile.FileFacade(metadata)
+            }
         }
     }
 
@@ -51,12 +79,55 @@ sealed class KotlinClassFile(val metadata: KotlinMetadata) {
             val (strings, proto) = functionData
             proto.accept(v, strings)
         }
+
+        class Writer : LambdaWriter() {
+            fun write(
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.Lambda {
+                val proto = t?.build() ?: error("LambdaVisitor.visitFunction has not been called")
+                val (d1, d2) = JvmProtoBufUtil.writeData(proto, c.strings as JvmStringTable)
+                val metadata = KotlinMetadata(
+                    KotlinMetadata.SYNTHETIC_CLASS_KIND, metadataVersion, bytecodeVersion, d1, d2, "", "", extraInt
+                )
+                return KotlinClassFile.Lambda(metadata)
+            }
+        }
     }
 
-    class SyntheticClass internal constructor(metadata: KotlinMetadata) : KotlinClassFile(metadata)
+    class SyntheticClass internal constructor(metadata: KotlinMetadata) : KotlinClassFile(metadata) {
+        class Writer {
+            fun write(
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.SyntheticClass {
+                val metadata = KotlinMetadata(
+                    KotlinMetadata.SYNTHETIC_CLASS_KIND, metadataVersion, bytecodeVersion, emptyArray(), emptyArray(), "", "", extraInt
+                )
+                return KotlinClassFile.SyntheticClass(metadata)
+            }
+        }
+    }
 
     class MultiFileClassFacade internal constructor(metadata: KotlinMetadata) : KotlinClassFile(metadata) {
         val partClassNames: List<String> = metadata.data1.asList()
+
+        class Writer {
+            fun write(
+                partClassNames: List<String>,
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.MultiFileClassFacade {
+                val metadata = KotlinMetadata(
+                    KotlinMetadata.MULTI_FILE_CLASS_FACADE_KIND, metadataVersion, bytecodeVersion, partClassNames.toTypedArray(),
+                    emptyArray(), "", "", extraInt
+                )
+                return KotlinClassFile.MultiFileClassFacade(metadata)
+            }
+        }
     }
 
     class MultiFileClassPart internal constructor(metadata: KotlinMetadata) : KotlinClassFile(metadata) {
@@ -72,6 +143,21 @@ sealed class KotlinClassFile(val metadata: KotlinMetadata) {
         fun accept(v: PackageVisitor) {
             val (strings, proto) = packageData
             proto.accept(v, strings)
+        }
+
+        class Writer : PackageWriter() {
+            fun write(
+                facadeClassName: String,
+                metadataVersion: IntArray = KotlinMetadata.COMPATIBLE_METADATA_VERSION,
+                bytecodeVersion: IntArray = KotlinMetadata.COMPATIBLE_BYTECODE_VERSION,
+                extraInt: Int = 0
+            ): KotlinClassFile.MultiFileClassPart {
+                val (d1, d2) = JvmProtoBufUtil.writeData(t.build(), c.strings as JvmStringTable)
+                val metadata = KotlinMetadata(
+                    KotlinMetadata.MULTI_FILE_CLASS_PART_KIND, metadataVersion, bytecodeVersion, d1, d2, facadeClassName, "", extraInt
+                )
+                return KotlinClassFile.MultiFileClassPart(metadata)
+            }
         }
     }
 
