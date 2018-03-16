@@ -21,7 +21,7 @@ interface FirDelegatedConstructorCall : FirCall, FirTypeProjectionContainer {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitDelegatedConstructorCall(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         constructedType.accept(visitor, data)
         super.acceptChildren(visitor, data)
     }

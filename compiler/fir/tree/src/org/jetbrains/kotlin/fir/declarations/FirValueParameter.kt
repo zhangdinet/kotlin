@@ -23,7 +23,7 @@ interface FirValueParameter : @VisitedSupertype FirDeclaration, FirTypedDeclarat
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitValueParameter(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         super<FirTypedDeclaration>.acceptChildren(visitor, data)
         defaultValue?.accept(visitor, data)
     }

@@ -20,7 +20,7 @@ interface FirFile : @VisitedSupertype FirPackageFragment, FirDeclaration, FirAnn
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitFile(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         acceptAnnotations(visitor, data)
         for (import in imports) {
             import.accept(visitor, data)

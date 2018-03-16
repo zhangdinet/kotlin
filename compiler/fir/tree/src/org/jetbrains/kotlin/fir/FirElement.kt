@@ -22,7 +22,7 @@ interface FirElement {
     fun accept(visitor: FirVisitorVoid) =
         accept(visitor, null)
 
-    fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {}
+    fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {}
 
     fun acceptChildren(visitor: FirVisitorVoid) =
         acceptChildren(visitor, null)

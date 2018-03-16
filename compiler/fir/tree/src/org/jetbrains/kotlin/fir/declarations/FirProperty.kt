@@ -26,7 +26,7 @@ interface FirProperty : @VisitedSupertype FirDeclaration, FirCallableMember, Fir
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitProperty(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         super<FirCallableMember>.acceptChildren(visitor, data)
         initializer?.accept(visitor, data)
         delegate?.accept(visitor, data)

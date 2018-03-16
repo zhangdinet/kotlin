@@ -20,7 +20,7 @@ interface FirTypeParameter : FirNamedDeclaration, FirAnnotationContainer {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitTypeParameter(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         acceptAnnotations(visitor, data)
         super.acceptChildren(visitor, data)
         for (bound in bounds) {

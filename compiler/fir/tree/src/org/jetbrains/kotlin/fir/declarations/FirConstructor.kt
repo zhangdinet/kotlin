@@ -20,9 +20,12 @@ interface FirConstructor : FirFunction, FirAnnotationContainer {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitConstructor(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         acceptAnnotations(visitor, data)
         delegatedConstructor?.accept(visitor, data)
-        super.acceptChildren(visitor, data)
+        for (parameter in valueParameters) {
+            parameter.accept(visitor, data)
+        }
+        body?.accept(visitor, data)
     }
 }

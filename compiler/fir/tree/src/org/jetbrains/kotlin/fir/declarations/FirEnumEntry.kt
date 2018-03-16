@@ -16,7 +16,7 @@ interface FirEnumEntry : @VisitedSupertype FirClass, FirCall {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitEnumEntry(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         for (argument in arguments) {
             argument.accept(visitor, data)
         }

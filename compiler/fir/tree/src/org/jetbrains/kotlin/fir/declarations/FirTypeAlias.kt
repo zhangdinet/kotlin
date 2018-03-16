@@ -14,7 +14,7 @@ interface FirTypeAlias : FirMemberDeclaration {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitTypeAlias(this, data)
 
-    override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         super.acceptChildren(visitor, data)
         abbreviatedType.accept(visitor, data)
     }
