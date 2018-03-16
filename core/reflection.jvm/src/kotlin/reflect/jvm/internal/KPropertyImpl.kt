@@ -19,6 +19,8 @@ package kotlin.reflect.jvm.internal
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.load.java.JvmAbi
+import org.jetbrains.kotlin.metadata.deserialization.getExtensionOrNull
+import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
 import org.jetbrains.kotlin.resolve.DescriptorFactory
 import org.jetbrains.kotlin.resolve.DescriptorUtils
@@ -59,7 +61,9 @@ internal abstract class KPropertyImpl<out R> private constructor(
             is KotlinProperty -> {
                 val descriptor = jvmSignature.descriptor
                 JvmProtoBufUtil.getJvmFieldSignature(jvmSignature.proto, jvmSignature.nameResolver, jvmSignature.typeTable)?.let {
-                    val owner = if (JvmAbi.isPropertyWithBackingFieldInOuterClass(descriptor)) {
+                    val owner = if (JvmAbi.isPropertyWithBackingFieldInOuterClass(descriptor) ||
+                        JvmProtoBufUtil.isMovedFromInterfaceCompanion(jvmSignature.proto)
+                    ) {
                         container.jClass.enclosingClass
                     }
                     else descriptor.containingDeclaration.let { containingDeclaration ->

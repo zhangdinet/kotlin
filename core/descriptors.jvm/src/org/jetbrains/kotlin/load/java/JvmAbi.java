@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.load.java;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.builtins.CompanionObjectMapping;
 import org.jetbrains.kotlin.descriptors.*;
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget;
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationWithTarget;
 import org.jetbrains.kotlin.name.ClassId;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.Name;
@@ -17,6 +19,7 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.CapitalizeDecapitalizeKt
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.jetbrains.kotlin.resolve.DescriptorUtils.*;
 
@@ -140,6 +143,13 @@ public final class JvmAbi {
     }
 
     private static boolean hasJvmFieldAnnotation(@NotNull CallableMemberDescriptor memberDescriptor) {
+        List<AnnotationWithTarget> annotations = memberDescriptor.getAnnotations().getUseSiteTargetedAnnotations();
+        for (AnnotationWithTarget annotationWithTarget : annotations) {
+            if (AnnotationUseSiteTarget.FIELD.equals(annotationWithTarget.getTarget()) &&
+                JVM_FIELD_ANNOTATION_FQ_NAME.equals(annotationWithTarget.getAnnotation().getFqName())) {
+                return true;
+            }
+        }
         return memberDescriptor.getAnnotations().hasAnnotation(JVM_FIELD_ANNOTATION_FQ_NAME);
     }
 }
