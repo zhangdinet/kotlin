@@ -17,5 +17,5 @@ class FirUserTypeImpl(
     isNullable: Boolean,
     override val name: Name
 ) : FirAbstractAnnotatedType(session, psi, isNullable), FirUserType {
-    override val arguments = mutableListOf<FirTypeProjection>()
+    override val typeArguments = mutableListOf<FirTypeProjection>()
 }

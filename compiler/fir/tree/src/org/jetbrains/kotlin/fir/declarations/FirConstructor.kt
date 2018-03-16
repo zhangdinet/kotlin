@@ -7,11 +7,11 @@ package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
-import org.jetbrains.kotlin.fir.expressions.FirConstructorCall
+import org.jetbrains.kotlin.fir.expressions.FirDelegatedConstructorCall
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 interface FirConstructor : FirFunction, FirAnnotationContainer {
-    val delegatedConstructor: FirConstructorCall?
+    val delegatedConstructor: FirDelegatedConstructorCall?
 
     val visibility: Visibility
 

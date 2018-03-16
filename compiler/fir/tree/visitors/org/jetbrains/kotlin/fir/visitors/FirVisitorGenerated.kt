@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license 
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license 
  * that can be found in the license/LICENSE.txt file.
  */
 package org.jetbrains.kotlin.fir.visitors
@@ -122,8 +122,12 @@ abstract class FirVisitor<out R, in D> {
         return visitCall(annotationCall, data)
     }
 
-    open fun visitConstructorCall(constructorCall: FirConstructorCall, data: D): R {
-        return visitCall(constructorCall, data)
+    open fun visitDelegatedConstructorCall(delegatedConstructorCall: FirDelegatedConstructorCall, data: D): R {
+        return visitCall(delegatedConstructorCall, data)
+    }
+
+    open fun visitErrorExpression(errorExpression: FirErrorExpression, data: D): R {
+        return visitExpression(errorExpression, data)
     }
 
     open fun visitType(type: FirType, data: D): R {

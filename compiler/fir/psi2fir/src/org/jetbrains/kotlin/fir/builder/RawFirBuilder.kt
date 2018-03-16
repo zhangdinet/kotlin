@@ -16,11 +16,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBody
 import org.jetbrains.kotlin.fir.expressions.FirExpression
-import org.jetbrains.kotlin.fir.expressions.impl.FirAnnotationCallImpl
-import org.jetbrains.kotlin.fir.expressions.impl.FirBlockBodyImpl
-import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionBodyImpl
-import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
-import org.jetbrains.kotlin.fir.types.FirUserType
+import org.jetbrains.kotlin.fir.expressions.impl.*
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.impl.*
@@ -71,13 +67,16 @@ class RawFirBuilder(val session: FirSession) {
             this.accept(this@Visitor, Unit) as R
 
         private fun KtTypeReference?.toFirOrImplicitType(): FirType =
-            convertSafe<FirUserType>() ?: FirImplicitTypeImpl(session, this)
+            convertSafe() ?: FirImplicitTypeImpl(session, this)
 
         private fun KtTypeReference?.toFirOrErrorType(): FirType =
-            convertSafe<FirUserType>() ?: FirErrorTypeImpl(session, this, false)
+            convertSafe() ?: FirErrorTypeImpl(session, this, false, if (this == null) "Incomplete code" else "Conversion failed")
 
         private fun KtExpression?.toFirBody(): FirBody? =
             convertSafe<FirExpression>()?.let { it as? FirBody ?: FirExpressionBodyImpl(session, it) }
+
+        private fun KtExpression?.toFirExpression(): FirExpression =
+            convertSafe() ?: FirErrorExpressionImpl(session, this)
 
         private fun KtPropertyAccessor?.toFirPropertyAccessor(
             property: KtProperty,
@@ -141,6 +140,12 @@ class RawFirBuilder(val session: FirSession) {
         ) {
             for (valueParameter in valueParameters) {
                 container.valueParameters += valueParameter.toFirValueParameter(defaultType)
+            }
+        }
+
+        private fun KtCallElement.extractArgumentsTo(container: FirAbstractCall) {
+            for (argument in this.valueArguments) {
+                container.arguments += argument.getArgumentExpression().toFirExpression()
             }
         }
 
@@ -224,6 +229,11 @@ class RawFirBuilder(val session: FirSession) {
         }
 
         override fun visitNamedFunction(function: KtNamedFunction, data: Unit): FirElement {
+            if (function.name == null) {
+                // TODO: return anonymous function here
+                // TODO: what if name is not null but we're in expression position?
+                return FirExpressionStub(session, function)
+            }
             val firFunction = FirMemberFunctionImpl(
                 session,
                 function,
@@ -256,7 +266,18 @@ class RawFirBuilder(val session: FirSession) {
                 constructor.bodyExpression.toFirBody()
             )
             constructor.extractValueParametersTo(firConstructor)
-            return super.visitSecondaryConstructor(constructor, data)
+            return firConstructor
+        }
+
+        override fun visitConstructorDelegationCall(call: KtConstructorDelegationCall, data: Unit): FirElement {
+            val firConstructorCall = FirDelegatedConstructorCallImpl(
+                session,
+                call,
+                FirErrorTypeImpl(session, call, false, "Not implemented yet"),
+                call.isCallToThis || call.isImplicit
+            )
+            call.extractArgumentsTo(firConstructorCall)
+            return firConstructorCall
         }
 
         override fun visitAnonymousInitializer(initializer: KtAnonymousInitializer, data: Unit): FirElement {
@@ -307,11 +328,11 @@ class RawFirBuilder(val session: FirSession) {
                             referenceExpression.getReferencedNameAsName()
                         )
                         for (typeArgument in unwrappedElement.typeArguments) {
-                            userType.arguments += typeArgument.convert<FirTypeProjection>()
+                            userType.typeArguments += typeArgument.convert<FirTypeProjection>()
                         }
                         userType
                     } else {
-                        FirErrorTypeImpl(session, typeReference, isNullable)
+                        FirErrorTypeImpl(session, typeReference, isNullable, "Incomplete user type")
                     }
                 }
                 is KtFunctionType -> {
@@ -327,7 +348,7 @@ class RawFirBuilder(val session: FirSession) {
                     }
                     functionType
                 }
-                null -> FirErrorTypeImpl(session, typeReference, isNullable)
+                null -> FirErrorTypeImpl(session, typeReference, isNullable, "Unwrapped type is null")
                 else -> throw AssertionError("Unexpected type element: ${unwrappedElement.text}")
             }
 
@@ -338,12 +359,14 @@ class RawFirBuilder(val session: FirSession) {
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry, data: Unit): FirElement {
-            return FirAnnotationCallImpl(
+            val firAnnotationCall = FirAnnotationCallImpl(
                 session,
                 annotationEntry,
                 annotationEntry.useSiteTarget?.getAnnotationUseSiteTarget(),
                 annotationEntry.typeReference.toFirOrErrorType()
             )
+            annotationEntry.extractArgumentsTo(firAnnotationCall)
+            return firAnnotationCall
         }
 
         override fun visitTypeParameter(parameter: KtTypeParameter, data: Unit): FirElement {

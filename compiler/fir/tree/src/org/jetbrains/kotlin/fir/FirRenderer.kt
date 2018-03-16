@@ -298,8 +298,8 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         visitCall(annotationCall)
     }
 
-    override fun visitConstructorCall(constructorCall: FirConstructorCall) {
-        visitCall(constructorCall)
+    override fun visitDelegatedConstructorCall(delegatedConstructorCall: FirDelegatedConstructorCall) {
+        visitCall(delegatedConstructorCall)
     }
 
     override fun visitType(type: FirType) {
@@ -358,9 +358,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
     override fun visitUserType(userType: FirUserType) {
         userType.annotations.renderAnnotations()
         print(userType.name)
-        if (userType.arguments.isNotEmpty()) {
+        if (userType.typeArguments.isNotEmpty()) {
             print("<")
-            userType.arguments.renderSeparated()
+            userType.typeArguments.renderSeparated()
             print(">")
         }
         visitTypeWithNullability(userType)

@@ -6,13 +6,20 @@
 package org.jetbrains.kotlin.fir.expressions
 
 import org.jetbrains.kotlin.fir.types.FirType
+import org.jetbrains.kotlin.fir.types.FirTypeProjectionContainer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
-interface FirConstructorCall : FirCall {
+interface FirDelegatedConstructorCall : FirCall, FirTypeProjectionContainer {
+    // Do we need 'constructedType: FirType' here?
     val constructedType: FirType
 
+    val isThis: Boolean
+
+    val isSuper: Boolean
+        get() = !isThis
+
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
-        visitor.visitConstructorCall(this, data)
+        visitor.visitDelegatedConstructorCall(this, data)
 
     override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
         constructedType.accept(visitor, data)

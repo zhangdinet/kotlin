@@ -16,7 +16,7 @@ interface FirUserType : FirTypeWithNullability, FirTypeProjectionContainer {
 
     override fun <D> acceptChildren(visitor: FirVisitor<Unit, D>, data: D) {
         super.acceptChildren(visitor, data)
-        for (argument in arguments) {
+        for (argument in typeArguments) {
             argument.accept(visitor, data)
         }
     }
