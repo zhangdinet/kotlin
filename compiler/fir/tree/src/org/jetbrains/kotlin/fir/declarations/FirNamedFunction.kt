@@ -5,9 +5,11 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.BaseTransformedType
 import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
+@BaseTransformedType
 interface FirNamedFunction : @VisitedSupertype FirFunction, FirCallableMember {
     val isOperator: Boolean
 

@@ -6,9 +6,11 @@
 package org.jetbrains.kotlin.fir.expressions
 
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.fir.BaseTransformedType
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
+@BaseTransformedType
 interface FirAnnotationCall : FirCall {
     val annotationType: FirType
 

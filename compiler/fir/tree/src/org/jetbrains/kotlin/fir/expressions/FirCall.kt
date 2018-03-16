@@ -5,8 +5,10 @@
 
 package org.jetbrains.kotlin.fir.expressions
 
+import org.jetbrains.kotlin.fir.BaseTransformedType
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
+@BaseTransformedType
 interface FirCall : FirExpression {
     val arguments: List<FirExpression>
 
