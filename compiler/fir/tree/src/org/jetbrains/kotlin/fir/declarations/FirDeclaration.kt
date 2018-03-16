@@ -5,10 +5,12 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.BaseTransformedType
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 
+@BaseTransformedType
 interface FirDeclaration : FirElement {
     val declarationKind: IrDeclarationKind
 
