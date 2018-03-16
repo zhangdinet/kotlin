@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.fir.visitors
 
+import org.jetbrains.kotlin.fir.FirElement
+
 @Suppress("UNSUPPORTED_FEATURE")
 inline class CompositeTransformResult<out T : Any>(val a: Any) {
 
@@ -29,3 +31,5 @@ inline class CompositeTransformResult<out T : Any>(val a: Any) {
             return a as List<T>
         }
 }
+
+inline fun <reified T : FirElement> T.compose() = CompositeTransformResult.single(this)
