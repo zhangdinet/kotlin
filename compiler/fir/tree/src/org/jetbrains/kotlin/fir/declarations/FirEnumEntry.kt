@@ -5,12 +5,12 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.VisitedSupertype
+import org.jetbrains.kotlin.fir.expressions.FirCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
-interface FirEnumEntry : FirClass {
-    val arguments: List<FirExpression>
-
+interface FirEnumEntry : @VisitedSupertype FirClass, FirCall {
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitEnumEntry(this, data)
 
@@ -18,6 +18,6 @@ interface FirEnumEntry : FirClass {
         for (argument in arguments) {
             argument.accept(visitor, data)
         }
-        super.acceptChildren(visitor, data)
+        super<FirClass>.acceptChildren(visitor, data)
     }
 }

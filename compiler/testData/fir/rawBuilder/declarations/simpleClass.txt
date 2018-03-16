@@ -1,5 +1,5 @@
 FILE: simpleClass.kt
-    unknown final class SomeInterface() {
+    unknown final interface SomeInterface() {
         unknown final function foo(x: Int, y: String): String
 
         unknown final property bar(val): Boolean

@@ -13,10 +13,10 @@ import org.jetbrains.kotlin.fir.expressions.FirBody
 import org.jetbrains.kotlin.fir.expressions.FirDelegatedConstructorCall
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 
-class FirSecondaryConstructorImpl(
+open class FirConstructorImpl(
     session: FirSession,
     psi: PsiElement?,
-    override val visibility: Visibility,
-    override val delegatedConstructor: FirDelegatedConstructorCall?,
+    final override val visibility: Visibility,
+    final override val delegatedConstructor: FirDelegatedConstructorCall?,
     body: FirBody?
 ) : FirAbstractFunction(session, psi, IrDeclarationKind.CONSTRUCTOR, body), FirConstructor

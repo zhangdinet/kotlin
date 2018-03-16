@@ -149,6 +149,53 @@ class RawFirBuilder(val session: FirSession) {
             }
         }
 
+        private fun KtClassOrObject.extractSuperTypeListEntriesTo(container: FirClassImpl) {
+            var superTypeCallEntry: KtSuperTypeCallEntry? = null
+            for (superTypeListEntry in superTypeListEntries) {
+                when (superTypeListEntry) {
+                    is KtSuperTypeEntry -> {
+                        container.superTypes += superTypeListEntry.typeReference.toFirOrErrorType()
+                    }
+                    is KtSuperTypeCallEntry -> {
+                        container.superTypes += superTypeListEntry.calleeExpression.typeReference.toFirOrErrorType()
+                        superTypeCallEntry = superTypeListEntry
+                    }
+                    is KtDelegatedSuperTypeEntry -> {
+                        val type = superTypeListEntry.typeReference.toFirOrErrorType()
+                        container.superTypes += FirDelegatedTypeImpl(
+                            type,
+                            superTypeListEntry.delegateExpression.convertSafe()
+                        )
+                    }
+                }
+            }
+            val firPrimaryConstructor = primaryConstructor?.toFirConstructor(superTypeCallEntry) ?: return
+            container.declarations += firPrimaryConstructor
+        }
+
+        private fun KtPrimaryConstructor.toFirConstructor(superTypeCallEntry: KtSuperTypeCallEntry?): FirConstructor {
+            val constructorCallee = superTypeCallEntry?.calleeExpression
+            val firDelegatedCall = constructorCallee?.let {
+                FirDelegatedConstructorCallImpl(
+                    session,
+                    constructorCallee,
+                    FirErrorTypeImpl(session, constructorCallee, false, "Not implemented yet"),
+                    isThis = false
+                ).apply {
+                    superTypeCallEntry.extractArgumentsTo(this)
+                }
+            }
+            val firConstructor = FirPrimaryConstructorImpl(
+                session,
+                this,
+                visibility,
+                firDelegatedCall
+            )
+            extractAnnotationsTo(firConstructor)
+            extractValueParametersTo(firConstructor)
+            return firConstructor
+        }
+
         override fun visitKtFile(file: KtFile, data: Unit): FirElement {
             val firFile = FirFileImpl(session, file, file.name, file.packageFqName)
             for (annotationEntry in file.annotationEntries) {
@@ -167,6 +214,20 @@ class RawFirBuilder(val session: FirSession) {
                 firFile.declarations += declaration.convert<FirDeclaration>()
             }
             return firFile
+        }
+
+        override fun visitEnumEntry(enumEntry: KtEnumEntry, data: Unit): FirElement {
+            val firEnumEntry = FirEnumEntryImpl(
+                session,
+                enumEntry,
+                enumEntry.nameAsSafeName
+            )
+            enumEntry.extractAnnotationsTo(firEnumEntry)
+            enumEntry.extractSuperTypeListEntriesTo(firEnumEntry)
+            for (declaration in enumEntry.declarations) {
+                firEnumEntry.declarations += declaration.convert<FirDeclaration>()
+            }
+            return firEnumEntry
         }
 
         override fun visitClassOrObject(classOrObject: KtClassOrObject, data: Unit): FirElement {
@@ -192,24 +253,7 @@ class RawFirBuilder(val session: FirSession) {
             )
             classOrObject.extractAnnotationsTo(firClass)
             classOrObject.extractTypeParametersTo(firClass)
-            for (superTypeListEntry in classOrObject.superTypeListEntries) {
-                when (superTypeListEntry) {
-                    is KtSuperTypeEntry -> {
-                        firClass.superTypes += superTypeListEntry.typeReference.toFirOrErrorType()
-                    }
-                    is KtSuperTypeCallEntry -> {
-                        firClass.superTypes += superTypeListEntry.calleeExpression.typeReference.toFirOrErrorType()
-                        // TODO: primary constructor!
-                    }
-                    is KtDelegatedSuperTypeEntry -> {
-                        val type = superTypeListEntry.typeReference.toFirOrErrorType()
-                        firClass.superTypes += FirDelegatedTypeImpl(
-                            type,
-                            superTypeListEntry.delegateExpression.convertSafe()
-                        )
-                    }
-                }
-            }
+            classOrObject.extractSuperTypeListEntriesTo(firClass)
             for (declaration in classOrObject.declarations) {
                 firClass.declarations += declaration.convert<FirDeclaration>()
             }
@@ -258,13 +302,14 @@ class RawFirBuilder(val session: FirSession) {
         }
 
         override fun visitSecondaryConstructor(constructor: KtSecondaryConstructor, data: Unit): FirElement {
-            val firConstructor = FirSecondaryConstructorImpl(
+            val firConstructor = FirConstructorImpl(
                 session,
                 constructor,
                 constructor.visibility,
                 constructor.getDelegationCall().convert(),
                 constructor.bodyExpression.toFirBody()
             )
+            constructor.extractAnnotationsTo(firConstructor)
             constructor.extractValueParametersTo(firConstructor)
             return firConstructor
         }
@@ -297,6 +342,7 @@ class RawFirBuilder(val session: FirSession) {
                 property.visibility,
                 property.modality,
                 property.hasModifier(KtTokens.OVERRIDE_KEYWORD),
+                property.hasModifier(KtTokens.CONST_KEYWORD),
                 property.receiverTypeReference.convertSafe(),
                 propertyType,
                 property.isVar,

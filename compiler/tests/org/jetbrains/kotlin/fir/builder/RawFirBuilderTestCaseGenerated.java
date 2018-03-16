@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the license/LICENSE.txt file.
  */
 
@@ -31,6 +31,12 @@ public class RawFirBuilderTestCaseGenerated extends AbstractRawFirBuilderTestCas
     public static class Declarations extends AbstractRawFirBuilderTestCase {
         public void testAllFilesPresentInDeclarations() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/fir/rawBuilder/declarations"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("enums.kt")
+        public void testEnums() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/rawBuilder/declarations/enums.kt");
+            doRawFirTest(fileName);
         }
 
         @TestMetadata("simpleClass.kt")

@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
 
@@ -118,7 +119,12 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             if (memberDeclaration.isInline) {
                 print("inline ")
             }
+        } else if (memberDeclaration is FirProperty) {
+            if (memberDeclaration.isConst) {
+                print("const ")
+            }
         }
+
         visitNamedDeclaration(memberDeclaration)
     }
 
@@ -128,7 +134,11 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
     }
 
     override fun visitDeclaration(declaration: FirDeclaration) {
-        print(declaration.declarationKind.name.toLowerCase().replace("_", " "))
+        if (declaration is FirClass && declaration.declarationKind == IrDeclarationKind.CLASS) {
+            print(declaration.classKind.name.toLowerCase().replace("_", " "))
+        } else {
+            print(declaration.declarationKind.name.toLowerCase().replace("_", " "))
+        }
     }
 
     override fun visitEnumEntry(enumEntry: FirEnumEntry) {
@@ -195,6 +205,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         constructor.valueParameters.renderParameters()
         constructor.delegatedConstructor?.accept(this)
         constructor.body?.accept(this)
+        if (constructor.body == null) {
+            println()
+        }
     }
 
     override fun visitPropertyAccessor(propertyAccessor: FirPropertyAccessor) {

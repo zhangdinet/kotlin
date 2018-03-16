@@ -16,15 +16,15 @@ import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
 
-class FirClassImpl(
+open class FirClassImpl(
     session: FirSession,
     psi: PsiElement?,
     name: Name,
     visibility: Visibility,
     modality: Modality,
-    override val classKind: ClassKind,
-    override val isCompanion: Boolean,
-    override val isData: Boolean
+    final override val classKind: ClassKind,
+    final override val isCompanion: Boolean,
+    final override val isData: Boolean
 ) : FirAbstractMemberDeclaration(session, psi, IrDeclarationKind.CLASS, name, visibility, modality), FirClass {
     override val superTypes = mutableListOf<FirType>()
 
