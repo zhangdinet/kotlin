@@ -175,6 +175,9 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                 val packagePartProvider = packagePartProviderFactory(moduleContent)
                 val resolverForModuleFactory = resolverForModuleFactoryByPlatform(module.platform)
 
+                val languageVersionSettings = languageSettingsProvider.getLanguageVersionSettings(module, projectContext.project)
+                val targetPlatformVersion = languageSettingsProvider.getTargetPlatform(module)
+
                 resolverForModuleFactory.createResolverForModule(
                     descriptor as ModuleDescriptorImpl,
                     projectContext.withModule(descriptor),
@@ -182,7 +185,8 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                     platformParameters,
                     targetEnvironment,
                     this@ResolverForProjectImpl,
-                    languageSettingsProvider,
+                    languageVersionSettings,
+                    targetPlatformVersion,
                     packagePartProvider
                 )
             }
@@ -295,7 +299,8 @@ abstract class ResolverForModuleFactory {
         platformParameters: PlatformAnalysisParameters,
         targetEnvironment: TargetEnvironment,
         resolverForProject: ResolverForProject<M>,
-        languageSettingsProvider: LanguageSettingsProvider,
+        languageVersionSettings: LanguageVersionSettings,
+        targetPlatformVersion: TargetPlatformVersion,
         packagePartProvider: PackagePartProvider
     ): ResolverForModule
 
