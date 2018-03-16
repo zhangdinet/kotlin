@@ -276,7 +276,7 @@ abstract class AbstractKotlinKaptContextTest : AbstractKotlinKapt3Test() {
         try {
             kaptContext.doAnnotationProcessing(emptyList(), listOf(JavaKaptContextTest.simpleProcessor()),
                                                compileClasspath = PathUtil.getJdkClassesRootsFromCurrentJre() + PathUtil.kotlinPathsForIdeaPlugin.stdlibPath,
-                                               annotationProcessingClasspath = emptyList(), annotationProcessors = "",
+                                               annotationProcessingClasspath = emptyList(),
                                                sourcesOutputDir = sourceOutputDir, classesOutputDir = sourceOutputDir,
                                                additionalSources = compilationUnits, withJdk = true)
 
