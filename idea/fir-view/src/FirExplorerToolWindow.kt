@@ -166,8 +166,13 @@ class FirExplorerToolWindow(private val project: Project, private val toolWindow
         init {
             templatePresentation.setIcon(AllIcons.Nodes.Property)
             if (data != null) {
-                templatePresentation.addText(data::class.java.simpleName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-                templatePresentation.addText("(toString = $data)", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                val dataKClass = data::class
+                if (dataKClass.javaPrimitiveType != null) {
+                    templatePresentation.addText(data.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                } else {
+                    templatePresentation.addText(data::class.java.simpleName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                    templatePresentation.addText("(toString = $data)", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                }
             } else {
                 templatePresentation.addText("null", SimpleTextAttributes.GRAY_ATTRIBUTES)
             }
