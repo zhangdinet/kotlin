@@ -25,6 +25,8 @@ import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
 import kotlin.script.experimental.dependencies.asSuccess
+import kotlin.script.experimental.location.ScriptExpectedLocation
+import kotlin.script.experimental.location.ScriptExpectedLocations
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
@@ -52,7 +54,6 @@ class FromTextTemplateProvider(
     )
 }
 
-
 class FromTextDependenciesResolver : AsyncDependenciesResolver {
     @Suppress("UNCHECKED_CAST")
     suspend override fun resolveAsync(scriptContents: ScriptContents, environment: Environment): DependenciesResolver.ResolveResult {
@@ -65,5 +66,6 @@ class FromTextDependenciesResolver : AsyncDependenciesResolver {
 }
 
 @Suppress("unused")
+@ScriptExpectedLocations([ScriptExpectedLocation.Everywhere])
 @ScriptTemplateDefinition(FromTextDependenciesResolver::class, scriptFilePattern = "script.kts")
 class Template
