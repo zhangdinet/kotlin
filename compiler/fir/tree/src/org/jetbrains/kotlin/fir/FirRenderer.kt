@@ -371,11 +371,16 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
 
     override fun visitUserType(userType: FirUserType) {
         userType.annotations.renderAnnotations()
-        print(userType.name)
-        if (userType.typeArguments.isNotEmpty()) {
-            print("<")
-            userType.typeArguments.renderSeparated()
-            print(">")
+        for ((index, qualifier) in userType.qualifiers.withIndex()) {
+            if (index != 0) {
+                print(".")
+            }
+            print(qualifier.name)
+            if (qualifier.typeArguments.isNotEmpty()) {
+                print("<")
+                qualifier.typeArguments.renderSeparated()
+                print(">")
+            }
         }
         visitTypeWithNullability(userType)
     }

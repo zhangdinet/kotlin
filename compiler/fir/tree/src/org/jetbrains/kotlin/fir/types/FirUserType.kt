@@ -8,16 +8,22 @@ package org.jetbrains.kotlin.fir.types
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.Name
 
-interface FirUserType : FirTypeWithNullability, FirTypeProjectionContainer {
+interface FirQualifier : FirTypeProjectionContainer {
     val name: Name
+}
+
+interface FirUserType : FirTypeWithNullability {
+    val qualifiers: List<FirQualifier>
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitUserType(this, data)
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         super.acceptChildren(visitor, data)
-        for (argument in typeArguments) {
-            argument.accept(visitor, data)
+        for (qualifier in qualifiers.reversed()) {
+            for (argument in qualifier.typeArguments) {
+                argument.accept(visitor, data)
+            }
         }
     }
 }

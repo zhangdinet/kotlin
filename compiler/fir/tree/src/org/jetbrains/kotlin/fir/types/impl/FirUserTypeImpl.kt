@@ -7,15 +7,14 @@ package org.jetbrains.kotlin.fir.types.impl
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.types.FirQualifier
 import org.jetbrains.kotlin.fir.types.FirUserType
-import org.jetbrains.kotlin.fir.types.FirTypeProjection
-import org.jetbrains.kotlin.name.Name
+import java.util.*
 
 class FirUserTypeImpl(
     session: FirSession,
     psi: PsiElement?,
-    isNullable: Boolean,
-    override val name: Name
+    isNullable: Boolean
 ) : FirAbstractAnnotatedType(session, psi, isNullable), FirUserType {
-    override val typeArguments = mutableListOf<FirTypeProjection>()
+    override val qualifiers = LinkedList<FirQualifier>()
 }

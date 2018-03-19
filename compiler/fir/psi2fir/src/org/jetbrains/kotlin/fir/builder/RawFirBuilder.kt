@@ -368,15 +368,22 @@ class RawFirBuilder(val session: FirSession) {
             val firType = when (unwrappedElement) {
                 is KtDynamicType -> FirDynamicTypeImpl(session, typeReference, isNullable)
                 is KtUserType -> {
-                    val referenceExpression = unwrappedElement.referenceExpression
+                    var referenceExpression = unwrappedElement.referenceExpression
                     if (referenceExpression != null) {
                         val userType = FirUserTypeImpl(
-                            session, typeReference, isNullable,
-                            referenceExpression.getReferencedNameAsName()
+                            session, typeReference, isNullable
                         )
-                        for (typeArgument in unwrappedElement.typeArguments) {
-                            userType.typeArguments += typeArgument.convert<FirTypeProjection>()
-                        }
+                        var qualifier: KtUserType? = unwrappedElement
+                        do {
+                            val firQualifier = FirQualifierImpl(referenceExpression!!.getReferencedNameAsName())
+                            for (typeArgument in qualifier!!.typeArguments) {
+                                firQualifier.typeArguments += typeArgument.convert<FirTypeProjection>()
+                            }
+                            userType.qualifiers.add(0, firQualifier)
+
+                            qualifier = qualifier.qualifier
+                            referenceExpression = qualifier?.referenceExpression
+                        } while (referenceExpression != null)
                         userType
                     } else {
                         FirErrorTypeImpl(session, typeReference, isNullable, "Incomplete user type")

@@ -33,6 +33,12 @@ public class RawFirBuilderTestCaseGenerated extends AbstractRawFirBuilderTestCas
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/fir/rawBuilder/declarations"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
+        @TestMetadata("complexTypes.kt")
+        public void testComplexTypes() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/rawBuilder/declarations/complexTypes.kt");
+            doRawFirTest(fileName);
+        }
+
         @TestMetadata("enums.kt")
         public void testEnums() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/rawBuilder/declarations/enums.kt");
