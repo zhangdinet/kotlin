@@ -98,7 +98,7 @@ abstract class FirTransformer<in D> : FirVisitor<CompositeTransformResult<FirEle
         return transformElement(packageFragment, data)
     }
 
-    open fun <E : FirPackageFragment> transformFile(file: E, data: D): CompositeTransformResult<E> {
+    open fun transformFile(file: FirFile, data: D): CompositeTransformResult<FirFile> {
         return transformPackageFragment(file, data)
     }
 

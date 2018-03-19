@@ -28,5 +28,7 @@ interface FirElement {
         acceptChildren(visitor, null)
 
     fun <E : FirElement, D> transform(visitor: FirTransformer<D>, data: D): CompositeTransformResult<E> =
-        accept(visitor, data) as CompositeTransformResult<E>
+        CompositeTransformResult(accept(visitor, data))
+
+    fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement = this
 }
