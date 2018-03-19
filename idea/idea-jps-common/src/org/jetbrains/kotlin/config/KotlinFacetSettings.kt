@@ -47,6 +47,22 @@ sealed class TargetPlatformKind<out Version : TargetPlatformVersion>(
     }
 }
 
+object NewInferenceSupport {
+    @JvmStatic
+    fun byCompilerArguments(arguments: CommonCompilerArguments?): LanguageFeature.State =
+        byCompilerArgumentsOrNull(arguments) ?: LanguageFeature.NewInference.defaultState
+
+    fun byCompilerArgumentsOrNull(arguments: CommonCompilerArguments?): LanguageFeature.State? {
+        val newInferenceState = arguments?.newInference ?: return LanguageFeature.State.DISABLED
+        return if (newInferenceState) LanguageFeature.State.ENABLED else LanguageFeature.State.DISABLED
+    }
+
+    @JvmStatic
+    fun isEnabledByCompilerArguments(arguments: CommonCompilerArguments?): Boolean =
+        byCompilerArgumentsOrNull(arguments) == LanguageFeature.State.ENABLED
+}
+
+
 object CoroutineSupport {
     @JvmStatic
     fun byCompilerArguments(arguments: CommonCompilerArguments?): LanguageFeature.State =
@@ -191,6 +207,20 @@ class KotlinFacetSettings {
                 LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.DISABLED -> CommonCompilerArguments.ERROR
             }
         }
+
+    var newInferenceSupport: LanguageFeature.State
+        get() {
+            val languageVersion = languageLevel ?: return LanguageFeature.NewInference.defaultState
+            if (languageVersion < LanguageFeature.NewInference.sinceVersion!!) return LanguageFeature.State.DISABLED
+            return NewInferenceSupport.byCompilerArguments(compilerArguments)
+        }
+        set(value) {
+            compilerArguments!!.newInference = when (value) {
+                LanguageFeature.State.ENABLED, LanguageFeature.State.ENABLED_WITH_WARNING -> true
+                LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.DISABLED -> false
+            }
+        }
+
 
     var implementedModuleNames: List<String> = emptyList()
 

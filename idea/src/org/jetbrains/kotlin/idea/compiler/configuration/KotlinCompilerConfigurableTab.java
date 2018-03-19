@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the license/LICENSE.txt file.
  */
 
@@ -77,6 +77,7 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
     private CompilerSettings compilerSettings;
     private JPanel contentPane;
     private ThreeStateCheckBox reportWarningsCheckBox;
+    private ThreeStateCheckBox enableNewInferenceCheckBox;
     private RawCommandLineEditor additionalArgsOptionsField;
     private JLabel additionalArgsLabel;
     private ThreeStateCheckBox generateSourceMapsCheckBox;
@@ -159,6 +160,7 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
         }
 
         reportWarningsCheckBox.setThirdStateEnabled(isMultiEditor);
+        enableNewInferenceCheckBox.setThirdStateEnabled(isMultiEditor);
         generateSourceMapsCheckBox.setThirdStateEnabled(isMultiEditor);
         copyRuntimeFilesCheckBox.setThirdStateEnabled(isMultiEditor);
         keepAliveCheckBox.setThirdStateEnabled(isMultiEditor);
@@ -422,6 +424,7 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
     @Override
     public boolean isModified() {
         return isModified(reportWarningsCheckBox, !commonCompilerArguments.getSuppressWarnings()) ||
+               isModified(enableNewInferenceCheckBox, commonCompilerArguments.getNewInference()) ||
                !getSelectedLanguageVersionView().equals(KotlinFacetSettingsKt.getLanguageVersionView(commonCompilerArguments)) ||
                !getSelectedAPIVersionView().equals(KotlinFacetSettingsKt.getApiVersionView(commonCompilerArguments)) ||
                !coroutineSupportComboBox.getSelectedItem().equals(CoroutineSupport.byCompilerArguments(commonCompilerArguments)) ||
@@ -481,7 +484,8 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
             boolean shouldInvalidateCaches =
                     !getSelectedLanguageVersionView().equals(KotlinFacetSettingsKt.getLanguageVersionView(commonCompilerArguments)) ||
                     !getSelectedAPIVersionView().equals(KotlinFacetSettingsKt.getApiVersionView(commonCompilerArguments)) ||
-                    !coroutineSupportComboBox.getSelectedItem().equals(CoroutineSupport.byCompilerArguments(commonCompilerArguments));
+                    !coroutineSupportComboBox.getSelectedItem().equals(CoroutineSupport.byCompilerArguments(commonCompilerArguments)) ||
+                    enableNewInferenceCheckBox.isSelected() != NewInferenceSupport.isEnabledByCompilerArguments(commonCompilerArguments);
 
             if (shouldInvalidateCaches) {
                 ApplicationUtilsKt.runWriteAction(
@@ -497,6 +501,7 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
         }
 
         commonCompilerArguments.setSuppressWarnings(!reportWarningsCheckBox.isSelected());
+        commonCompilerArguments.setNewInference(enableNewInferenceCheckBox.isSelected());
         KotlinFacetSettingsKt.setLanguageVersionView(commonCompilerArguments, getSelectedLanguageVersionView());
         KotlinFacetSettingsKt.setApiVersionView(commonCompilerArguments, getSelectedAPIVersionView());
 
@@ -559,6 +564,7 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
     @Override
     public void reset() {
         reportWarningsCheckBox.setSelected(!commonCompilerArguments.getSuppressWarnings());
+        enableNewInferenceCheckBox.setSelected(commonCompilerArguments.getNewInference());
         languageVersionComboBox.setSelectedItem(KotlinFacetSettingsKt.getLanguageVersionView(commonCompilerArguments));
         restrictAPIVersions(getSelectedLanguageVersionView());
         apiVersionComboBox.setSelectedItem(KotlinFacetSettingsKt.getApiVersionView(commonCompilerArguments));
@@ -608,6 +614,10 @@ public class KotlinCompilerConfigurableTab implements SearchableConfigurable, Co
 
     public ThreeStateCheckBox getReportWarningsCheckBox() {
         return reportWarningsCheckBox;
+    }
+
+    public ThreeStateCheckBox getEnableNewInferenceCheckBox() {
+        return enableNewInferenceCheckBox;
     }
 
     public RawCommandLineEditor getAdditionalArgsOptionsField() {

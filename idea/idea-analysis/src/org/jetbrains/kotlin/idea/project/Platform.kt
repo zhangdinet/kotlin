@@ -100,6 +100,7 @@ fun Project.getLanguageVersionSettings(contextModule: Module? = null,
     val extraLanguageFeatures = getExtraLanguageFeatures(
             null,
             CoroutineSupport.byCompilerArguments(KotlinCommonCompilerArgumentsHolder.getInstance(this).settings),
+            NewInferenceSupport.byCompilerArguments(KotlinCommonCompilerArgumentsHolder.getInstance(this).settings),
             compilerSettings,
             null
     )
@@ -141,6 +142,7 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
     val extraLanguageFeatures = getExtraLanguageFeatures(
         facetSettings.targetPlatformKind ?: TargetPlatformKind.Common,
         facetSettings.coroutineSupport,
+        facetSettings.newInferenceSupport,
         facetSettings.compilerSettings,
         this
     )
@@ -170,11 +172,13 @@ private val Module.implementsCommonModule: Boolean
 private fun getExtraLanguageFeatures(
         targetPlatformKind: TargetPlatformKind<*>?,
         coroutineSupport: LanguageFeature.State,
+        newInferenceSupport: LanguageFeature.State,
         compilerSettings: CompilerSettings?,
         module: Module?
 ): Map<LanguageFeature, LanguageFeature.State> {
     return mutableMapOf<LanguageFeature, LanguageFeature.State>().apply {
         put(LanguageFeature.Coroutines, coroutineSupport)
+        put(LanguageFeature.NewInference, newInferenceSupport)
         if (targetPlatformKind == TargetPlatformKind.Common ||
             // TODO: this is a dirty hack, parse arguments correctly here
             compilerSettings?.additionalArguments?.contains(multiPlatformProjectsArg) == true ||
