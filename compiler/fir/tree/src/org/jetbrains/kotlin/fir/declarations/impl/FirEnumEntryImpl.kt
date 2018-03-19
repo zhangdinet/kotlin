@@ -25,6 +25,7 @@ class FirEnumEntryImpl(
     visibility = Visibilities.UNKNOWN,
     modality = Modality.FINAL,
     classKind = ClassKind.ENUM_ENTRY,
+    isInner = false,
     isCompanion = false,
     isData = false
 ), FirEnumEntry {

@@ -19,6 +19,8 @@ interface FirClass : FirDeclarationContainer, FirMemberDeclaration {
 
     val classKind: ClassKind
 
+    val isInner: Boolean
+
     val isCompanion: Boolean
 
     val isData: Boolean

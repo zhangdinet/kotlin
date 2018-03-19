@@ -23,6 +23,7 @@ open class FirClassImpl(
     visibility: Visibility,
     modality: Modality,
     final override val classKind: ClassKind,
+    final override val isInner: Boolean,
     final override val isCompanion: Boolean,
     final override val isData: Boolean
 ) : FirAbstractMemberDeclaration(session, psi, IrDeclarationKind.CLASS, name, visibility, modality), FirClass {

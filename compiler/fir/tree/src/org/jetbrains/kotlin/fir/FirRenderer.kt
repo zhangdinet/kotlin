@@ -148,6 +148,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
     override fun visitClass(klass: FirClass) {
         visitMemberDeclaration(klass)
         val attributes = listOfNotNull(
+            "inner".takeIf { klass.isInner },
             "companion".takeIf { klass.isCompanion },
             "data".takeIf { klass.isData }
         )

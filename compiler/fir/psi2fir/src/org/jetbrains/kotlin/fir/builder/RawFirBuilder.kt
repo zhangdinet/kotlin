@@ -248,6 +248,7 @@ class RawFirBuilder(val session: FirSession) {
                 classOrObject.visibility,
                 classOrObject.modality,
                 classKind,
+                isInner = classOrObject.hasModifier(KtTokens.INNER_KEYWORD),
                 isCompanion = (classOrObject as? KtObjectDeclaration)?.isCompanion() == true,
                 isData = (classOrObject as? KtClass)?.isData() == true
             )
