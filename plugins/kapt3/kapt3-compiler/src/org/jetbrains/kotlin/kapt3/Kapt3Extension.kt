@@ -314,7 +314,7 @@ abstract class AbstractKapt3Extension(
         val reportOutputFiles = kaptContext.generationState.configuration.getBoolean(CommonConfigurationKeys.REPORT_OUTPUT_FILES)
         kaptContext.generationState.factory.writeAll(
                 incrementalDataOutputDir,
-                if (!reportOutputFiles) null else fun(file: OutputFile, sources: List<File>, output: File) {
+                if (!reportOutputFiles) (null as ((OutputFile, List<File>, File) -> Unit)?) else fun(file: OutputFile, sources: List<File>, output: File) {
                     val stubFileObject = converter.bindings[file.relativePath.substringBeforeLast(".class", missingDelimiterValue = "")]
                     if (stubFileObject != null) {
                         val stubFile = File(stubsOutputDir, stubFileObject.name)
