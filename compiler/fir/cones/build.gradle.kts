@@ -13,8 +13,6 @@ dependencies {
     val compileOnly by configurations
 
     compile(project(":core:descriptors"))
-    compile(project(":compiler:fir:tree"))
-    compile(project(":compiler:fir:cones"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core", "annotations") }
 }
