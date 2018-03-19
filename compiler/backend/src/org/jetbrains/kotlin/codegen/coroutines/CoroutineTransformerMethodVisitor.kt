@@ -76,7 +76,7 @@ class CoroutineTransformerMethodVisitor(
         )
 
         FixStackMethodTransformer().transform(containingClassInternalName, methodNode)
-        RedundantLocalsEliminationMethodTransformer().transform(containingClassInternalName, methodNode)
+        RedundantLocalsEliminationMethodTransformer(languageVersionSettings).transform(containingClassInternalName, methodNode)
         updateMaxStack(methodNode)
 
         val suspensionPoints = collectSuspensionPoints(methodNode)
@@ -294,7 +294,8 @@ class CoroutineTransformerMethodVisitor(
                 needDispatchReceiver,
                 internalNameForDispatchReceiver,
                 containingClassInternalName,
-                classBuilderForCoroutineState
+                classBuilderForCoroutineState,
+                languageVersionSettings
             )
 
             visitVarInsn(Opcodes.ASTORE, continuationIndex)
@@ -600,22 +601,6 @@ class CoroutineTransformerMethodVisitor(
 
         return
     }
-
-    private fun getParameterTypesIndicesForCoroutineConstructor(
-        desc: String,
-        containingFunctionAccess: Int,
-        needDispatchReceiver: Boolean,
-        thisName: String
-    ): Collection<Pair<Type, Int>> {
-        return mutableListOf<Pair<Type, Int>>().apply {
-            if (needDispatchReceiver) {
-                add(Type.getObjectType(thisName) to 0)
-            }
-            val continuationIndex =
-                getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
-            add(continuationAsmType(languageVersionSettings) to continuationIndex)
-        }
-    }
 }
 
 internal fun InstructionAdapter.generateContinuationConstructorCall(
@@ -624,7 +609,8 @@ internal fun InstructionAdapter.generateContinuationConstructorCall(
     needDispatchReceiver: Boolean,
     internalNameForDispatchReceiver: String?,
     containingClassInternalName: String,
-    classBuilderForCoroutineState: ClassBuilder
+    classBuilderForCoroutineState: ClassBuilder,
+    languageVersionSettings: LanguageVersionSettings
 ) {
     anew(objectTypeForState)
     dup()
@@ -633,7 +619,8 @@ internal fun InstructionAdapter.generateContinuationConstructorCall(
         getParameterTypesIndicesForCoroutineConstructor(
             methodNode.desc,
             methodNode.access,
-            needDispatchReceiver, internalNameForDispatchReceiver ?: containingClassInternalName
+            needDispatchReceiver, internalNameForDispatchReceiver ?: containingClassInternalName,
+            languageVersionSettings
         )
     for ((type, index) in parameterTypesAndIndices) {
         load(index, type)
@@ -651,6 +638,23 @@ internal fun InstructionAdapter.generateContinuationConstructorCall(
         ),
         false
     )
+}
+
+private fun getParameterTypesIndicesForCoroutineConstructor(
+    desc: String,
+    containingFunctionAccess: Int,
+    needDispatchReceiver: Boolean,
+    thisName: String,
+    languageVersionSettings: LanguageVersionSettings
+): Collection<Pair<Type, Int>> {
+    return mutableListOf<Pair<Type, Int>>().apply {
+        if (needDispatchReceiver) {
+            add(Type.getObjectType(thisName) to 0)
+        }
+        val continuationIndex =
+            getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
+        add(continuationAsmType(languageVersionSettings) to continuationIndex)
+    }
 }
 
 private fun InstructionAdapter.generateResumeWithExceptionCheck(exceptionIndex: Int) {

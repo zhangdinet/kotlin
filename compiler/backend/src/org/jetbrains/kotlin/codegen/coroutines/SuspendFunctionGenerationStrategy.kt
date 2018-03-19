@@ -70,12 +70,14 @@ class SuspendFunctionGenerationStrategy(
                 mv, access, name, desc, null, null, this::classBuilderForCoroutineState,
                 containingClassInternalName,
                 originalSuspendDescriptor.dispatchReceiverParameter != null,
-                containingClassInternalNameOrNull()
+                containingClassInternalNameOrNull(),
+                languageVersionSettings
             )
+        }
         return CoroutineTransformerMethodVisitor(
                 mv, access, name, desc, null, null, containingClassInternalName, this::classBuilderForCoroutineState,
                 isForNamedFunction = true,
-                element = declaration,
+                lineNumber = CodegenUtil.getLineNumberForElement(declaration, false) ?: 0,
                 shouldPreserveClassInitialization = constructorCallNormalizationMode.shouldPreserveClassInitialization,
                 needDispatchReceiver = originalSuspendDescriptor.dispatchReceiverParameter != null,
                 internalNameForDispatchReceiver = containingClassInternalNameOrNull(),
@@ -106,7 +108,8 @@ class SuspendFunctionGenerationStrategy(
         obtainClassBuilderForCoroutineState: () -> ClassBuilder,
         private val containingClassInternalName: String,
         private val needDispatchReceiver: Boolean,
-        private val internalNameForDispatchReceiver: String?
+        private val internalNameForDispatchReceiver: String?,
+        private val languageVersionSettings: LanguageVersionSettings
     ) : TransformationMethodVisitor(delegate, access, name, desc, signature, exceptions) {
         private val classBuilderForCoroutineState: ClassBuilder by lazy(obtainClassBuilderForCoroutineState)
         override fun performTransformations(methodNode: MethodNode) {
@@ -119,7 +122,8 @@ class SuspendFunctionGenerationStrategy(
                     needDispatchReceiver,
                     internalNameForDispatchReceiver,
                     containingClassInternalName,
-                    classBuilderForCoroutineState
+                    classBuilderForCoroutineState,
+                    languageVersionSettings
                 )
                 addFakeContinuationConstructorCallMarker(this, false)
             })

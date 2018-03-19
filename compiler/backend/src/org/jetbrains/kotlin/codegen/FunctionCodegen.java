@@ -643,7 +643,11 @@ public class FunctionCodegen {
         Type thisType = getThisTypeForFunction(functionDescriptor, context, typeMapper);
 
         if (functionDescriptor instanceof AnonymousFunctionDescriptor && functionDescriptor.isSuspend()) {
-            functionDescriptor = CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(functionDescriptor, typeMapper.getBindingContext());
+            functionDescriptor = CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(
+                    functionDescriptor,
+                    parentCodegen.state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines),
+                    typeMapper.getBindingContext()
+            );
         }
         generateLocalVariableTable(
                 mv, signature, functionDescriptor, thisType, methodBegin, methodEnd, context.getContextKind(), typeMapper,

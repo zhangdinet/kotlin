@@ -455,6 +455,7 @@ class AnonymousObjectTransformer(
                 ), original.access, original.name, original.desc, null, null,
                 obtainClassBuilderForCoroutineState = { builder },
                 lineNumber = 0, // <- TODO
+                languageVersionSettings = languageVersionSettings,
                 shouldPreserveClassInitialization = state.constructorCallNormalizationMode.shouldPreserveClassInitialization,
                 containingClassInternalName = builder.thisName,
                 isForNamedFunction = false
@@ -481,6 +482,7 @@ class AnonymousObjectTransformer(
                 ), original.access, original.name, original.desc, null, null,
                 obtainClassBuilderForCoroutineState = { (inliningContext as RegeneratedClassContext).continuationBuilders[continuationClassName]!! },
                 lineNumber = 0, // <- TODO
+                languageVersionSettings = languageVersionSettings,
                 shouldPreserveClassInitialization = state.constructorCallNormalizationMode.shouldPreserveClassInitialization,
                 containingClassInternalName = builder.thisName,
                 isForNamedFunction = true,
