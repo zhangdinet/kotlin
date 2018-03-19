@@ -375,11 +375,11 @@ class RawFirBuilder(val session: FirSession) {
                         )
                         var qualifier: KtUserType? = unwrappedElement
                         do {
-                            val firQualifier = FirQualifierImpl(referenceExpression!!.getReferencedNameAsName())
+                            val firQualifier = FirQualifierPartImpl(referenceExpression!!.getReferencedNameAsName())
                             for (typeArgument in qualifier!!.typeArguments) {
                                 firQualifier.typeArguments += typeArgument.convert<FirTypeProjection>()
                             }
-                            userType.qualifiers.add(0, firQualifier)
+                            userType.qualifier.add(0, firQualifier)
 
                             qualifier = qualifier.qualifier
                             referenceExpression = qualifier?.referenceExpression

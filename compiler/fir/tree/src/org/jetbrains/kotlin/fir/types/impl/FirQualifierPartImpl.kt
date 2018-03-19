@@ -5,10 +5,10 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
-import org.jetbrains.kotlin.fir.types.FirQualifier
+import org.jetbrains.kotlin.fir.types.FirQualifierPart
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.name.Name
 
-class FirQualifierImpl(override val name: Name) : FirQualifier {
+class FirQualifierPartImpl(override val name: Name) : FirQualifierPart {
     override val typeArguments = mutableListOf<FirTypeProjection>()
 }

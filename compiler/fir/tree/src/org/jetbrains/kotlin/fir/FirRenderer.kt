@@ -371,7 +371,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
 
     override fun visitUserType(userType: FirUserType) {
         userType.annotations.renderAnnotations()
-        for ((index, qualifier) in userType.qualifiers.withIndex()) {
+        for ((index, qualifier) in userType.qualifier.withIndex()) {
             if (index != 0) {
                 print(".")
             }

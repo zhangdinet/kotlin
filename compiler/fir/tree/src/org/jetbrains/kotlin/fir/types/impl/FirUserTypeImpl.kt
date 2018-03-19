@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.fir.types.impl
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.types.FirQualifier
+import org.jetbrains.kotlin.fir.types.FirQualifierPart
 import org.jetbrains.kotlin.fir.types.FirUserType
 import java.util.*
 
@@ -16,5 +16,5 @@ class FirUserTypeImpl(
     psi: PsiElement?,
     isNullable: Boolean
 ) : FirAbstractAnnotatedType(session, psi, isNullable), FirUserType {
-    override val qualifiers = LinkedList<FirQualifier>()
+    override val qualifier = LinkedList<FirQualifierPart>()
 }
