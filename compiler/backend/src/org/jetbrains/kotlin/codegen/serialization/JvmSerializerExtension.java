@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.codegen.FakeDescriptorsForReferencesKt;
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
@@ -61,6 +62,7 @@ public class JvmSerializerExtension extends SerializerExtension {
     private final boolean useTypeTable;
     private final String moduleName;
     private final ClassBuilderMode classBuilderMode;
+    private final boolean isReleaseCoroutines;
 
     public JvmSerializerExtension(@NotNull JvmSerializationBindings bindings, @NotNull GenerationState state) {
         this.bindings = bindings;
@@ -71,6 +73,7 @@ public class JvmSerializerExtension extends SerializerExtension {
         this.useTypeTable = state.getUseTypeTableInSerializer();
         this.moduleName = state.getModuleName();
         this.classBuilderMode = state.getClassBuilderMode();
+        this.isReleaseCoroutines = state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines);
     }
 
     @NotNull
@@ -312,5 +315,9 @@ public class JvmSerializerExtension extends SerializerExtension {
             }
             return builder.build();
         }
+    }
+
+    public boolean releaseCoroutines() {
+        return isReleaseCoroutines;
     }
 }

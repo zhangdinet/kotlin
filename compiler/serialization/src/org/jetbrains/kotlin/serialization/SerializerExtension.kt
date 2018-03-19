@@ -71,4 +71,6 @@ abstract class SerializerExtension {
     open fun serializeErrorType(type: KotlinType, builder: ProtoBuf.Type.Builder) {
         throw IllegalStateException("Cannot serialize error type: $type")
     }
+
+    open fun releaseCoroutines(): Boolean = false
 }

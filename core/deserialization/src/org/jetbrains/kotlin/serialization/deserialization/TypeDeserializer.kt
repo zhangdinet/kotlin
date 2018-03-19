@@ -99,7 +99,7 @@ class TypeDeserializer(
         }.toList()
 
         val simpleType = if (Flags.SUSPEND_TYPE.get(proto.flags)) {
-            createSuspendFunctionType(annotations, constructor, arguments, proto.nullable)
+            createSuspendFunctionType(annotations, constructor, arguments, proto.nullable, c.components.configuration.releaseCoroutines)
         }
         else {
             KotlinTypeFactory.simpleType(annotations, constructor, arguments, proto.nullable)
@@ -140,12 +140,14 @@ class TypeDeserializer(
             annotations: Annotations,
             functionTypeConstructor: TypeConstructor,
             arguments: List<TypeProjection>,
-            nullable: Boolean
+            nullable: Boolean,
+            isReleaseCoroutines: Boolean
     ): SimpleType {
         val result = when (functionTypeConstructor.parameters.size - arguments.size) {
             0 -> {
                 val functionType = KotlinTypeFactory.simpleType(annotations, functionTypeConstructor, arguments, nullable)
-                functionType.takeIf { it.isFunctionType }?.let(::transformRuntimeFunctionTypeToSuspendFunction)
+                functionType.takeIf { it.isFunctionType }
+                    ?.let { funType -> transformRuntimeFunctionTypeToSuspendFunction(funType, isReleaseCoroutines) }
             }
             // This case for types written by eap compiler 1.1
             1 -> {

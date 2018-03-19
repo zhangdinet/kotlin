@@ -5,10 +5,7 @@
 
 package org.jetbrains.kotlin.load.kotlin
 
-import org.jetbrains.kotlin.builtins.FAKE_CONTINUATION_CLASS_DESCRIPTOR
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.isSuspendFunctionType
-import org.jetbrains.kotlin.builtins.transformSuspendFunctionToRuntimeFunctionType
+import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.load.java.typeEnhancement.hasEnhancedNullability
 import org.jetbrains.kotlin.name.ClassId
@@ -48,9 +45,6 @@ interface TypeMappingConfiguration<out T : Any> {
 
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
 
-private val CONTINUATION_INTERNAL_NAME =
-    JvmClassName.byClassId(ClassId.topLevel(DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL)).internalName
-
 fun <T : Any> mapType(
     kotlinType: KotlinType,
     factory: JvmTypeFactory<T>,
@@ -61,13 +55,13 @@ fun <T : Any> mapType(
 ): T {
     if (kotlinType.isSuspendFunctionType) {
         return mapType(
-            transformSuspendFunctionToRuntimeFunctionType(kotlinType),
+            transformSuspendFunctionToRuntimeFunctionType(kotlinType, typeMappingConfiguration.releaseCoroutines()),
             factory, mode, typeMappingConfiguration, descriptorTypeWriter,
             writeGenericType
         )
     }
 
-    mapBuiltInType(kotlinType, factory, mode, typeMappingConfiguration.releaseCoroutines())?.let { builtInType ->
+    mapBuiltInType(kotlinType, factory, mode)?.let { builtInType ->
         val jvmType = factory.boxTypeIfNeeded(builtInType, mode.needPrimitiveBoxing)
         writeGenericType(kotlinType, jvmType, mode)
         return jvmType
@@ -190,13 +184,14 @@ private fun continuationInternalName(releaseCoroutines: Boolean): String {
 private fun <T : Any> mapBuiltInType(
     type: KotlinType,
     typeFactory: JvmTypeFactory<T>,
-    mode: TypeMappingMode,
-    releaseCoroutines: Boolean
+    mode: TypeMappingMode
 ): T? {
     val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
 
-    if (descriptor === FAKE_CONTINUATION_CLASS_DESCRIPTOR) {
-        return typeFactory.createObjectType(continuationInternalName(releaseCoroutines))
+    if (descriptor === FAKE_CONTINUATION_CLASS_DESCRIPTOR_EXPERIMENTAL) {
+        return typeFactory.createObjectType(continuationInternalName(false))
+    } else if (descriptor == FAKE_CONTINUATION_CLASS_DESCRIPTOR_RELEASE) {
+        return typeFactory.createObjectType(continuationInternalName(true))
     }
 
     val primitiveType = KotlinBuiltIns.getPrimitiveType(descriptor)

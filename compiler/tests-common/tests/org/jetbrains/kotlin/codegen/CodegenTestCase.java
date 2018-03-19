@@ -742,7 +742,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
     protected void doTestWithCoroutinesPackageReplacement(String filePath, String packageName) throws Exception {
         File file = new File(filePath);
         String expectedText = KotlinTestUtils.doLoadFile(file);
-        expectedText = expectedText.replace("COROUTINES_PACKAGE", packageName);
+        expectedText = expectedText.replace("COROUTINES_PACKAGE", "kotlin.coroutines.experimental");
         Ref<File> javaFilesDir = Ref.create();
 
         List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir);

@@ -32,5 +32,8 @@ interface DeserializationConfiguration {
     val readDeserializedContracts: Boolean
         get() = false
 
+    val releaseCoroutines: Boolean
+        get() = false
+
     object Default : DeserializationConfiguration
 }

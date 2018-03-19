@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
-val FAKE_CONTINUATION_CLASS_DESCRIPTOR =
+val FAKE_CONTINUATION_CLASS_DESCRIPTOR_EXPERIMENTAL =
     MutableClassDescriptor(
         EmptyPackageFragmentDescriptor(ErrorUtils.getErrorModule(), DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_EXPERIMENTAL),
         ClassKind.INTERFACE, /* isInner = */ false, /* isExternal = */ false,
@@ -48,8 +48,24 @@ val FAKE_CONTINUATION_CLASS_DESCRIPTOR =
         createTypeConstructor()
     }
 
+val FAKE_CONTINUATION_CLASS_DESCRIPTOR_RELEASE =
+    MutableClassDescriptor(
+        EmptyPackageFragmentDescriptor(ErrorUtils.getErrorModule(), DescriptorUtils.COROUTINES_PACKAGE_FQ_NAME_RELEASE),
+        ClassKind.INTERFACE, /* isInner = */ false, /* isExternal = */ false,
+        DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE.shortName(), SourceElement.NO_SOURCE
+    ).apply {
+        modality = Modality.ABSTRACT
+        visibility = Visibilities.PUBLIC
+        setTypeParameterDescriptors(
+            TypeParameterDescriptorImpl.createWithDefaultBound(
+                this, Annotations.EMPTY, false, Variance.IN_VARIANCE, Name.identifier("T"), 0
+            ).let(::listOf)
+        )
+        createTypeConstructor()
+    }
 
-fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType): SimpleType {
+
+fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType, isReleaseCoroutines: Boolean): SimpleType {
     assert(suspendFunType.isSuspendFunctionType) {
         "This type should be suspend function type: $suspendFunType"
     }
@@ -64,7 +80,8 @@ fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType): S
                     // Continuation interface is not a part of built-ins anymore, it has been moved to stdlib.
                     // While it must be somewhere in the dependencies, but here we don't have a reference to the module,
                     // and it's rather complicated to inject it by now, so we just use a fake class descriptor.
-                    FAKE_CONTINUATION_CLASS_DESCRIPTOR.typeConstructor,
+                    if (isReleaseCoroutines) FAKE_CONTINUATION_CLASS_DESCRIPTOR_RELEASE.typeConstructor
+                    else FAKE_CONTINUATION_CLASS_DESCRIPTOR_EXPERIMENTAL.typeConstructor,
                     listOf(suspendFunType.getReturnTypeFromFunctionType().asTypeProjection()), nullable = false
             ),
             // TODO: names
@@ -73,13 +90,15 @@ fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType): S
     ).makeNullableAsSpecified(suspendFunType.isMarkedNullable)
 }
 
-fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType): SimpleType? {
+fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType, isReleaseCoroutines: Boolean): SimpleType? {
     assert(funType.isFunctionType) {
         "This type should be function type: $funType"
     }
 
     val continuationArgumentType = funType.getValueParameterTypesFromFunctionType().lastOrNull()?.type ?: return null
-    if (!isContinuation(continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe) || continuationArgumentType.arguments.size != 1) {
+    if (!isContinuation(continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe, isReleaseCoroutines) ||
+        continuationArgumentType.arguments.size != 1
+    ) {
         return null
     }
 
@@ -97,6 +116,7 @@ fun transformRuntimeFunctionTypeToSuspendFunction(funType: KotlinType): SimpleTy
     ).makeNullableAsSpecified(funType.isMarkedNullable)
 }
 
-private fun isContinuation(name: FqName?): Boolean {
-    return name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL || name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
+private fun isContinuation(name: FqName?, isReleaseCoroutines: Boolean): Boolean {
+    return if (isReleaseCoroutines) name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
+    else name == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
 }
