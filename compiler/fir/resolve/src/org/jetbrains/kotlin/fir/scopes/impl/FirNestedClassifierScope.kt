@@ -27,36 +27,8 @@ class FirNestedClassifierScope(val classId: ClassId, val session: FirSession) : 
         return firProvider.getFirClassifierByFqName(this)
     }
 
-    private tailrec fun ConeClassType.computePartialExpansion(): ClassId {
-        return when (this) {
-            !is ConeAbbreviatedType -> this.fqName
-            else -> (this.directExpansion as ConeClassType).computePartialExpansion()
-        }
-    }
-
-    private val superScopes by lazy {
-        val self = classId.getFir()
-        when (self) {
-            is FirClass -> {
-                val superTypes = self.superTypes as List<FirResolvedType>
-                FirCompositeScope(superTypes.mapTo(ArrayList(superTypes.size)) {
-                    FirNestedClassifierScope(it.coneTypeUnsafe<ConeClassType>().computePartialExpansion(), session)
-                })
-            }
-            is FirTypeAlias -> {
-                val expansionTarget = self.abbreviatedType.coneTypeUnsafe<ConeClassType>().computePartialExpansion()
-                FirNestedClassifierScope(expansionTarget, session)
-            }
-            else -> error("!")
-        }
-    }
-
     override fun processClassifiersByName(name: Name, processor: (ClassId) -> Boolean): Boolean {
         val child = ClassId(classId.packageFqName, classId.relativeClassName.child(name), false)
-        if (child.getFir() != null && !processor(child)) return false
-
-        return superScopes.processClassifiersByName(name, processor)
+        return child.getFir() == null || processor(child)
     }
-
-
 }
