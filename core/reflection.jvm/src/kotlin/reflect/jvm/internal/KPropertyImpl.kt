@@ -192,6 +192,11 @@ private fun KPropertyImpl.Accessor<*, *>.computeCallerForAccessor(isGetter: Bool
                !DescriptorUtils.isInterface(possibleCompanionObject.containingDeclaration)
     }
 
+    fun isInsideInterfaceCompanionObjectWithJvmField(): Boolean {
+        val possibleCompanionObject = property.descriptor.containingDeclaration
+        return JvmAbi.isInterfaceCompanionWithBackingFieldsInOuter(possibleCompanionObject)
+    }
+
     fun isJvmStaticProperty() =
             property.descriptor.annotations.findAnnotation(JVM_STATIC) != null
 
@@ -199,7 +204,7 @@ private fun KPropertyImpl.Accessor<*, *>.computeCallerForAccessor(isGetter: Bool
             !TypeUtils.isNullableType(property.descriptor.type)
 
     fun computeFieldCaller(field: Field): FunctionCaller<Field> = when {
-        isInsideClassCompanionObject() -> {
+        isInsideClassCompanionObject() || isInsideInterfaceCompanionObjectWithJvmField() -> {
             val klass = (descriptor.containingDeclaration as ClassDescriptor).toJavaClass()!!
             if (isGetter)
                 if (isBound) FunctionCaller.BoundClassCompanionFieldGetter(field, klass)
