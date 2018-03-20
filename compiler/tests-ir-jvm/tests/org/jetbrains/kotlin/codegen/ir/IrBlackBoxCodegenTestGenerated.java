@@ -11457,6 +11457,18 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/jvmField"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
         }
 
+        @TestMetadata("annotationCompanion.kt")
+        public void testAnnotationCompanion() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/annotationCompanion.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("annotationCompanionWithJava.kt")
+        public void testAnnotationCompanionWithJava() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/annotationCompanionWithJava.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("captureClassFields.kt")
         public void testCaptureClassFields() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/captureClassFields.kt");
@@ -11493,21 +11505,15 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             doTest(fileName);
         }
 
-        @TestMetadata("interface.kt")
-        public void testInterface() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interface.kt");
+        @TestMetadata("interfaceCompanion.kt")
+        public void testInterfaceCompanion() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceCompanion.kt");
             doTest(fileName);
         }
 
-        @TestMetadata("interfaceCompanionWithKotlin.kt")
-        public void testInterfaceCompanionWithKotlin() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceCompanionWithKotlin.kt");
-            doTest(fileName);
-        }
-
-        @TestMetadata("interfaceWithConst.kt")
-        public void testInterfaceWithConst() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceWithConst.kt");
+        @TestMetadata("interfaceCompanionWithJava.kt")
+        public void testInterfaceCompanionWithJava() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/jvmField/interfaceCompanionWithJava.kt");
             doTest(fileName);
         }
 
