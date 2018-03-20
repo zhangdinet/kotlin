@@ -13,11 +13,10 @@ import kotlin.coroutines.CoroutineContext
 /**
  * @suppress
  */
-@SinceKotlin("1.2")
+@SinceKotlin("1.3")
 fun <T> normalizeContinuation(continuation: Continuation<T>): Continuation<T> =
         (continuation as? CoroutineImpl)?.facade ?: continuation
 
-@SinceKotlin("1.2")
 internal fun <T> interceptContinuationIfNeeded(
         context: CoroutineContext,
         continuation: Continuation<T>

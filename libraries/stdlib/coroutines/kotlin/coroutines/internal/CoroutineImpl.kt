@@ -14,7 +14,7 @@ import kotlin.jvm.internal.Lambda
 /**
  * @suppress
  */
-@SinceKotlin("1.2")
+@SinceKotlin("1.3")
 abstract class CoroutineImpl(
         arity: Int,
         @JvmField

@@ -89,7 +89,17 @@ task distJar(type: Jar) {
 task coroutinesJar(type: Jar) {
     baseName = 'dist-kotlin-stdlib-coroutines'
     version = null
-    manifestAttributes(manifest, project, 'Main')
+    project.configure(manifest) {
+        attributes \
+                'Implementation-Vendor': 'JetBrains',
+                'Implementation-Title': project.archivesBaseName,
+                'Implementation-Version': project.buildNumber,
+                'Build-Jdk': System.getProperty('java.version')
+
+        attributes \
+                'Kotlin-Runtime-Component': 'Main',
+                'Kotlin-Version': '1.3'
+    }
     from("${rootDir}/dist/builtins")
     from sourceSets.coroutines.output
 }
