@@ -1,14 +1,13 @@
 // !API_VERSION: 1.2
-// COMMON_COROUTINES_TEST
 // WITH_RUNTIME
 // WITH_COROUTINES
 import helpers.*
-import COROUTINES_PACKAGE.*
+import kotlin.coroutines.experimental.*
 import kotlin.test.assertEquals
 
 suspend fun suspendHereOld() =
-    if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
-        "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+    if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
+        "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
     else
         "OK"
 
@@ -19,8 +18,8 @@ suspend fun suspendHereNew() =
         "OK"
 
 suspend fun multipleArgsOld(a: Any, b: Any, c: Any) =
-    if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
-        "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+    if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
+        "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
     else
         "OK"
 
@@ -61,8 +60,8 @@ fun box(): String {
         return "fail 2 $res"
     }
     res = builder {
-        if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
-            "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+        if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
+            "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
     }

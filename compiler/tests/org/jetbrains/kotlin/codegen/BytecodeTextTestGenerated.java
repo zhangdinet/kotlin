@@ -104,15 +104,9 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
     }
 
     @TestMetadata("constCoroutine.kt")
-    public void testConstCoroutine_1_2() throws Exception {
+    public void testConstCoroutine() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/constCoroutine.kt");
-        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-    }
-
-    @TestMetadata("constCoroutine.kt")
-    public void testConstCoroutine_1_3() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/constCoroutine.kt");
-        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+        doTest(fileName);
     }
 
     @TestMetadata("defaultMethodBody.kt")

@@ -24,9 +24,11 @@ import java.io.File
 abstract class AbstractBytecodeListingTest : CodegenTestCase() {
     override fun doMultiFileTest(wholeFile: File, files: List<TestFile>, javaFilesDir: File?, coroutinesPackage: String) {
         val txtFile = File(wholeFile.parentFile, wholeFile.nameWithoutExtension + ".txt")
-        compile(files, javaFilesDir)
+        compile(files, javaFilesDir, coroutinesPackage)
         val actualTxt = BytecodeListingTextCollectingVisitor.getText(classFileFactory, withSignatures = isWithSignatures(wholeFile))
-        KotlinTestUtils.assertEqualsToFile(txtFile, actualTxt)
+        KotlinTestUtils.assertEqualsToFile(txtFile, actualTxt) {
+            it.replace("COROUTINES_PACKAGE", coroutinesPackage)
+        }
     }
 
     private fun isWithSignatures(wholeFile: File): Boolean =

@@ -72,7 +72,8 @@ abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
             configurationKind, jdkKind,
             listOf<File>(getAnnotationsJar()),
             arrayOf(javaFilesDir).filterNotNull(),
-            files
+            files,
+            ""
         )
 
         myEnvironment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)

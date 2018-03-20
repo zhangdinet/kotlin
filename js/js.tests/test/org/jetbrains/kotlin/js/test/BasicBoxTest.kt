@@ -114,7 +114,7 @@ abstract class BasicBoxTest(
         val outputPostfixFile = getOutputPostfixFile(filePath)
 
         TestFileFactoryImpl().use { testFactory ->
-            val inputFiles = KotlinTestUtils.createTestFiles(file.name, fileContent, testFactory, true)
+            val inputFiles = KotlinTestUtils.createTestFiles(file.name, fileContent, testFactory, true, "")
             val modules = inputFiles
                     .map { it.module }.distinct()
                     .map { it.name to it }.toMap()

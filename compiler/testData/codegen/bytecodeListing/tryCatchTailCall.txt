@@ -12,6 +12,6 @@ final class TryCatchTailCallKt$catchException$1 {
 @kotlin.Metadata
 public final class TryCatchTailCallKt {
     inner class TryCatchTailCallKt$catchException$1
-    public final static @org.jetbrains.annotations.Nullable method catchException(@org.jetbrains.annotations.Nullable p0: java.lang.Object): java.lang.Object
-    public final static @org.jetbrains.annotations.Nullable method suspendWithException(@org.jetbrains.annotations.Nullable p0: java.lang.Object): java.lang.Object
+    public final static @org.jetbrains.annotations.Nullable method catchException(@org.jetbrains.annotations.NotNull p0: COROUTINES_PACKAGE.Continuation): java.lang.Object
+    public final static @org.jetbrains.annotations.Nullable method suspendWithException(@org.jetbrains.annotations.NotNull p0: COROUTINES_PACKAGE.Continuation): java.lang.Object
 }

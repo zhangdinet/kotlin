@@ -729,13 +729,13 @@ public class KotlinTestUtils {
     }
 
     @NotNull
-    public static <M, F> List<F> createTestFiles(@Nullable String testFileName, String expectedText, TestFileFactory<M, F> factory) {
-        return createTestFiles(testFileName, expectedText, factory, false);
+    public static <M, F> List<F> createTestFiles(@Nullable String testFileName, String expectedText, TestFileFactory<M, F> factory, String coroutinesPackage) {
+        return createTestFiles(testFileName, expectedText, factory, false, coroutinesPackage);
     }
 
     @NotNull
     public static <M, F> List<F> createTestFiles(String testFileName, String expectedText, TestFileFactory<M, F> factory,
-            boolean preserveLocations) {
+            boolean preserveLocations, String coroutinesPackage) {
         Map<String, String> directives = parseDirectives(expectedText);
 
         List<F> testFiles = Lists.newArrayList();
@@ -788,11 +788,8 @@ public class KotlinTestUtils {
 
         if (isDirectiveDefined(expectedText, "WITH_COROUTINES")) {
             M supportModule = hasModules ? factory.createModule("support", Collections.emptyList(), Collections.emptyList()) : null;
-            String coroutinesPackage = "kotlin.coroutines.experimental";
-            if (isDirectiveDefined(expectedText, "COMMON_COROUTINES_TEST")) {
-                if (!expectedText.contains(coroutinesPackage)) {
-                    coroutinesPackage = "kotlin.coroutines";
-                }
+            if (coroutinesPackage.isEmpty()) {
+                coroutinesPackage = "kotlin.coroutines.experimental";
             }
             testFiles.add(factory.createFile(supportModule,
                                              "CoroutineUtil.kt",
@@ -888,7 +885,7 @@ public class KotlinTestUtils {
                 int firstLineEnd = text.indexOf('\n');
                 return StringUtil.trimTrailing(text.substring(firstLineEnd + 1));
             }
-        });
+        }, "");
 
         Assert.assertTrue("Exactly two files expected: ", files.size() == 2);
 

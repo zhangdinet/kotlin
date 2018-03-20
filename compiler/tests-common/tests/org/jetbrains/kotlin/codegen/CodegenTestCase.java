@@ -109,7 +109,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             @NotNull ConfigurationKind configurationKind,
             @Nullable File... javaSourceRoots
     ) {
-        createEnvironmentWithMockJdkAndIdeaAnnotations(configurationKind, Collections.emptyList(), javaSourceRoots);
+        createEnvironmentWithMockJdkAndIdeaAnnotations(configurationKind, Collections.emptyList(), "" , javaSourceRoots);
     }
 
     @NotNull
@@ -125,6 +125,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
     protected final void createEnvironmentWithMockJdkAndIdeaAnnotations(
             @NotNull ConfigurationKind configurationKind,
             @NotNull List<TestFile> testFilesWithConfigurationDirectives,
+            @NotNull String coroutinesPackage,
             @Nullable File... javaSourceRoots
     ) {
         if (myEnvironment != null) {
@@ -136,7 +137,8 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                 TestJdkKind.MOCK_JDK,
                 Collections.singletonList(getAnnotationsJar()),
                 ArraysKt.filterNotNull(javaSourceRoots),
-                testFilesWithConfigurationDirectives
+                testFilesWithConfigurationDirectives,
+                coroutinesPackage
         );
 
         myEnvironment = KotlinCoreEnvironment.createForTests(
@@ -150,11 +152,12 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             @NotNull TestJdkKind jdkKind,
             @NotNull List<File> classpath,
             @NotNull List<File> javaSource,
-            @NotNull List<TestFile> testFilesWithConfigurationDirectives
+            @NotNull List<TestFile> testFilesWithConfigurationDirectives,
+            @NotNull String coroutinesPackage
     ) {
         CompilerConfiguration configuration = KotlinTestUtils.newConfiguration(kind, jdkKind, classpath, javaSource);
 
-        updateConfigurationByDirectivesInTestFiles(testFilesWithConfigurationDirectives, configuration);
+        updateConfigurationByDirectivesInTestFiles(testFilesWithConfigurationDirectives, configuration, coroutinesPackage);
         updateConfiguration(configuration);
         setCustomDefaultJvmTarget(configuration);
 
@@ -163,7 +166,8 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
 
     protected static void updateConfigurationByDirectivesInTestFiles(
             @NotNull List<TestFile> testFilesWithConfigurationDirectives,
-            @NotNull CompilerConfiguration configuration
+            @NotNull CompilerConfiguration configuration,
+            @NotNull String coroutinesPackage
     ) {
         LanguageVersionSettings explicitLanguageVersionSettings = null;
         LanguageVersion explicitLanguageVersion = null;
@@ -188,10 +192,12 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             if (!InTextDirectivesUtils.findLinesWithPrefixesRemoved(testFile.content, "// COMMON_COROUTINES_TEST").isEmpty()) {
                 assert(explicitLanguageVersion == null) : "Cannot use both COMMON_COROUTINES_TEST and LANGUAGE_VERSION";
                 assert(!testFile.content.contains("COROUTINES_PACKAGE")) : "Must replace COROUTINES_PACKAGE prior to tests compilation";
-                if (testFile.content.contains("kotlin.coroutines.experimental")) {
-                    explicitLanguageVersion = LanguageVersion.KOTLIN_1_2;
-                } else {
-                    explicitLanguageVersion = LanguageVersion.KOTLIN_1_3;
+                if (!coroutinesPackage.isEmpty()) {
+                    if (coroutinesPackage.equals("kotlin.coroutines.experimental")) {
+                        explicitLanguageVersion = LanguageVersion.KOTLIN_1_2;
+                    } else {
+                        explicitLanguageVersion = LanguageVersion.KOTLIN_1_3;
+                    }
                 }
             }
 
@@ -601,7 +607,8 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
 
     protected void compile(
             @NotNull List<TestFile> files,
-            @Nullable File javaSourceDir
+            @Nullable File javaSourceDir,
+            @NotNull String coroutinesPackage
     ) {
         configurationKind = extractConfigurationKind(files);
         boolean loadAndroidAnnotations = files.stream().anyMatch(it ->
@@ -620,7 +627,8 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                 configurationKind, getJdkKind(files),
                 classpath,
                 ArraysKt.filterNotNull(new File[] {javaSourceDir}),
-                files
+                files,
+                coroutinesPackage
         );
 
         myEnvironment = KotlinCoreEnvironment.createForTests(
@@ -734,7 +742,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         String expectedText = KotlinTestUtils.doLoadFile(file);
         Ref<File> javaFilesDir = Ref.create();
 
-        List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir);
+        List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir, "");
 
         doMultiFileTest(file, testFiles, javaFilesDir.get(), "");
     }
@@ -745,13 +753,13 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         expectedText = expectedText.replace("COROUTINES_PACKAGE", packageName);
         Ref<File> javaFilesDir = Ref.create();
 
-        List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir);
+        List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir, packageName);
 
         doMultiFileTest(file, testFiles, javaFilesDir.get(), packageName);
     }
 
     @NotNull
-    private static List<TestFile> createTestFiles(File file, String expectedText, Ref<File> javaFilesDir) {
+    private static List<TestFile> createTestFiles(File file, String expectedText, Ref<File> javaFilesDir, String coroutinesPackage) {
         return KotlinTestUtils.createTestFiles(file.getName(), expectedText, new KotlinTestUtils.TestFileFactoryNoModules<TestFile>() {
             @NotNull
             @Override
@@ -776,7 +784,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
                 KotlinTestUtils.mkdirs(file.getParentFile());
                 FilesKt.writeText(file, content, Charsets.UTF_8);
             }
-        });
+        }, coroutinesPackage);
     }
 
     protected void doMultiFileTest(

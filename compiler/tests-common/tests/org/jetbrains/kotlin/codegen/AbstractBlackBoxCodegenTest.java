@@ -45,7 +45,7 @@ public abstract class AbstractBlackBoxCodegenTest extends CodegenTestCase {
         @NotNull String coroutinesPackage
     ) throws Exception {
         try {
-            compile(files, javaFilesDir);
+            compile(files, javaFilesDir, coroutinesPackage);
             blackBox();
         }
         catch (Throwable t) {

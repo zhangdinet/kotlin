@@ -1,10 +1,10 @@
+// !API_VERSION: 1.2
 // WITH_RUNTIME
-// COMMON_COROUTINES_TEST
 // WITH_COROUTINES
 import helpers.*
 // TREAT_AS_ONE_FILE
-import COROUTINES_PACKAGE.*
-import COROUTINES_PACKAGE.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 suspend fun suspendHere() = ""
 
 fun builder(c: suspend () -> Unit) {

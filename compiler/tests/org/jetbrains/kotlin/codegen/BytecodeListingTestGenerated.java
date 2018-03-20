@@ -32,15 +32,9 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("coroutineContextIntrinsic.kt")
-    public void testCoroutineContextIntrinsic_1_2() throws Exception {
+    public void testCoroutineContextIntrinsic() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineContextIntrinsic.kt");
-        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-    }
-
-    @TestMetadata("coroutineContextIntrinsic.kt")
-    public void testCoroutineContextIntrinsic_1_3() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineContextIntrinsic.kt");
-        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+        doTest(fileName);
     }
 
     @TestMetadata("coroutineFields.kt")
@@ -170,9 +164,15 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("suspendReifiedFun.kt")
-    public void testSuspendReifiedFun() throws Exception {
+    public void testSuspendReifiedFun_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/suspendReifiedFun.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("suspendReifiedFun.kt")
+    public void testSuspendReifiedFun_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/suspendReifiedFun.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tailCallIntrinsics.kt")
@@ -188,21 +188,39 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("tailSuspendUnitFun.kt")
-    public void testTailSuspendUnitFun() throws Exception {
+    public void testTailSuspendUnitFun_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailSuspendUnitFun.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tailSuspendUnitFun.kt")
+    public void testTailSuspendUnitFun_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailSuspendUnitFun.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tryCatchTailCall.kt")
-    public void testTryCatchTailCall() throws Exception {
+    public void testTryCatchTailCall_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tryCatchTailCall.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tryCatchTailCall.kt")
+    public void testTryCatchTailCall_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tryCatchTailCall.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("unreachable.kt")
-    public void testUnreachable() throws Exception {
+    public void testUnreachable_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/unreachable.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("unreachable.kt")
+    public void testUnreachable_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/unreachable.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("compiler/testData/codegen/bytecodeListing/annotations")

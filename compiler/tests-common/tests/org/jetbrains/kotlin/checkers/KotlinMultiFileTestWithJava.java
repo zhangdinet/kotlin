@@ -142,7 +142,7 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
         File file = new File(filePath);
         String expectedText = KotlinTestUtils.doLoadFile(file);
         Map<String, ModuleAndDependencies> modules = new HashMap<>();
-        List<F> testFiles = createTestFiles(file, expectedText, modules);
+        List<F> testFiles = createTestFiles(file, expectedText, modules, "");
 
         doMultiFileTest(file, modules, testFiles, "");
     }
@@ -152,7 +152,7 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
         String expectedText = KotlinTestUtils.doLoadFile(file);
         expectedText = expectedText.replace("COROUTINES_PACKAGE", coroutinesPackage);
         Map<String, ModuleAndDependencies> modules = new HashMap<>();
-        List<F> testFiles = createTestFiles(file, expectedText, modules);
+        List<F> testFiles = createTestFiles(file, expectedText, modules, coroutinesPackage);
 
         doMultiFileTest(file, modules, testFiles, coroutinesPackage);
     }
@@ -163,7 +163,7 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
 
     protected abstract void doMultiFileTest(File file, Map<String, ModuleAndDependencies> modules, List<F> files, String coroutinesPackage) throws Exception;
 
-    protected List<F> createTestFiles(File file, String expectedText, Map<String, ModuleAndDependencies> modules) {
+    protected List<F> createTestFiles(File file, String expectedText, Map<String, ModuleAndDependencies> modules, String coroutinesPackage) {
         return KotlinTestUtils.createTestFiles(file.getName(), expectedText, new KotlinTestUtils.TestFileFactory<M, F>() {
             @Override
             public F createFile(
@@ -197,7 +197,7 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
                 KotlinTestUtils.mkdirs(file.getParentFile());
                 FilesKt.writeText(file, content, Charsets.UTF_8);
             }
-        });
+        }, coroutinesPackage);
     }
 
 }

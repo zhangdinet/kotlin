@@ -1,18 +1,18 @@
+// !API_VERSION: 1.2
 // WITH_RUNTIME
-// COMMON_COROUTINES_TEST
-import COROUTINES_PACKAGE.*
-import COROUTINES_PACKAGE.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 suspend fun suspendHere(ctx: CoroutineContext) = suspendCoroutineOrReturn<String> { x ->
     if (x.context == ctx) x.resume("OK") else x.resume("FAIL")
 }
 
 suspend fun mustBeTailCallOld(): String {
-    return suspendHere(COROUTINES_PACKAGE.intrinsics.coroutineContext)
+    return suspendHere(kotlin.coroutines.experimental.intrinsics.coroutineContext)
 }
 
 suspend fun mustBeTailCallNew(): String {
-    return suspendHere(COROUTINES_PACKAGE.coroutineContext)
+    return suspendHere(kotlin.coroutines.experimental.coroutineContext)
 }
 
 suspend fun retrieveCoroutineContext(): CoroutineContext =

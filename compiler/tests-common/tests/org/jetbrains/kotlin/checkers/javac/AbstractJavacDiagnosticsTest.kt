@@ -46,13 +46,13 @@ abstract class AbstractJavacDiagnosticsTest : AbstractDiagnosticsTest() {
         return specialFile.takeIf { it.exists() } ?: super.getExpectedDiagnosticsFile(testDataFile)
     }
 
-    override fun createTestFiles(file: File, expectedText: String, modules: MutableMap<String, ModuleAndDependencies>?): List<TestFile> {
+    override fun createTestFiles(file: File, expectedText: String, modules: MutableMap<String, ModuleAndDependencies>?, coroutinesPackage: String): List<TestFile> {
         val specialFile = getExpectedDiagnosticsFile(file)
         if (file.path == specialFile.path) {
-            return super.createTestFiles(file, expectedText, modules)
+            return super.createTestFiles(file, expectedText, modules, coroutinesPackage)
         }
 
-        return super.createTestFiles(specialFile, KotlinTestUtils.doLoadFile(specialFile), modules)
+        return super.createTestFiles(specialFile, KotlinTestUtils.doLoadFile(specialFile), modules, coroutinesPackage)
     }
 }
 

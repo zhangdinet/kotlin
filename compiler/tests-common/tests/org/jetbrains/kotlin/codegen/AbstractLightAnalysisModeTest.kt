@@ -64,7 +64,7 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
         assert(!relativePath.startsWith(".."))
 
         val configuration = createConfiguration(
-                configurationKind, getJdkKind(files), listOf(getAnnotationsJar()), javaFilesDir?.let(::listOf).orEmpty(), files
+                configurationKind, getJdkKind(files), listOf(getAnnotationsJar()), javaFilesDir?.let(::listOf).orEmpty(), files, ""
         )
         val environment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
         AnalysisHandlerExtension.registerExtension(environment.project, PartialAnalysisHandlerExtension())
@@ -79,7 +79,7 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
             files: List<TestFile>,
             javaSourceDir: File?
     ): String {
-        compile(files, javaSourceDir)
+        compile(files, javaSourceDir, "")
         classFileFactory.getClassFiles()
 
         val classInternalNames = classFileFactory.generationState.bindingContext

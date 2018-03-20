@@ -31,5 +31,5 @@ enum class ConfigurationKind(
     /** JDK + kotlin runtime + coroutines */
     WITH_COROUTINES(withCoroutines = true, withRuntime = true),
     /** JDK + kotlin runtime + kotlin reflection */
-    ALL(withRuntime = true, withReflection = true),
+    ALL(withRuntime = true, withReflection = true, withCoroutines = true),
 }
