@@ -390,6 +390,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
                         is ConeKotlinType -> it.asString()
                     }
                 })
+                if (this is ConeAbbreviatedType) {
+                    sb.append(" = ${this.directExpansion.asString()}")
+                }
                 sb.toString()
             }
             else -> "Unsupported: $this"
