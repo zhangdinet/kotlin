@@ -38,7 +38,7 @@ import java.io.PrintWriter
 import java.util.*
 
 abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
-    override fun doMultiFileTest(wholeFile: File, files: List<TestFile>, javaFilesDir: File?) {
+    override fun doMultiFileTest(wholeFile: File, files: List<TestFile>, javaFilesDir: File?, coroutinesPackage: String) {
         setupEnvironment(files, javaFilesDir)
 
         loadMultiFiles(files)

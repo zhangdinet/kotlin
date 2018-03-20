@@ -37,7 +37,7 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
         }
     }
 
-    override fun doMultiFileTest(wholeFile: File, files: List<CodegenTestCase.TestFile>, javaFilesDir: File?) {
+    override fun doMultiFileTest(wholeFile: File, files: List<CodegenTestCase.TestFile>, javaFilesDir: File?, coroutinesPackage: String) {
         for (file in files) {
             if (file.content.contains("// IGNORE_LIGHT_ANALYSIS")) {
                 return

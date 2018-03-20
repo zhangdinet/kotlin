@@ -736,7 +736,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
 
         List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir);
 
-        doMultiFileTest(file, testFiles, javaFilesDir.get());
+        doMultiFileTest(file, testFiles, javaFilesDir.get(), "");
     }
 
     protected void doTestWithCoroutinesPackageReplacement(String filePath, String packageName) throws Exception {
@@ -747,7 +747,7 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
 
         List<TestFile> testFiles = createTestFiles(file, expectedText, javaFilesDir);
 
-        doMultiFileTest(file, testFiles, javaFilesDir.get());
+        doMultiFileTest(file, testFiles, javaFilesDir.get(), packageName);
     }
 
     @NotNull
@@ -779,7 +779,12 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         });
     }
 
-    protected void doMultiFileTest(@NotNull File wholeFile, @NotNull List<TestFile> files, @Nullable File javaFilesDir) throws Exception {
+    protected void doMultiFileTest(
+        @NotNull File wholeFile,
+        @NotNull List<TestFile> files,
+        @Nullable File javaFilesDir,
+        @NotNull String coroutinesPackage
+    ) throws Exception {
         throw new UnsupportedOperationException("Multi-file test cases are not supported in this test");
     }
 

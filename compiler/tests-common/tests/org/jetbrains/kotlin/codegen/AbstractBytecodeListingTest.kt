@@ -22,7 +22,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes.*
 import java.io.File
 
 abstract class AbstractBytecodeListingTest : CodegenTestCase() {
-    override fun doMultiFileTest(wholeFile: File, files: List<TestFile>, javaFilesDir: File?) {
+    override fun doMultiFileTest(wholeFile: File, files: List<TestFile>, javaFilesDir: File?, coroutinesPackage: String) {
         val txtFile = File(wholeFile.parentFile, wholeFile.nameWithoutExtension + ".txt")
         compile(files, javaFilesDir)
         val actualTxt = BytecodeListingTextCollectingVisitor.getText(classFileFactory, withSignatures = isWithSignatures(wholeFile))

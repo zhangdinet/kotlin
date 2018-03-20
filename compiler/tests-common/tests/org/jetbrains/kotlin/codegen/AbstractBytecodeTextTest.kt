@@ -30,7 +30,7 @@ import java.util.regex.Pattern
 abstract class AbstractBytecodeTextTest : CodegenTestCase() {
 
     @Throws(Exception::class)
-    override fun doMultiFileTest(wholeFile: File, files: List<CodegenTestCase.TestFile>, javaFilesDir: File?) {
+    override fun doMultiFileTest(wholeFile: File, files: List<CodegenTestCase.TestFile>, javaFilesDir: File?, coroutinesPackage: String) {
         createEnvironmentWithMockJdkAndIdeaAnnotations(ConfigurationKind.ALL, files, javaFilesDir)
         loadMultiFiles(files)
 

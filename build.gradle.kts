@@ -12,8 +12,8 @@ import proguard.gradle.ProGuardTask
 buildscript {
     extra["defaultSnapshotVersion"] = "1.2-SNAPSHOT"
 
-//    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.2.40-dev-942", onlySuccessBootstrap = false))
-    kotlinBootstrapFrom(BootstrapOption.Local())
+    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.2.40-dev-942", onlySuccessBootstrap = false))
+//    kotlinBootstrapFrom(BootstrapOption.Local())
 
     val mirrorRepo: String? = findProperty("maven.repository.mirror")?.toString()
 
