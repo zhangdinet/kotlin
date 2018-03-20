@@ -6,17 +6,20 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirExpression
+import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirType
+import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
 
 class FirDefaultSetterValueParameter(
     session: FirSession,
     psi: PsiElement?,
-    override val returnType: FirType
+    override var returnType: FirType
 ) : FirAbstractNamedAnnotatedDeclaration(session, psi, IrDeclarationKind.VALUE_PARAMETER, name), FirValueParameter {
     override val isCrossinline = false
 
@@ -25,6 +28,12 @@ class FirDefaultSetterValueParameter(
     override val isVararg = false
 
     override val defaultValue: FirExpression? = null
+
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
+        returnType = returnType.transformSingle(transformer, data)
+
+        return this
+    }
 
     companion object {
         val name = Name.identifier("value")
