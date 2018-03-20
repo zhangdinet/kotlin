@@ -16,9 +16,11 @@
 
 package org.jetbrains.kotlin.idea.scratch.compile
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 import org.jetbrains.kotlin.diagnostics.rendering.RenderingContext
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+import org.jetbrains.kotlin.idea.scratch.LOG
 import org.jetbrains.kotlin.idea.scratch.ScratchExpression
 import org.jetbrains.kotlin.idea.scratch.ScratchFile
 import org.jetbrains.kotlin.psi.*
@@ -32,7 +34,7 @@ class KtScratchSourceFileProcessor {
         const val OBJECT_NAME = "ScratchFileRunnerGenerated"
         const val INSTANCE_NAME = "instanceScratchFileRunner"
         const val PACKAGE_NAME = "org.jetbrains.kotlin.idea.scratch.generated"
-        const val GET_RES_FUN_NAME_PREFIX = "generated_get_instance_res"
+        const val GET_RES_FUN_NAME_PREFIX = "generated_scratch_member_for_result"
     }
 
     fun process(file: ScratchFile): Result {
@@ -79,7 +81,9 @@ class KtScratchSourceFileProcessor {
                 is KtFunction -> processDeclaration(expression, psiElement)
                 is KtClassOrObject -> processDeclaration(expression, psiElement)
                 is KtImportDirective -> imports.add(psiElement)
+                is KtDestructuringDeclaration -> processDestructuring(expression, psiElement)
                 is KtExpression -> processExpression(expression, psiElement)
+                else -> processUnknown(expression, psiElement)
             }
         }
 
@@ -100,8 +104,33 @@ class KtScratchSourceFileProcessor {
 
             objectBuilder.printlnObj("$INSTANCE_NAME.$resName()")
             objectBuilder.appendLineInfo(e)
+        }
 
-            resCount += 1
+        private fun processDestructuring(e: ScratchExpression, destructuring: KtDestructuringDeclaration) {
+            val resName = "$GET_RES_FUN_NAME_PREFIX${resCount++}"
+
+            val initializer = destructuring.initializer ?: return
+
+            topLevelBuilder.append("val $resName = ${initializer.text}").newLine()
+
+            for ((index, entry) in destructuring.entries.withIndex()) {
+                if (entry.text != "_") {
+                    topLevelBuilder.append(if (destructuring.isVar) "var " else "val ")
+                    topLevelBuilder.append("${entry.text} = $resName.component${index + 1}()").newLine()
+                }
+            }
+
+            val descriptor = destructuring.resolveToDescriptorIfAny() ?: return
+
+            val context = RenderingContext.of(descriptor)
+            objectBuilder.println(Renderers.COMPACT.render(descriptor, context))
+            objectBuilder.appendLineInfo(e)
+        }
+
+        private fun processUnknown(e: ScratchExpression, psi: PsiElement) {
+            topLevelBuilder.append(psi.text).newLine()
+
+            LOG.error("The result for ${psi.javaClass.name} maybe skipped during scratch file evaluation")
         }
 
         private fun StringBuilder.appendLineInfo(e: ScratchExpression) {
