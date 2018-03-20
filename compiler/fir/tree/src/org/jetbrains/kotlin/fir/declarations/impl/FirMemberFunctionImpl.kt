@@ -27,6 +27,8 @@ class FirMemberFunctionImpl(
     override val isOperator: Boolean,
     override val isInfix: Boolean,
     override val isInline: Boolean,
+    override val isTailRec: Boolean,
+    override val isExternal: Boolean,
     receiverType: FirType?,
     returnType: FirType,
     override val body: FirBody?
