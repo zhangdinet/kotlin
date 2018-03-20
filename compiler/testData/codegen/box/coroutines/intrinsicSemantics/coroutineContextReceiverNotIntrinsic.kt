@@ -1,8 +1,9 @@
 // WITH_RUNTIME
+// COMMON_COROUTINES_TEST
 // WITH_COROUTINES
 import helpers.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import COROUTINES_PACKAGE.*
+import COROUTINES_PACKAGE.intrinsics.*
 import kotlin.test.assertEquals
 
 class Controller {
@@ -19,14 +20,14 @@ class Controller {
         if (coroutineContext == EmptyCoroutineContext) "$coroutineContext == $EmptyCoroutineContext" else "OK"
 
     suspend fun controllerSuspendHereIntrinsicOld() =
-        if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 
     suspend fun controllerSuspendHereIntrinsicNew() =
-        if (kotlin.coroutines.experimental.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 

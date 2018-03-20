@@ -25,14 +25,14 @@ abstract class AbstractJavacDiagnosticsTest : AbstractDiagnosticsTest() {
 
     private var useJavac = true
 
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         if (useJavac) {
             val groupedByModule = files.groupBy(TestFile::module)
             val allKtFiles = groupedByModule.values.flatMap { getKtFiles(it, true) }
             environment.registerJavac(kotlinFiles = allKtFiles)
             environment.configuration.put(JVMConfigurationKeys.USE_JAVAC, true)
         }
-        super.analyzeAndCheck(testDataFile, files)
+        super.analyzeAndCheck(testDataFile, files, coroutinesPackage)
     }
 
     fun doTestWithoutJavacWrapper(path: String) {

@@ -69,7 +69,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
     override fun doMultiFileTest(
             file: File,
             modules: @JvmSuppressWildcards Map<String, ModuleAndDependencies>,
-            testFiles: List<TestFile>
+            testFiles: List<TestFile>,
+            coroutinesPackage: String
     ) {
         for (moduleAndDependencies in modules.values) {
             moduleAndDependencies.module.getDependencies().addAll(moduleAndDependencies.dependencies.map { name ->
@@ -79,10 +80,10 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
 
         environment = createEnvironment(file)
 
-        analyzeAndCheck(file, testFiles)
+        analyzeAndCheck(file, testFiles, coroutinesPackage)
     }
 
-    protected abstract fun analyzeAndCheck(testDataFile: File, files: List<TestFile>)
+    protected abstract fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String)
 
     protected fun getKtFiles(testFiles: List<TestFile>, includeExtras: Boolean): List<KtFile> {
         var declareFlexibleType = false

@@ -144,14 +144,24 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
         Map<String, ModuleAndDependencies> modules = new HashMap<>();
         List<F> testFiles = createTestFiles(file, expectedText, modules);
 
-        doMultiFileTest(file, modules, testFiles);
+        doMultiFileTest(file, modules, testFiles, "");
+    }
+
+    protected void doTestWithCoroutinesPackageReplacement(String filePath, String coroutinesPackage) throws Exception {
+        File file = new File(filePath);
+        String expectedText = KotlinTestUtils.doLoadFile(file);
+        expectedText = expectedText.replace("COROUTINES_PACKAGE", coroutinesPackage);
+        Map<String, ModuleAndDependencies> modules = new HashMap<>();
+        List<F> testFiles = createTestFiles(file, expectedText, modules);
+
+        doMultiFileTest(file, modules, testFiles, coroutinesPackage);
     }
 
     protected abstract M createTestModule(@NotNull String name);
 
     protected abstract F createTestFile(M module, String fileName, String text, Map<String, String> directives);
 
-    protected abstract void doMultiFileTest(File file, Map<String, ModuleAndDependencies> modules, List<F> files) throws Exception;
+    protected abstract void doMultiFileTest(File file, Map<String, ModuleAndDependencies> modules, List<F> files, String coroutinesPackage) throws Exception;
 
     protected List<F> createTestFiles(File file, String expectedText, Map<String, ModuleAndDependencies> modules) {
         return KotlinTestUtils.createTestFiles(file.getName(), expectedText, new KotlinTestUtils.TestFileFactory<M, F>() {

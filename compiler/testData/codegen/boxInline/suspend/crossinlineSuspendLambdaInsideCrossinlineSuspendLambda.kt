@@ -1,7 +1,8 @@
 // FILE: test.kt
+// COMMON_COROUTINES_TEST
 // WITH_RUNTIME
 
-import kotlin.coroutines.experimental.*
+import COROUTINES_PACKAGE.*
 
 inline suspend fun foo(crossinline a: suspend () -> Unit, crossinline b: suspend () -> Unit) {
     var x = "OK"

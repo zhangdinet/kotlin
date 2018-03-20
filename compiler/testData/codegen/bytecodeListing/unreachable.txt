@@ -9,7 +9,7 @@ final class UnreachableKt$callsIntNotTailCall$1 {
     synthetic field data: java.lang.Object
     synthetic field exception: java.lang.Throwable
     inner class UnreachableKt$callsIntNotTailCall$1
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     synthetic final method getLabel(): int
     synthetic final method setLabel(p0: int): void
@@ -21,7 +21,7 @@ final class UnreachableKt$lambdaAsParameterNotTailCall$1 {
     synthetic field data: java.lang.Object
     synthetic field exception: java.lang.Throwable
     inner class UnreachableKt$lambdaAsParameterNotTailCall$1
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     synthetic final method getLabel(): int
     synthetic final method setLabel(p0: int): void
@@ -33,7 +33,7 @@ final class UnreachableKt$multipleExitPointsNotTailCall$1 {
     synthetic field data: java.lang.Object
     synthetic field exception: java.lang.Throwable
     inner class UnreachableKt$multipleExitPointsNotTailCall$1
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     synthetic final method getLabel(): int
     synthetic final method setLabel(p0: int): void
@@ -42,7 +42,7 @@ final class UnreachableKt$multipleExitPointsNotTailCall$1 {
 @kotlin.Metadata
 final class UnreachableKt$multipleExitPointsWhen$2 {
     inner class UnreachableKt$multipleExitPointsWhen$2
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method create(@org.jetbrains.annotations.Nullable p0: java.lang.Object): java.lang.Object
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     public final @org.jetbrains.annotations.Nullable method invoke(@org.jetbrains.annotations.Nullable p0: java.lang.Object): java.lang.Object
@@ -53,7 +53,7 @@ final class UnreachableKt$notTailCall$1 {
     synthetic field data: java.lang.Object
     synthetic field exception: java.lang.Throwable
     inner class UnreachableKt$notTailCall$1
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     synthetic final method getLabel(): int
     synthetic final method setLabel(p0: int): void
@@ -74,7 +74,7 @@ final class UnreachableKt$useNullableUnit$1 {
     synthetic field data: java.lang.Object
     synthetic field exception: java.lang.Throwable
     inner class UnreachableKt$useNullableUnit$1
-    method <init>(p0: kotlin.coroutines.experimental.Continuation): void
+    method <init>(p0: COROUTINES_PACKAGE.Continuation): void
     public final @org.jetbrains.annotations.Nullable method doResume(@org.jetbrains.annotations.Nullable p0: java.lang.Object, @org.jetbrains.annotations.Nullable p1: java.lang.Throwable): java.lang.Object
     synthetic final method getLabel(): int
     synthetic final method setLabel(p0: int): void

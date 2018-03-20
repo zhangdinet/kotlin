@@ -1,4 +1,5 @@
 // FILE: test.kt
+// COMMON_COROUTINES_TEST
 // WITH_RUNTIME
 // NO_CHECK_LAMBDA_INLINING
 
@@ -34,9 +35,9 @@ suspend inline fun test5(crossinline c: suspend() -> Unit) {
 
 // FILE: box.kt
 
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
-import kotlin.coroutines.experimental.jvm.internal.*
+import COROUTINES_PACKAGE.*
+import COROUTINES_PACKAGE.intrinsics.*
+import COROUTINES_PACKAGE.jvm.internal.*
 
 object EmptyContinuation: Continuation<Unit> {
     override val context: CoroutineContext

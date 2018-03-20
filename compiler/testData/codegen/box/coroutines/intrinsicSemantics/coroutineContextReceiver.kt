@@ -1,33 +1,34 @@
 // !API_VERSION: 1.2
+// COMMON_COROUTINES_TEST
 // WITH_RUNTIME
 // WITH_COROUTINES
 import helpers.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import COROUTINES_PACKAGE.*
+import COROUTINES_PACKAGE.intrinsics.*
 import kotlin.test.assertEquals
 
 class Controller {
     suspend fun controllerSuspendHereOld() =
-        if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 
     suspend fun controllerMultipleArgsOld(a: Any, b: Any, c: Any) =
-        if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 
     suspend fun controllerSuspendHereNew() =
-        if (kotlin.coroutines.experimental.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 
     suspend fun controllerMultipleArgsNew(a: Any, b: Any, c: Any) =
-        if (kotlin.coroutines.experimental.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
 
@@ -62,8 +63,8 @@ fun box(): String {
         return "fail 2 $res"
     }
     res = c.builder {
-        if (kotlin.coroutines.experimental.intrinsics.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.intrinsics.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.intrinsics.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.intrinsics.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
     }
@@ -79,8 +80,8 @@ fun box(): String {
         return "fail 5 $res"
     }
     res = c.builder {
-        if (kotlin.coroutines.experimental.coroutineContext != EmptyCoroutineContext)
-            "${kotlin.coroutines.experimental.coroutineContext} != $EmptyCoroutineContext"
+        if (COROUTINES_PACKAGE.coroutineContext != EmptyCoroutineContext)
+            "${COROUTINES_PACKAGE.coroutineContext} != $EmptyCoroutineContext"
         else
             "OK"
     }

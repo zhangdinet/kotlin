@@ -28,9 +28,9 @@ abstract class AbstractForeignJava8AnnotationsNoAnnotationInClasspathTest : Abst
     override val annotationsPath: String
         get() = JAVA8_ANNOTATION_SOURCES_PATH
 
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         if (skipForCompiledVersion(files)) return
-        super.analyzeAndCheck(testDataFile, files)
+        super.analyzeAndCheck(testDataFile, files, coroutinesPackage)
     }
 }
 
@@ -38,9 +38,9 @@ abstract class AbstractForeignJava8AnnotationsNoAnnotationInClasspathWithFastCla
     override val annotationsPath: String
         get() = JAVA8_ANNOTATION_SOURCES_PATH
 
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         if (skipForCompiledVersion(files)) return
-        super.analyzeAndCheck(testDataFile, files)
+        super.analyzeAndCheck(testDataFile, files, coroutinesPackage)
     }
 }
 

@@ -32,15 +32,27 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("coroutineContextIntrinsic.kt")
-    public void testCoroutineContextIntrinsic() throws Exception {
+    public void testCoroutineContextIntrinsic_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineContextIntrinsic.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("coroutineContextIntrinsic.kt")
+    public void testCoroutineContextIntrinsic_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineContextIntrinsic.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("coroutineFields.kt")
-    public void testCoroutineFields() throws Exception {
+    public void testCoroutineFields_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineFields.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("coroutineFields.kt")
+    public void testCoroutineFields_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineFields.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("defaultImpls.kt")
@@ -140,9 +152,15 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("oomInReturnUnit.kt")
-    public void testOomInReturnUnit() throws Exception {
+    public void testOomInReturnUnit_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/oomInReturnUnit.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("oomInReturnUnit.kt")
+    public void testOomInReturnUnit_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/oomInReturnUnit.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("samAdapterAndInlinedOne.kt")
@@ -158,9 +176,15 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("tailCallIntrinsics.kt")
-    public void testTailCallIntrinsics() throws Exception {
+    public void testTailCallIntrinsics_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailCallIntrinsics.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tailCallIntrinsics.kt")
+    public void testTailCallIntrinsics_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailCallIntrinsics.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tailSuspendUnitFun.kt")

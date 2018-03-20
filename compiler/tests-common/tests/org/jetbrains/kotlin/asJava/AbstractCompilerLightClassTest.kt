@@ -31,7 +31,7 @@ abstract class AbstractCompilerLightClassTest : KotlinMultiFileTestWithJava<Void
 
     override fun isKotlinSourceRootNeeded(): Boolean = true
 
-    override fun doMultiFileTest(file: File, modules: MutableMap<String, ModuleAndDependencies>, files: MutableList<Void>) {
+    override fun doMultiFileTest(file: File, modules: MutableMap<String, ModuleAndDependencies>, files: MutableList<Void>, coroutinesPackage: String) {
         val environment = createEnvironment(file)
         val expectedFile = KotlinTestUtils.replaceExtension(file, "java")
         LightClassTestCommon.testLightClass(

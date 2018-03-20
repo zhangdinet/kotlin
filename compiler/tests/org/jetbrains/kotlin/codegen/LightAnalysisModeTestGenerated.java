@@ -5878,9 +5878,15 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         }
 
         @TestMetadata("crossInlineWithCapturedOuterReceiver.kt")
-        public void testCrossInlineWithCapturedOuterReceiver() throws Exception {
+        public void testCrossInlineWithCapturedOuterReceiver_1_2() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/crossInlineWithCapturedOuterReceiver.kt");
-            doTest(fileName);
+            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+        }
+
+        @TestMetadata("crossInlineWithCapturedOuterReceiver.kt")
+        public void testCrossInlineWithCapturedOuterReceiver_1_3() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/crossInlineWithCapturedOuterReceiver.kt");
+            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
         }
 
         @TestMetadata("defaultParametersInSuspend.kt")
@@ -7058,22 +7064,40 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/coroutines/intrinsicSemantics"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
             }
 
-            @TestMetadata("coroutineContext.kt")
-            public void testCoroutineContext() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContext.kt");
-                doTest(fileName);
-            }
-
-            @TestMetadata("coroutineContextReceiver.kt")
-            public void testCoroutineContextReceiver() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContextReceiver.kt");
-                doTest(fileName);
+            @TestMetadata("coroutineContextReceiverNotIntrinsic.kt")
+            public void testCoroutineContextReceiverNotIntrinsic_1_2() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContextReceiverNotIntrinsic.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
             }
 
             @TestMetadata("coroutineContextReceiverNotIntrinsic.kt")
-            public void testCoroutineContextReceiverNotIntrinsic() throws Exception {
+            public void testCoroutineContextReceiverNotIntrinsic_1_3() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContextReceiverNotIntrinsic.kt");
-                doTest(fileName);
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+            }
+
+            @TestMetadata("coroutineContextReceiver.kt")
+            public void testCoroutineContextReceiver_1_2() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContextReceiver.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+            }
+
+            @TestMetadata("coroutineContextReceiver.kt")
+            public void testCoroutineContextReceiver_1_3() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContextReceiver.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+            }
+
+            @TestMetadata("coroutineContext.kt")
+            public void testCoroutineContext_1_2() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContext.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+            }
+
+            @TestMetadata("coroutineContext.kt")
+            public void testCoroutineContext_1_3() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/intrinsicSemantics/coroutineContext.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
             }
 
             @TestMetadata("intercepted.kt")
@@ -7566,9 +7590,15 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             }
 
             @TestMetadata("crossinline.kt")
-            public void testCrossinline() throws Exception {
+            public void testCrossinline_1_2() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/tailCallOptimizations/crossinline.kt");
-                doTest(fileName);
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+            }
+
+            @TestMetadata("crossinline.kt")
+            public void testCrossinline_1_3() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/tailCallOptimizations/crossinline.kt");
+                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
             }
 
             @TestMetadata("inlineWithStateMachine.kt")
