@@ -44,25 +44,23 @@ class KtScratchSourceFileProcessor {
         }
 
         val codeResult =
-            """
-                package $PACKAGE_NAME
-
-                ${sourceProcessor.imports.joinToString("\n") { it.text }}
-
-                ${sourceProcessor.topLevelBuilder}
-
-                object $OBJECT_NAME {
-                    class $OBJECT_NAME {
-                        ${sourceProcessor.classBuilder}
-                    }
-
-                    @JvmStatic fun main(args: Array<String>) {
-                        val $INSTANCE_NAME = $OBJECT_NAME()
-                        ${sourceProcessor.objectBuilder}
-                        println("$END_OUTPUT_MARKER")
-                    }
-                }
-            """
+            """|package $PACKAGE_NAME
+               |
+               |${sourceProcessor.imports.joinToString("\n") { it.text }}
+               |
+               |${sourceProcessor.topLevelBuilder}
+               |
+               |object $OBJECT_NAME {
+               |    class $OBJECT_NAME {
+               |        ${sourceProcessor.classBuilder}
+               |    }
+               |
+               |    @JvmStatic fun main(args: Array<String>) {
+               |        val $INSTANCE_NAME = $OBJECT_NAME()
+               |        ${sourceProcessor.objectBuilder}
+               |        println("$END_OUTPUT_MARKER")
+               |    }
+               |}""".trimMargin("|")
         return Result.OK("$PACKAGE_NAME.$OBJECT_NAME", codeResult)
     }
 
@@ -98,7 +96,7 @@ class KtScratchSourceFileProcessor {
         }
 
         private fun processExpression(e: ScratchExpression, expr: KtExpression) {
-            val resName = "$GET_RES_FUN_NAME_PREFIX$resCount"
+            val resName = "$GET_RES_FUN_NAME_PREFIX${resCount++}"
 
             classBuilder.append("fun $resName() = run { ${expr.text} }").newLine()
 
@@ -139,7 +137,7 @@ class KtScratchSourceFileProcessor {
 
         private fun StringBuilder.println(str: String) = append("println(\"$GENERATED_OUTPUT_PREFIX$str\")").newLine()
         private fun StringBuilder.printlnObj(str: String) = append("println(\"$GENERATED_OUTPUT_PREFIX\${$str}\")").newLine()
-        private fun StringBuilder.newLine() = append("\n")
+        private fun StringBuilder.newLine() = append("\n|        ")
     }
 
     sealed class Result {
