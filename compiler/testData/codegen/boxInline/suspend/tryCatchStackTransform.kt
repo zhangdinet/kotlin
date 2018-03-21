@@ -16,6 +16,7 @@ suspend inline fun crossinlineMe(crossinline c: suspend (String) -> String, cros
 }
 
 // FILE: inlineSite.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

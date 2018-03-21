@@ -13,6 +13,7 @@ suspend inline fun crossinlineMe2(crossinline c: suspend () -> Unit) {
 }
 
 // FILE: inlineSite.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 import COROUTINES_PACKAGE.intrinsics.*

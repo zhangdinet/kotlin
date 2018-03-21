@@ -31,6 +31,7 @@ suspend inline fun test3(crossinline c: suspend () -> Unit) {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

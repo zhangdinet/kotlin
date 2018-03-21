@@ -55,6 +55,7 @@ suspend inline fun crossinlineMe(crossinline c: suspend () -> Unit) {
 }
 
 // FILE: inlineSite.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

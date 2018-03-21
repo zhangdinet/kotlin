@@ -16,6 +16,7 @@ suspend inline fun test(controller: Controller = defaultController, c: suspend C
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

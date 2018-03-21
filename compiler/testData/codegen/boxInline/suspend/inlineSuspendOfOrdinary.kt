@@ -31,6 +31,7 @@ inline fun transform(crossinline c: suspend () -> Unit) {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

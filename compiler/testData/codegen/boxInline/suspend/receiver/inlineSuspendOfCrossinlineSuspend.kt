@@ -35,6 +35,7 @@ class Controller {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

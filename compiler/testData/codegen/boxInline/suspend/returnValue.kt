@@ -17,6 +17,7 @@ suspend inline fun complexSuspend(crossinline c: suspend () -> String): String {
 }
 
 // FILE: inleneSite.kt
+// COMMON_COROUTINES_TEST
 import COROUTINES_PACKAGE.*
 import COROUTINES_PACKAGE.intrinsics.*
 

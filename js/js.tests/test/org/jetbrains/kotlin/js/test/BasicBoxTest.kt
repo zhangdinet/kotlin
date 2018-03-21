@@ -99,14 +99,15 @@ abstract class BasicBoxTest(
     }
 
     fun doTestWithCoroutinesPackageReplacement(filePath: String, packageName: String) {
+        if (packageName == "kotlin.coroutines") return // TODO: Support JS in kotlin-stdlib-coroutines
         doTest(filePath, "OK", MainCallParameters.noCall(), packageName)
     }
 
-    fun doTest(filePath: String, expectedResult: String, mainCallParameters: MainCallParameters, packageName: String? = null) {
+    fun doTest(filePath: String, expectedResult: String, mainCallParameters: MainCallParameters, packageName: String = "") {
         val file = File(filePath)
         val outputDir = getOutputDir(file)
         var fileContent = KotlinTestUtils.doLoadFile(file)
-        if (packageName != null) {
+        if (packageName.isNotEmpty()) {
             fileContent = fileContent.replace("COROUTINES_PACKAGE", packageName)
         }
 

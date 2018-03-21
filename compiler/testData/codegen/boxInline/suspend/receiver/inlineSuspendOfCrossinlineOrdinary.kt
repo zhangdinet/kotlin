@@ -48,6 +48,7 @@ fun builder(controller : Controller, c: suspend Controller.() -> Unit) {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 import COROUTINES_PACKAGE.*
 

@@ -40,6 +40,7 @@ fun builder(c: suspend () -> Unit) {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 suspend fun calculate() = "OK"
 

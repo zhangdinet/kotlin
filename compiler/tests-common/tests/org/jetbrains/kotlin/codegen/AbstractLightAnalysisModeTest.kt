@@ -44,10 +44,10 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
             }
         }
 
-        val fullTxt = compileWithFullAnalysis(files, javaFilesDir)
+        val fullTxt = compileWithFullAnalysis(files, javaFilesDir, coroutinesPackage)
                 .replace("final enum class", "enum class")
 
-        val liteTxt = compileWithLightAnalysis(wholeFile, files, javaFilesDir)
+        val liteTxt = compileWithLightAnalysis(wholeFile, files, javaFilesDir, coroutinesPackage)
                 .replace("@synthetic.kotlin.jvm.GeneratedByJvmOverloads ", "")
 
         assertEquals(fullTxt, liteTxt)
@@ -57,14 +57,24 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
         return false
     }
 
-    private fun compileWithLightAnalysis(wholeFile: File, files: List<CodegenTestCase.TestFile>, javaFilesDir: File?): String {
+    private fun compileWithLightAnalysis(
+        wholeFile: File,
+        files: List<CodegenTestCase.TestFile>,
+        javaFilesDir: File?,
+        coroutinesPackage: String
+    ): String {
         val boxTestsDir = File("compiler/testData/codegen/box")
         val relativePath = wholeFile.toRelativeString(boxTestsDir)
         // Fail if this test is not under codegen/box
         assert(!relativePath.startsWith(".."))
 
         val configuration = createConfiguration(
-                configurationKind, getJdkKind(files), listOf(getAnnotationsJar()), javaFilesDir?.let(::listOf).orEmpty(), files, ""
+            configurationKind,
+            getJdkKind(files),
+            listOf(getAnnotationsJar()),
+            javaFilesDir?.let(::listOf).orEmpty(),
+            files,
+            coroutinesPackage
         )
         val environment = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
         AnalysisHandlerExtension.registerExtension(environment.project, PartialAnalysisHandlerExtension())
@@ -76,10 +86,11 @@ abstract class AbstractLightAnalysisModeTest : CodegenTestCase() {
     }
 
     protected fun compileWithFullAnalysis(
-            files: List<TestFile>,
-            javaSourceDir: File?
+        files: List<TestFile>,
+        javaSourceDir: File?,
+        coroutinesPackage: String
     ): String {
-        compile(files, javaSourceDir, "")
+        compile(files, javaSourceDir, coroutinesPackage)
         classFileFactory.getClassFiles()
 
         val classInternalNames = classFileFactory.generationState.bindingContext

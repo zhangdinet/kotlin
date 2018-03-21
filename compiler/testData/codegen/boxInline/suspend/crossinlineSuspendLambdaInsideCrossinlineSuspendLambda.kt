@@ -29,6 +29,7 @@ fun builder(c: suspend () -> Unit) {
 }
 
 // FILE: box.kt
+// COMMON_COROUTINES_TEST
 
 fun box(): String {
     var y = "fail"
