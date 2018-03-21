@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the license/LICENSE.txt file.
  */
 
@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.backend.jvm.codegen.IrExpressionLambda
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.ClosureCodegen
 import org.jetbrains.kotlin.codegen.StackValue
-import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_ASM_TYPE
+import org.jetbrains.kotlin.codegen.coroutines.continuationAsmType
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.ApiVersionCallsPreprocessingMethodTransformer
@@ -49,6 +49,7 @@ class MethodInliner(
         private val shouldPreprocessApiVersionCalls: Boolean = false
 ) {
     private val typeMapper = inliningContext.state.typeMapper
+    private val languageVersionSettings = inliningContext.state.languageVersionSettings
     private val invokeCalls = ArrayList<InvokeCall>()
     //keeps order
     private val transformations = ArrayList<TransformationInfo>()
@@ -291,7 +292,7 @@ class MethodInliner(
                         }
 
                         val isContinuationCreate = isContinuation && oldInfo != null && resultNode.name == "create" &&
-                                resultNode.desc.startsWith("(" + CONTINUATION_ASM_TYPE.descriptor)
+                                resultNode.desc.startsWith("(" + continuationAsmType(languageVersionSettings).descriptor)
 
                         for (capturedParamDesc in info.allRecapturedParameters) {
                             if (capturedParamDesc.fieldName == THIS && isContinuationCreate) {
@@ -652,7 +653,7 @@ class MethodInliner(
         // We can't have suspending constructors.
         assert(invoke.opcode != Opcodes.INVOKESPECIAL)
         if (Type.getReturnType(invoke.desc) != OBJECT_TYPE) return false
-        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == CONTINUATION_ASM_TYPE }
+        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == continuationAsmType(languageVersionSettings) }
     }
 
     private fun preprocessNodeBeforeInline(node: MethodNode, labelOwner: LabelOwner) {
