@@ -31,7 +31,7 @@ import java.util.*
 
 class PropertiesLowering : IrElementTransformerVoid(), FileLoweringPass {
     override fun lower(irFile: IrFile) {
-        irFile.transformChildrenVoid(this)
+        irFile.accept(this, null)
     }
 
     override fun visitFile(declaration: IrFile): IrFile {
@@ -47,14 +47,14 @@ class PropertiesLowering : IrElementTransformerVoid(), FileLoweringPass {
     }
 
     private fun lowerProperty(declaration: IrDeclaration): List<IrDeclaration>? =
-            if (declaration is IrProperty)
-                ArrayList<IrDeclaration>(3).apply {
-                    if (!DescriptorUtils.isAnnotationClass(declaration.descriptor.containingDeclaration)) {
-                        addIfNotNull(declaration.backingField)
-                    }
-                    addIfNotNull(declaration.getter)
-                    addIfNotNull(declaration.setter)
+        if (declaration is IrProperty)
+            ArrayList<IrDeclaration>(3).apply {
+                if (!DescriptorUtils.isAnnotationClass(declaration.descriptor.containingDeclaration)) {
+                    addIfNotNull(declaration.backingField)
                 }
-            else
-                null
+                addIfNotNull(declaration.getter)
+                addIfNotNull(declaration.setter)
+            }
+        else
+            null
 }
