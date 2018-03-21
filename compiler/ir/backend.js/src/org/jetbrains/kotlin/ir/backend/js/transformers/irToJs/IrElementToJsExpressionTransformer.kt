@@ -27,11 +27,11 @@ class IrElementToJsExpressionTransformer : BaseIrElementToJsNodeTransformer<JsEx
             is IrConstKind.String -> JsStringLiteral(kind.valueOf(expression))
             is IrConstKind.Null -> JsNullLiteral()
             is IrConstKind.Boolean -> JsBooleanLiteral(kind.valueOf(expression))
-            is IrConstKind.Char -> super.visitConst(expression, data)
             is IrConstKind.Byte -> JsIntLiteral(kind.valueOf(expression).toInt())
             is IrConstKind.Short -> JsIntLiteral(kind.valueOf(expression).toInt())
             is IrConstKind.Int -> JsIntLiteral(kind.valueOf(expression))
-            is IrConstKind.Long -> super.visitConst(expression, data)
+            is IrConstKind.Long,
+            is IrConstKind.Char -> super.visitConst(expression, data)
             is IrConstKind.Float -> JsDoubleLiteral(kind.valueOf(expression).toDouble())
             is IrConstKind.Double -> JsDoubleLiteral(kind.valueOf(expression))
         }
