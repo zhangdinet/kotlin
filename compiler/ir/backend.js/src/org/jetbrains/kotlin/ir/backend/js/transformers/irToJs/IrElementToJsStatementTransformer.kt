@@ -37,4 +37,16 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
     override fun visitVariable(declaration: IrVariable, data: Nothing?): JsStatement {
         return jsVar(declaration.name, declaration.initializer)
     }
+
+    override fun visitWhen(expression: IrWhen, data: Nothing?): JsStatement {
+        return expression.branches.foldRight<IrBranch, JsStatement?>(null) { br, prevNode ->
+            val brBody = br.result.accept(this, data)
+            if (br is IrElseBranch) {
+                brBody
+            } else {
+                val condition = br.condition.accept(IrElementToJsExpressionTransformer(), data)
+                JsIf(condition, brBody, prevNode)
+            }
+        } ?: JsEmpty
+    }
 }
