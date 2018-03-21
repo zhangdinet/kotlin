@@ -13,7 +13,7 @@ configurePublishing(project)
 
 def builtinsSrcDir = "${buildDir}/builtin-sources"
 def builtinsSrcDir2 = "${buildDir}/builtin-sources-for-builtins"
-def commonSrcDir = "${projectDir}/../common/src/build/common-sources"
+def commonSrcDir = "${projectDir}/../src/kotlin"
 
 def builtinsDir = "${rootDir}/core/builtins"
 def experimentalSrcDir = "${rootDir}/libraries/stdlib/experimental"
@@ -41,7 +41,6 @@ sourceSets {
         kotlin {
             srcDir builtinsSrcDir
             srcDir jsSrcDir
-            srcDir commonSrcDir
         }
     }
 
@@ -127,7 +126,6 @@ compileBuiltinsKotlin2Js {
 }
 
 compileKotlin2Js {
-    dependsOn(":kotlin-stdlib-common:preprocessSourcesMain")
     dependsOn prepareBuiltinsSources
     kotlinOptions {
         outputFile = "${buildDir}/classes/main/kotlin.js"
@@ -150,7 +148,6 @@ compileExperimentalKotlin2Js {
 }
 
 compileTestKotlin2Js {
-    dependsOn(":kotlin-stdlib-common:preprocessSourcesTest")
     kotlinOptions {
         moduleKind = "umd"
     }
