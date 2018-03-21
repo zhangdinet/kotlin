@@ -6,16 +6,9 @@
 package org.jetbrains.kotlin.fir.scopes.impl
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirProperty
-import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.types.ConeAbbreviatedType
-import org.jetbrains.kotlin.fir.types.ConeClassType
-import org.jetbrains.kotlin.fir.types.FirResolvedType
-import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 
@@ -23,7 +16,7 @@ class FirNestedClassifierScope(val classId: ClassId, val session: FirSession) : 
 
     private val firProvider = FirProvider.getInstance(session)
 
-    fun ClassId.getFir(): FirMemberDeclaration? {
+    private fun ClassId.getFir(): FirMemberDeclaration? {
         return firProvider.getFirClassifierByFqName(this)
     }
 
