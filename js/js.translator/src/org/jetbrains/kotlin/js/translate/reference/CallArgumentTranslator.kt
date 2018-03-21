@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.builtins.functions.FunctionInvokeDescriptor
 import org.jetbrains.kotlin.builtins.getFunctionalClassKind
+import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.js.backend.ast.*
@@ -50,7 +51,7 @@ import java.util.*
 class CallArgumentTranslator private constructor(
         private val resolvedCall: ResolvedCall<*>,
         private val receiver: JsExpression?,
-        context: TranslationContext
+        private val context: TranslationContext
 ) : AbstractTranslator(context) {
 
     data class ArgumentsInfo(
@@ -165,7 +166,7 @@ class CallArgumentTranslator private constructor(
         val callableDescriptor = resolvedCall.resultingDescriptor
         if (callableDescriptor is FunctionDescriptor && callableDescriptor.isSuspend) {
             var continuationArg: JsExpression = TranslationUtils.translateContinuationArgument(context())
-            if (callableDescriptor.original.isBuiltInSuspendCoroutineOrReturn(context().languageVersionSettings)) {
+            if (callableDescriptor.original.isBuiltInSuspendCoroutineOrReturn(context.languageVersionSettings)) {
                 val facadeName = context().getNameForDescriptor(TranslationUtils.getCoroutineProperty(context(), "facade"))
                 continuationArg = JsAstUtils.pureFqn(facadeName, continuationArg)
             }

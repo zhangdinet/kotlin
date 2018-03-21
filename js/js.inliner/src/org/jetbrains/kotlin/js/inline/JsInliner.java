@@ -21,8 +21,9 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.backend.common.CommonCoroutineCodegenUtilKt;
-import org.jetbrains.kotlin.config.CommonConfigurationKeysKt;
-import org.jetbrains.kotlin.config.LanguageVersionSettings;
+import org.jetbrains.kotlin.config.ApiVersion;
+import org.jetbrains.kotlin.config.LanguageVersion;
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl;
 import org.jetbrains.kotlin.descriptors.CallableDescriptor;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor;
@@ -336,8 +337,7 @@ public class JsInliner extends JsVisitorWithContextImpl {
 
     private void inline(@NotNull JsInvocation call, @NotNull JsContext context) {
         DeclarationDescriptor callDescriptor = MetadataProperties.getDescriptor(call);
-        if (isSuspendWithCurrentContinuation(callDescriptor,
-                                             CommonConfigurationKeysKt.getLanguageVersionSettings(config.getConfiguration()))) {
+        if (isSuspendWithCurrentContinuation(callDescriptor)) {
             inlineSuspendWithCurrentContinuation(call, context);
             return;
         }
@@ -496,13 +496,12 @@ public class JsInliner extends JsVisitorWithContextImpl {
         }.accept(statement);
     }
 
-    private static boolean isSuspendWithCurrentContinuation(
-            @Nullable DeclarationDescriptor descriptor,
-            @NotNull LanguageVersionSettings languageVersionSettings
-    ) {
+    private static boolean isSuspendWithCurrentContinuation(@Nullable DeclarationDescriptor descriptor) {
         if (!(descriptor instanceof FunctionDescriptor)) return false;
-        return CommonCoroutineCodegenUtilKt
-                .isBuiltInSuspendCoroutineOrReturn((FunctionDescriptor) descriptor.getOriginal(), languageVersionSettings);
+        return CommonCoroutineCodegenUtilKt.isBuiltInSuspendCoroutineOrReturn(
+                (FunctionDescriptor) descriptor.getOriginal(),
+                new LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_2, ApiVersion.KOTLIN_1_2)
+        );
     }
 
     private void inlineSuspendWithCurrentContinuation(@NotNull JsInvocation call, @NotNull JsContext context) {

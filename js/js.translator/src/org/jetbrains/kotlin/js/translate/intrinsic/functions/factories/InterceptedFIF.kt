@@ -17,6 +17,9 @@
 package org.jetbrains.kotlin.js.translate.intrinsic.functions.factories
 
 import org.jetbrains.kotlin.backend.common.isBuiltInIntercepted
+import org.jetbrains.kotlin.config.ApiVersion
+import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.js.backend.ast.JsExpression
 import org.jetbrains.kotlin.js.translate.callTranslator.CallInfo
@@ -26,8 +29,14 @@ import org.jetbrains.kotlin.js.translate.utils.JsAstUtils
 import org.jetbrains.kotlin.js.translate.utils.TranslationUtils
 
 object InterceptedFIF: FunctionIntrinsicFactory {
-    override fun getIntrinsic(descriptor: FunctionDescriptor, context: TranslationContext): FunctionIntrinsic? {
-        if (!descriptor.isBuiltInIntercepted(context.languageVersionSettings)) return null
+    override fun getIntrinsic(descriptor: FunctionDescriptor): FunctionIntrinsic? {
+        if (!descriptor.isBuiltInIntercepted(
+                LanguageVersionSettingsImpl(
+                    LanguageVersion.KOTLIN_1_2,
+                    ApiVersion.KOTLIN_1_2
+                )
+            )
+        ) return null
         return Intrinsic
     }
 

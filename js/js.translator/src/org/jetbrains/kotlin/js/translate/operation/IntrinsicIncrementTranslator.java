@@ -41,7 +41,7 @@ public final class IntrinsicIncrementTranslator extends IncrementTranslator {
     @Override
     @NotNull
     protected JsExpression operationExpression(@NotNull TranslationContext context, @NotNull JsExpression receiver) {
-        FunctionIntrinsic intrinsic = context.intrinsics().getFunctionIntrinsic(resolvedCall.getResultingDescriptor(), context);
+        FunctionIntrinsic intrinsic = context.intrinsics().getFunctionIntrinsic(resolvedCall.getResultingDescriptor());
         CallInfo callInfo = CallInfoKt.getCallInfo(context, resolvedCall, receiver);
         return intrinsic.apply(callInfo, Collections.emptyList(), context);
     }

@@ -21,7 +21,6 @@ import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor;
-import org.jetbrains.kotlin.js.translate.context.TranslationContext;
 import org.jetbrains.kotlin.js.translate.intrinsic.functions.basic.FunctionIntrinsic;
 import org.jetbrains.kotlin.js.translate.intrinsic.functions.factories.*;
 import org.jetbrains.kotlin.js.translate.intrinsic.operation.StringPlusCharFIF;
@@ -62,12 +61,12 @@ public final class FunctionIntrinsics {
     }
 
     @NotNull
-    public FunctionIntrinsic getIntrinsic(@NotNull FunctionDescriptor descriptor, @NotNull TranslationContext context) {
+    public FunctionIntrinsic getIntrinsic(@NotNull FunctionDescriptor descriptor) {
         FunctionIntrinsic intrinsic = lookUpCache(descriptor);
         if (intrinsic != null) {
             return intrinsic;
         }
-        intrinsic = computeAndCacheIntrinsic(descriptor, context);
+        intrinsic = computeAndCacheIntrinsic(descriptor);
         return intrinsic;
     }
 
@@ -77,16 +76,16 @@ public final class FunctionIntrinsics {
     }
 
     @NotNull
-    private FunctionIntrinsic computeAndCacheIntrinsic(@NotNull FunctionDescriptor descriptor, @NotNull TranslationContext context) {
-        FunctionIntrinsic result = computeIntrinsic(descriptor, context);
+    private FunctionIntrinsic computeAndCacheIntrinsic(@NotNull FunctionDescriptor descriptor) {
+        FunctionIntrinsic result = computeIntrinsic(descriptor);
         intrinsicCache.put(descriptor, result);
         return result;
     }
 
     @NotNull
-    private FunctionIntrinsic computeIntrinsic(@NotNull FunctionDescriptor descriptor, @NotNull TranslationContext context) {
+    private FunctionIntrinsic computeIntrinsic(@NotNull FunctionDescriptor descriptor) {
         for (FunctionIntrinsicFactory factory : factories) {
-            FunctionIntrinsic intrinsic = factory.getIntrinsic(descriptor, context);
+            FunctionIntrinsic intrinsic = factory.getIntrinsic(descriptor);
             if (intrinsic != null) {
                 return intrinsic;
             }
