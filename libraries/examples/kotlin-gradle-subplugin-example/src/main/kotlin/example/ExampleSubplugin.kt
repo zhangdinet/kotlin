@@ -18,7 +18,7 @@ package example
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinGradleSubplugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
+import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
@@ -34,7 +34,7 @@ class ExampleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
             javaCompile: AbstractCompile, 
             variantData: Any?,
             androidProjectHandler: Any?,
-            javaSourceSet: SourceSet?
+            kotlinSourceSet: KotlinSourceSet?
     ): List<SubpluginOption> {
         println("ExampleSubplugin loaded")
         return listOf(SubpluginOption("exampleKey", "exampleValue"))

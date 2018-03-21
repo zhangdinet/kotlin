@@ -35,6 +35,7 @@ import java.io.File
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKaptGeneratedSourcesDir
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKaptGeneratedClassesDir
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKaptGeneratedKotlinSourcesDir
+import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
 import java.util.*
@@ -116,7 +117,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
         val javaCompile: AbstractCompile,
         val kaptVariantData: KaptVariantData<*>?,
         val sourceSetName: String,
-        val javaSourceSet: SourceSet?,
+        val kotlinSourceSet: KotlinSourceSet?,
         val kaptExtension: KaptExtension,
         val kaptClasspathConfigurations: List<Configuration>
     ) {
@@ -135,9 +136,9 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
             javaCompile: AbstractCompile,
             variantData: Any?,
             androidProjectHandler: Any?,
-            javaSourceSet: SourceSet?
+            kotlinSourceSet: KotlinSourceSet?
     ): List<SubpluginOption> {
-        assert((variantData != null) xor (javaSourceSet != null))
+        assert((variantData != null) xor (kotlinSourceSet != null))
 
         val buildDependencies = arrayListOf<TaskDependency>()
         val kaptConfigurations = arrayListOf<Configuration>()
@@ -159,10 +160,10 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
             kaptVariantData.name
         }
         else {
-            if (javaSourceSet == null) error("Java source set should not be null")
+            if (kotlinSourceSet == null) error("Java source set should not be null")
 
-            handleSourceSet(javaSourceSet.name)
-            javaSourceSet.name
+            handleSourceSet(kotlinSourceSet.name)
+            kotlinSourceSet.name
         }
 
         val kaptExtension = project.extensions.getByType(KaptExtension::class.java)
@@ -173,7 +174,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
 
         val context = Kapt3SubpluginContext(
             project, kotlinCompile, javaCompile,
-            kaptVariantData, sourceSetName, javaSourceSet, kaptExtension, nonEmptyKaptConfigurations
+            kaptVariantData, sourceSetName, kotlinSourceSet, kaptExtension, nonEmptyKaptConfigurations
         )
 
         val kaptGenerateStubsTask = context.createKaptGenerateStubsTask()
@@ -302,7 +303,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
         kaptTask.kotlinSourcesDestinationDir = kotlinSourcesOutputDir
         kaptTask.classesDir = classesOutputDir
 
-        javaSourceSet?.output?.apply {
+        kotlinSourceSet?.output?.apply {
             if (tryAddClassesDir { project.files(classesOutputDir).builtBy(kaptTask) }) {
                 kotlinCompile.attachClassesDir { classesOutputDir }
             }
