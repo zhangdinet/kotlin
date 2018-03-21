@@ -130,7 +130,7 @@ abstract class AbstractJvmRuntimeDescriptorLoaderTest : TestCaseWithTmpdir() {
                         targetFile.writeText(adaptJavaSource(text))
                         return targetFile
                     }
-                })
+                }, "")
                 LoadDescriptorUtil.compileJavaWithAnnotationsJar(sources, tmpdir)
             }
             fileName.endsWith(".kt") -> {

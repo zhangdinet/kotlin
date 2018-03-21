@@ -38,15 +38,20 @@ import static org.jetbrains.kotlin.test.clientserver.TestProcessServerKt.getGene
 public abstract class AbstractBlackBoxCodegenTest extends CodegenTestCase {
 
     @Override
-    protected void doMultiFileTest(@NotNull File wholeFile, @NotNull List<TestFile> files, @Nullable File javaFilesDir) throws Exception {
+    protected void doMultiFileTest(
+        @NotNull File wholeFile,
+        @NotNull List<TestFile> files,
+        @Nullable File javaFilesDir,
+        @NotNull String coroutinesPackage
+    ) throws Exception {
         try {
-            compile(files, javaFilesDir);
+            compile(files, javaFilesDir, coroutinesPackage);
             blackBox();
         }
         catch (Throwable t) {
             try {
                 // To create .txt file in case of failure
-                doBytecodeListingTest(wholeFile);
+                doBytecodeListingTest(wholeFile, coroutinesPackage);
             }
             catch (Throwable ignored) {
             }
@@ -54,10 +59,10 @@ public abstract class AbstractBlackBoxCodegenTest extends CodegenTestCase {
             throw t;
         }
 
-        doBytecodeListingTest(wholeFile);
+        doBytecodeListingTest(wholeFile, coroutinesPackage);
     }
 
-    private void doBytecodeListingTest(@NotNull File wholeFile) throws Exception {
+    private void doBytecodeListingTest(@NotNull File wholeFile, @NotNull String coroutinesPackage) throws Exception {
         if (!InTextDirectivesUtils.isDirectiveDefined(FileUtil.loadFile(wholeFile), "CHECK_BYTECODE_LISTING")) return;
 
         File expectedFile = new File(wholeFile.getParent(), FilesKt.getNameWithoutExtension(wholeFile) + ".txt");
@@ -87,7 +92,7 @@ public abstract class AbstractBlackBoxCodegenTest extends CodegenTestCase {
                         }
                 );
 
-        assertEqualsToFile(expectedFile, text);
+        assertEqualsToFile(expectedFile, text, s -> s.replace("COROUTINES_PACKAGE", coroutinesPackage));
     }
 
     protected void blackBox() {

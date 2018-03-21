@@ -86,9 +86,15 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
     }
 
     @TestMetadata("coroutinesBinary.kt")
-    public void testCoroutinesBinary() throws Exception {
+    public void testCoroutinesBinary_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileKotlinAgainstKotlin/coroutinesBinary.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("coroutinesBinary.kt")
+    public void testCoroutinesBinary_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/compileKotlinAgainstKotlin/coroutinesBinary.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("defaultConstructor.kt")

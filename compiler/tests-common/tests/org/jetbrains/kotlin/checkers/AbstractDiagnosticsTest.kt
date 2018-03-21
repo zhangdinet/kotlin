@@ -72,7 +72,7 @@ import java.util.function.Predicate
 import java.util.regex.Pattern
 
 abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         val groupedByModule = files.groupBy(TestFile::module)
 
         var lazyOperationsLog: LazyOperationsLog? = null
@@ -99,7 +99,14 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
 
             val oldModule = modules[testModule]!!
 
-            val languageVersionSettings = loadLanguageVersionSettings(testFilesInModule)
+            val languageVersionSettings =
+                if (coroutinesPackage.isNotEmpty())
+                    CompilerTestLanguageVersionSettings(
+                        DEFAULT_DIAGNOSTIC_TESTS_FEATURES,
+                        if (coroutinesPackage.contains("experimental")) ApiVersion.KOTLIN_1_2 else ApiVersion.KOTLIN_1_3,
+                        if (coroutinesPackage.contains("experimental")) LanguageVersion.KOTLIN_1_2 else LanguageVersion.KOTLIN_1_3
+                    )
+                else loadLanguageVersionSettings(testFilesInModule)
             val moduleContext = context.withProject(project).withModule(oldModule)
 
             val separateModules = groupedByModule.size == 1 && groupedByModule.keys.single() == null
@@ -141,7 +148,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         var exceptionFromDescriptorValidation: Throwable? = null
         try {
             val expectedFile = getExpectedDescriptorFile(testDataFile, files)
-            validateAndCompareDescriptorWithFile(expectedFile, files, modules)
+            validateAndCompareDescriptorWithFile(expectedFile, files, modules, coroutinesPackage)
         } catch (e: Throwable) {
             exceptionFromDescriptorValidation = e
         }
@@ -175,7 +182,9 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             exceptionFromDynamicCallDescriptorsValidation = e
         }
 
-        KotlinTestUtils.assertEqualsToFile(getExpectedDiagnosticsFile(testDataFile), actualText.toString())
+        KotlinTestUtils.assertEqualsToFile(getExpectedDiagnosticsFile(testDataFile), actualText.toString()) { s ->
+            s.replace("COROUTINES_PACKAGE", coroutinesPackage)
+        }
 
         assertTrue("Diagnostics mismatch. See the output above", ok)
 
@@ -395,7 +404,8 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
     private fun validateAndCompareDescriptorWithFile(
         expectedFile: File,
         testFiles: List<TestFile>,
-        modules: Map<TestModule?, ModuleDescriptorImpl>
+        modules: Map<TestModule?, ModuleDescriptorImpl>,
+        coroutinesPackage: String
     ) {
         if (skipDescriptorsValidation()) return
         if (testFiles.any { file -> InTextDirectivesUtils.isDirectiveDefined(file.expectedText, "// SKIP_TXT") }) {
@@ -456,7 +466,9 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                     "Such tests are hard to maintain, take long time to execute and are subject to sudden unreviewed changes anyway."
         }
 
-        KotlinTestUtils.assertEqualsToFile(expectedFile, allPackagesText)
+        KotlinTestUtils.assertEqualsToFile(expectedFile, allPackagesText) { s ->
+            s.replace("COROUTINES_PACKAGE", coroutinesPackage)
+        }
     }
 
 

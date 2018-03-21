@@ -42,12 +42,13 @@ public abstract class AbstractDiagnosticsWithJdk9Test extends AbstractDiagnostic
     protected void doMultiFileTest(
             @NotNull File file,
             @NotNull Map<String, ModuleAndDependencies> modules,
-            @NotNull List<TestFile> testFiles
+            @NotNull List<TestFile> testFiles,
+            @NotNull String coroutinesPackage
     ) {
         if (KotlinTestUtils.getJdk9HomeIfPossible() == null) {
             // Skip this test if no Java 9 is found
             return;
         }
-        super.doMultiFileTest(file, modules, testFiles);
+        super.doMultiFileTest(file, modules, testFiles, coroutinesPackage);
     }
 }

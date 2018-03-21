@@ -52,9 +52,9 @@ public abstract class AbstractWriteFlagsTest extends CodegenTestCase {
 
     @Override
     protected void doMultiFileTest(
-            @NotNull File wholeFile, @NotNull List<TestFile> files, @Nullable File javaFilesDir
+            @NotNull File wholeFile, @NotNull List<TestFile> files, @Nullable File javaFilesDir, @NotNull String coroutinesPackage
     ) throws Exception {
-        compile(files, null);
+        compile(files, null, coroutinesPackage);
 
         String fileText = FileUtil.loadFile(wholeFile, true);
 

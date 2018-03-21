@@ -24,7 +24,7 @@ import java.io.File
 
 abstract class AbstractDiagnosticsUsingJavacTest : AbstractDiagnosticsTest() {
 
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         val testDataFileText = testDataFile.readText()
         if (InTextDirectivesUtils.isDirectiveDefined(testDataFileText, "// JAVAC_SKIP")) {
             println("${testDataFile.name} test is skipped")
@@ -42,6 +42,6 @@ abstract class AbstractDiagnosticsUsingJavacTest : AbstractDiagnosticsTest() {
         }
 
         environment.configuration.put(JVMConfigurationKeys.USE_JAVAC, true)
-        super.analyzeAndCheck(testDataFile, files)
+        super.analyzeAndCheck(testDataFile, files, coroutinesPackage)
     }
 }

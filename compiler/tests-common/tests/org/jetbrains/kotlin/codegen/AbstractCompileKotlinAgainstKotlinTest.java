@@ -58,21 +58,26 @@ public abstract class AbstractCompileKotlinAgainstKotlinTest extends CodegenTest
     }
 
     @Override
-    protected void doMultiFileTest(@NotNull File wholeFile, @NotNull List<TestFile> files, @Nullable File javaFilesDir) throws Exception {
+    protected void doMultiFileTest(
+            @NotNull File wholeFile,
+            @NotNull List<TestFile> files,
+            @Nullable File javaFilesDir,
+            @NotNull String coroutinesPackage
+    ) throws Exception {
         assert javaFilesDir == null : ".java files are not supported yet in this test";
-        doTwoFileTest(files);
+        doTwoFileTest(files, coroutinesPackage);
     }
 
     @NotNull
-    protected Pair<ClassFileFactory, ClassFileFactory> doTwoFileTest(@NotNull List<TestFile> files) throws Exception {
+    protected Pair<ClassFileFactory, ClassFileFactory> doTwoFileTest(@NotNull List<TestFile> files, @NotNull String coroutinesPackage) throws Exception {
         // Note that it may be beneficial to improve this test to handle many files, compiling them successively against all previous
         assert files.size() == 2 : "There should be exactly two files in this test";
         TestFile fileA = files.get(0);
         TestFile fileB = files.get(1);
-        ClassFileFactory factoryA = compileA(fileA, files);
+        ClassFileFactory factoryA = compileA(fileA, files, coroutinesPackage);
         ClassFileFactory factoryB = null;
         try {
-            factoryB = compileB(fileB, files);
+            factoryB = compileB(fileB, files, coroutinesPackage);
             invokeBox(PackagePartClassUtils.getFilePartShortName(new File(fileB.name).getName()));
         }
         catch (Throwable e) {
@@ -99,12 +104,12 @@ public abstract class AbstractCompileKotlinAgainstKotlinTest extends CodegenTest
     }
 
     @NotNull
-    private ClassFileFactory compileA(@NotNull TestFile testFile, List<TestFile> files) throws IOException {
+    private ClassFileFactory compileA(@NotNull TestFile testFile, List<TestFile> files, @NotNull String coroutinesPackage) throws IOException {
         Disposable compileDisposable = createDisposable("compileA");
         CompilerConfiguration configuration =
                 createConfiguration(ConfigurationKind.ALL, getJdkKind(files),
                                     Collections.singletonList(KotlinTestUtils.getAnnotationsJar()),
-                                    Collections.emptyList(), Collections.singletonList(testFile));
+                                    Collections.emptyList(), Collections.singletonList(testFile), coroutinesPackage);
 
         KotlinCoreEnvironment environment = KotlinCoreEnvironment.createForTests(
                 compileDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES);
@@ -113,12 +118,12 @@ public abstract class AbstractCompileKotlinAgainstKotlinTest extends CodegenTest
     }
 
     @NotNull
-    private ClassFileFactory compileB(@NotNull TestFile testFile, List<TestFile> files) throws IOException {
+    private ClassFileFactory compileB(@NotNull TestFile testFile, List<TestFile> files, @NotNull String coroutinesPackage) throws IOException {
         String commonHeader = StringsKt.substringBefore(files.get(0).content, "FILE:", "");
         CompilerConfiguration configurationWithADirInClasspath =
                 createConfiguration(ConfigurationKind.ALL, getJdkKind(files),
                                     Lists.newArrayList(KotlinTestUtils.getAnnotationsJar(), aDir),
-                                    Collections.emptyList(), Lists.newArrayList(testFile, new TestFile("header", commonHeader)));
+                                    Collections.emptyList(), Lists.newArrayList(testFile, new TestFile("header", commonHeader)), coroutinesPackage);
 
         Disposable compileDisposable = createDisposable("compileB");
         KotlinCoreEnvironment environment = KotlinCoreEnvironment.createForTests(

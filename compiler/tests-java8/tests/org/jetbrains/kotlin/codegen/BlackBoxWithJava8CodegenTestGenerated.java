@@ -25,16 +25,28 @@ public class BlackBoxWithJava8CodegenTestGenerated extends AbstractBlackBoxCodeg
         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/java8/box"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
     }
 
-    @TestMetadata("async.kt")
-    public void testAsync() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/java8/box/async.kt");
-        doTest(fileName);
+    @TestMetadata("asyncException.kt")
+    public void testAsyncException_1_2() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/java8/box/asyncException.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
     }
 
     @TestMetadata("asyncException.kt")
-    public void testAsyncException() throws Exception {
+    public void testAsyncException_1_3() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/java8/box/asyncException.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+    }
+
+    @TestMetadata("async.kt")
+    public void testAsync_1_2() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/java8/box/async.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("async.kt")
+    public void testAsync_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/java8/box/async.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("capturedSuperCall.kt")

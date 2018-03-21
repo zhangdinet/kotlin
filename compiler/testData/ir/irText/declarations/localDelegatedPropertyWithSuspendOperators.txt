@@ -41,19 +41,19 @@ FILE fqName:<root> fileName:/localDelegatedPropertyWithSuspendOperators.kt
         RETURN type=kotlin.Nothing from='setValue(Any?, KProperty<*>, Int): Unit'
           CALL 'suspendCoroutineOrReturn(crossinline (Continuation<Unit>) -> Any?): Unit' type=kotlin.Unit origin=null
             <T>: Unit
-            block: BLOCK type=(kotlin.coroutines.experimental.Continuation<kotlin.Unit>) -> kotlin.Any origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> (x:kotlin.coroutines.experimental.Continuation<kotlin.Unit>) returnType:Any flags:
-                VALUE_PARAMETER name:x index:0 type:kotlin.coroutines.experimental.Continuation<kotlin.Unit> flags:
+            block: BLOCK type=(COROUTINES_PACKAGE.Continuation<kotlin.Unit>) -> kotlin.Any origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> (x:COROUTINES_PACKAGE.Continuation<kotlin.Unit>) returnType:Any flags:
+                VALUE_PARAMETER name:x index:0 type:COROUTINES_PACKAGE.Continuation<kotlin.Unit> flags:
                 BLOCK_BODY
                   CALL '<set-z>(Int): Unit' type=kotlin.Unit origin=EQ
                     $this: GET_VAR 'this@A: A' type=A origin=null
                     <set-?>: GET_VAR 'value-parameter value: Int' type=kotlin.Int origin=null
                   CALL 'resume(Unit): Unit' type=kotlin.Unit origin=null
-                    $this: GET_VAR 'value-parameter x: Continuation<Unit>' type=kotlin.coroutines.experimental.Continuation<kotlin.Unit> origin=null
+                    $this: GET_VAR 'value-parameter x: Continuation<Unit>' type=COROUTINES_PACKAGE.Continuation<kotlin.Unit> origin=null
                     value: GET_OBJECT 'Unit' type=kotlin.Unit
                   RETURN type=kotlin.Nothing from='<anonymous>(Continuation<Unit>): Any'
                     CALL '<get-COROUTINE_SUSPENDED>(): Any' type=kotlin.Any origin=GET_PROPERTY
-              FUNCTION_REFERENCE '<anonymous>(Continuation<Unit>): Any' type=(kotlin.coroutines.experimental.Continuation<kotlin.Unit>) -> kotlin.Any origin=LAMBDA
+              FUNCTION_REFERENCE '<anonymous>(Continuation<Unit>): Any' type=(COROUTINES_PACKAGE.Continuation<kotlin.Unit>) -> kotlin.Any origin=LAMBDA
     FUN name:provideDelegate visibility:public modality:FINAL <> ($this:A, host:kotlin.Any?, p:kotlin.Any) returnType:A flags:suspend
       $this: VALUE_PARAMETER name:<this> type:A flags:
       VALUE_PARAMETER name:host index:0 type:kotlin.Any? flags:
@@ -62,16 +62,16 @@ FILE fqName:<root> fileName:/localDelegatedPropertyWithSuspendOperators.kt
         RETURN type=kotlin.Nothing from='provideDelegate(Any?, Any): A'
           CALL 'suspendCoroutineOrReturn(crossinline (Continuation<A>) -> Any?): A' type=A origin=null
             <T>: A
-            block: BLOCK type=(kotlin.coroutines.experimental.Continuation<A>) -> kotlin.Any origin=LAMBDA
-              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> (x:kotlin.coroutines.experimental.Continuation<A>) returnType:Any flags:
-                VALUE_PARAMETER name:x index:0 type:kotlin.coroutines.experimental.Continuation<A> flags:
+            block: BLOCK type=(COROUTINES_PACKAGE.Continuation<A>) -> kotlin.Any origin=LAMBDA
+              FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL <> (x:COROUTINES_PACKAGE.Continuation<A>) returnType:Any flags:
+                VALUE_PARAMETER name:x index:0 type:COROUTINES_PACKAGE.Continuation<A> flags:
                 BLOCK_BODY
                   CALL 'resume(A): Unit' type=kotlin.Unit origin=null
-                    $this: GET_VAR 'value-parameter x: Continuation<A>' type=kotlin.coroutines.experimental.Continuation<A> origin=null
+                    $this: GET_VAR 'value-parameter x: Continuation<A>' type=COROUTINES_PACKAGE.Continuation<A> origin=null
                     value: GET_VAR 'this@A: A' type=A origin=null
                   RETURN type=kotlin.Nothing from='<anonymous>(Continuation<A>): Any'
                     CALL '<get-COROUTINE_SUSPENDED>(): Any' type=kotlin.Any origin=GET_PROPERTY
-              FUNCTION_REFERENCE '<anonymous>(Continuation<A>): Any' type=(kotlin.coroutines.experimental.Continuation<A>) -> kotlin.Any origin=LAMBDA
+              FUNCTION_REFERENCE '<anonymous>(Continuation<A>): Any' type=(COROUTINES_PACKAGE.Continuation<A>) -> kotlin.Any origin=LAMBDA
     FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:Boolean flags:
       overridden:
         FUN IR_EXTERNAL_DECLARATION_STUB name:equals visibility:public modality:OPEN <> ($this:kotlin.Any, other:kotlin.Any?) returnType:Boolean flags:

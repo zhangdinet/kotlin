@@ -38,9 +38,15 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("coroutineFields.kt")
-    public void testCoroutineFields() throws Exception {
+    public void testCoroutineFields_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineFields.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("coroutineFields.kt")
+    public void testCoroutineFields_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/coroutineFields.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("defaultImpls.kt")
@@ -140,9 +146,15 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("oomInReturnUnit.kt")
-    public void testOomInReturnUnit() throws Exception {
+    public void testOomInReturnUnit_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/oomInReturnUnit.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("oomInReturnUnit.kt")
+    public void testOomInReturnUnit_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/oomInReturnUnit.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("samAdapterAndInlinedOne.kt")
@@ -152,33 +164,63 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     }
 
     @TestMetadata("suspendReifiedFun.kt")
-    public void testSuspendReifiedFun() throws Exception {
+    public void testSuspendReifiedFun_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/suspendReifiedFun.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("suspendReifiedFun.kt")
+    public void testSuspendReifiedFun_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/suspendReifiedFun.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tailCallIntrinsics.kt")
-    public void testTailCallIntrinsics() throws Exception {
+    public void testTailCallIntrinsics_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailCallIntrinsics.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tailCallIntrinsics.kt")
+    public void testTailCallIntrinsics_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailCallIntrinsics.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tailSuspendUnitFun.kt")
-    public void testTailSuspendUnitFun() throws Exception {
+    public void testTailSuspendUnitFun_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailSuspendUnitFun.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tailSuspendUnitFun.kt")
+    public void testTailSuspendUnitFun_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tailSuspendUnitFun.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("tryCatchTailCall.kt")
-    public void testTryCatchTailCall() throws Exception {
+    public void testTryCatchTailCall_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tryCatchTailCall.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("tryCatchTailCall.kt")
+    public void testTryCatchTailCall_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/tryCatchTailCall.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("unreachable.kt")
-    public void testUnreachable() throws Exception {
+    public void testUnreachable_1_2() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/unreachable.kt");
-        doTest(fileName);
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+    }
+
+    @TestMetadata("unreachable.kt")
+    public void testUnreachable_1_3() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeListing/unreachable.kt");
+        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
     }
 
     @TestMetadata("compiler/testData/codegen/bytecodeListing/annotations")

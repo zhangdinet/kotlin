@@ -25,14 +25,14 @@ abstract class AbstractJavacDiagnosticsTest : AbstractDiagnosticsTest() {
 
     private var useJavac = true
 
-    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>) {
+    override fun analyzeAndCheck(testDataFile: File, files: List<TestFile>, coroutinesPackage: String) {
         if (useJavac) {
             val groupedByModule = files.groupBy(TestFile::module)
             val allKtFiles = groupedByModule.values.flatMap { getKtFiles(it, true) }
             environment.registerJavac(kotlinFiles = allKtFiles)
             environment.configuration.put(JVMConfigurationKeys.USE_JAVAC, true)
         }
-        super.analyzeAndCheck(testDataFile, files)
+        super.analyzeAndCheck(testDataFile, files, coroutinesPackage)
     }
 
     fun doTestWithoutJavacWrapper(path: String) {
@@ -46,13 +46,13 @@ abstract class AbstractJavacDiagnosticsTest : AbstractDiagnosticsTest() {
         return specialFile.takeIf { it.exists() } ?: super.getExpectedDiagnosticsFile(testDataFile)
     }
 
-    override fun createTestFiles(file: File, expectedText: String, modules: MutableMap<String, ModuleAndDependencies>?): List<TestFile> {
+    override fun createTestFiles(file: File, expectedText: String, modules: MutableMap<String, ModuleAndDependencies>?, coroutinesPackage: String): List<TestFile> {
         val specialFile = getExpectedDiagnosticsFile(file)
         if (file.path == specialFile.path) {
-            return super.createTestFiles(file, expectedText, modules)
+            return super.createTestFiles(file, expectedText, modules, coroutinesPackage)
         }
 
-        return super.createTestFiles(specialFile, KotlinTestUtils.doLoadFile(specialFile), modules)
+        return super.createTestFiles(specialFile, KotlinTestUtils.doLoadFile(specialFile), modules, coroutinesPackage)
     }
 }
 
