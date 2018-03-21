@@ -302,6 +302,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
 
     override fun visitTypeParameter(typeParameter: FirTypeParameter) {
         typeParameter.annotations.renderAnnotations()
+        if (typeParameter.isReified) {
+            print("reified ")
+        }
         typeParameter.variance.renderVariance()
         print(typeParameter.name)
         if (typeParameter.bounds.isNotEmpty()) {
