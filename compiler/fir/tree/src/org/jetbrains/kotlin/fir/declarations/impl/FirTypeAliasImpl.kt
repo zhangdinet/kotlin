@@ -22,10 +22,10 @@ class FirTypeAliasImpl(
     psi: PsiElement?,
     name: Name,
     visibility: Visibility,
-    override var abbreviatedType: FirType
+    override var expandedType: FirType
 ) : FirAbstractMemberDeclaration(session, psi, TYPEALIAS, name, visibility, Modality.FINAL), FirTypeAlias {
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
-        abbreviatedType = abbreviatedType.transformSingle(transformer, data)
+        expandedType = expandedType.transformSingle(transformer, data)
 
         return this
     }

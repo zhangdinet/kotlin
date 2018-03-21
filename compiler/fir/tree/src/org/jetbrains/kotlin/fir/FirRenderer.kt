@@ -152,6 +152,11 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         visitClass(enumEntry)
     }
 
+    override fun visitResolvedClass(resolvedClass: FirResolvedClass) {
+        print("(resolved) ")
+        visitClass(resolvedClass)
+    }
+
     override fun visitClass(klass: FirClass) {
         visitMemberDeclaration(klass)
         val attributes = listOfNotNull(
@@ -254,11 +259,16 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         println("}")
     }
 
+    override fun visitResolvedTypeAlias(resolvedTypeAlias: FirResolvedTypeAlias) {
+        print("(resolved) ")
+        visitTypeAlias(resolvedTypeAlias)
+    }
+
     override fun visitTypeAlias(typeAlias: FirTypeAlias) {
         typeAlias.annotations.renderAnnotations()
         visitMemberDeclaration(typeAlias)
         print(" = ")
-        typeAlias.abbreviatedType.accept(this)
+        typeAlias.expandedType.accept(this)
         println()
     }
 
