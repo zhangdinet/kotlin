@@ -13,6 +13,7 @@ dependencies {
     val compileOnly by configurations
 
     compile(project(":core:descriptors"))
+    compile(project(":core:deserialization"))
     compile(project(":compiler:fir:tree"))
     compile(project(":compiler:fir:cones"))
 
