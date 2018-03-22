@@ -23,7 +23,7 @@ interface ConeClassLikeSymbol : ConeSymbol {
 }
 
 interface ConeTypeAliasSymbol : ConeClassLikeSymbol {
-    val expansionType: ConeClassLikeType
+    val expansionType: ConeClassLikeType?
 }
 
 interface ConeClassSymbol : ConeClassLikeSymbol {

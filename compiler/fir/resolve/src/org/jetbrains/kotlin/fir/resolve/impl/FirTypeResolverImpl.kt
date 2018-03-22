@@ -52,7 +52,7 @@ class FirTypeResolverImpl : FirTypeResolver {
                 ConeAbbreviatedTypeImpl(
                     abbreviationSymbol = this as ConeClassLikeSymbol,
                     typeArguments = parts.toTypeProjections(),
-                    directExpansion = expansionType
+                    directExpansion = expansionType ?: ConeClassErrorType("Unresolved expansion")
                 )
             }
             else -> error("!")

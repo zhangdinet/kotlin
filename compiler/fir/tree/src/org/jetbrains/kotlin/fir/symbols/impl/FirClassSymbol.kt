@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.symbols.ConeClassSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
+import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
 import org.jetbrains.kotlin.name.ClassId
 
@@ -20,7 +21,7 @@ class FirClassSymbol(override val classId: ClassId) : ConeClassSymbol, AbstractF
         get() = fir.classKind
 
     override val superTypes: List<ConeClassLikeType>
-        get() = fir.superTypes.map { it.coneTypeUnsafe<ConeClassLikeType>() }
+        get() = fir.superTypes.mapNotNull { it.coneTypeSafe<ConeClassLikeType>() }
 
     override val typeParameters: List<ConeTypeParameterSymbol>
         get() = fir.typeParameters.map { it.symbol }

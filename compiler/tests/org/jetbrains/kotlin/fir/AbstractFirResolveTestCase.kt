@@ -20,21 +20,13 @@ import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment
 import java.io.File
 
-abstract class AbstractFirResolveTestCase : KotlinTestWithEnvironment() {
+abstract class AbstractFirResolveTestCase : AbstractFirResolveWithSessionTestCase() {
     override fun createEnvironment(): KotlinCoreEnvironment {
         return createEnvironmentWithMockJdk(ConfigurationKind.JDK_NO_RUNTIME)
     }
 
     fun doCreateAndProcessFir(ktFiles: List<KtFile>): List<FirFile> {
-        val session = object : FirSessionBase() {
-            init {
-                val firProvider = FirProviderImpl(this)
-                registerComponent(FirProvider::class, firProvider)
-                registerComponent(FirSymbolProvider::class, FirCompositeSymbolProvider(listOf(firProvider, FirLibrarySymbolProviderImpl(this))))
-                registerComponent(FirQualifierResolver::class, FirQualifierResolverImpl(this))
-                registerComponent(FirTypeResolver::class, FirTypeResolverImpl())
-            }
-        }
+        val session = createSession()
 
         val builder = RawFirBuilder(session)
 
@@ -44,7 +36,12 @@ abstract class AbstractFirResolveTestCase : KotlinTestWithEnvironment() {
             (session.service<FirProvider>() as FirProviderImpl).recordFile(firFile)
             firFile
         }.also {
-            transformer.processFiles(it)
+            try {
+                transformer.processFiles(it)
+            } catch (e: Exception) {
+                it.forEach { println(it.render()) }
+                throw e
+            }
         }
 
         return firFiles

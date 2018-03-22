@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 import kotlin.system.measureNanoTime
 
 @TestDataPath("\$PROJECT_ROOT")
-class FirResolveTestTotalKotlin : KotlinTestWithEnvironment() {
+class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
 
     override fun createEnvironment(): KotlinCoreEnvironment {
         return createEnvironmentWithMockJdk(ConfigurationKind.JDK_NO_RUNTIME)
@@ -51,14 +51,7 @@ class FirResolveTestTotalKotlin : KotlinTestWithEnvironment() {
         }
 
 
-        val session = object : FirSessionBase() {
-            init {
-                registerComponent(FirProvider::class, FirProviderImpl(this))
-                registerComponent(FirQualifierResolver::class, FirQualifierResolverImpl(this))
-                registerComponent(FirTypeResolver::class, FirTypeResolverImpl())
-            }
-        }
-
+        val session = createSession()
         val builder = RawFirBuilder(session)
 
         val transformer = FirTotalResolveTransformer()

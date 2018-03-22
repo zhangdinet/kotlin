@@ -5,13 +5,16 @@
 
 package org.jetbrains.kotlin.fir.symbols
 
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.fir.deserialization.FirTypeDeserializer
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.metadata.deserialization.TypeTable
 import org.jetbrains.kotlin.metadata.deserialization.supertypes
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 
 class LibraryClassSymbol(
@@ -19,6 +22,9 @@ class LibraryClassSymbol(
     nameResolver: NameResolver,
     val typeDeserializer: FirTypeDeserializer
 ) : ConeClassSymbol {
+
+    override val kind: ClassKind = ProtoEnumFlags.classKind(Flags.CLASS_KIND[classProto.flags])
+
     override val typeParameters: List<ConeTypeParameterSymbol> by lazy { typeDeserializer.ownTypeParameters }
     override val classId: ClassId = nameResolver.getClassId(classProto.fqName)
 
