@@ -22,13 +22,6 @@ sourceSets {
             }
         }
     }
-    builtins {
-        if(!System.properties.'idea.active')
-        java {
-            srcDir "${rootDir}/core/builtins/src"
-            srcDir 'runtime'
-        }
-    }
     main {
         java {
             srcDir "${rootDir}/core/builtins/src"
@@ -51,15 +44,10 @@ sourceSets {
 dependencies {
     expectedBy project(":kotlin-stdlib-common")
 
-    builtinsCompile group: 'org.jetbrains', name: 'annotations', version:'13.0'
     compile group: 'org.jetbrains', name: 'annotations', version:'13.0'
     compile fileTree("${rootDir}/dist/builtins")
 
     testCompile project(':kotlin-test:kotlin-test-junit')
-}
-
-configurations {
-    builtins
 }
 
 jar {
@@ -78,11 +66,6 @@ task distJar(type: Jar) {
     from sourceSets.experimental.output
 }
 
-task builtinsJar(type: Jar) {
-    baseName = "builtins"
-    from("${rootDir}/dist/builtins")
-    from sourceSets.builtins.output
-}
 
 sourcesJar {
     from "${rootDir}/core/builtins/native"
@@ -91,7 +74,6 @@ sourcesJar {
 artifacts {
     archives sourcesJar
     archives javadocJar
-    builtins builtinsJar
 }
 
 dist {
@@ -116,18 +98,6 @@ task dexMethodCount(type: DexMethodCount) {
 }
 check.dependsOn(dexMethodCount)
 
-compileBuiltinsKotlin {
-    dependsOn ":core:builtins:serialize"
-    kotlinOptions {
-        freeCompilerArgs = [
-                "-version",
-                "-Xallow-kotlin-package",
-                "-Xmulti-platform",
-                "-cp", "${rootDir}/dist/builtins",
-                "-module-name", "kotlin-runtime"
-        ]
-    }
-}
 compileKotlin {
     dependsOn(":core:builtins:serialize")
     dependsOn(":prepare:build.version:writeStdlibVersion")
@@ -164,4 +134,4 @@ compileExperimentalKotlin {
     }
 }
 
-kotlin.experimental.coroutines "enable"
+kotlin.experimental.coroutines 'enable'
