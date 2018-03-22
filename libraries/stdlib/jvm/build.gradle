@@ -107,7 +107,6 @@ compileKotlin {
                 "-version",
                 "-Xallow-kotlin-package",
                 "-Xmultifile-parts-inherit",
-                "-Xmulti-platform",
                 "-Xnormalize-constructor-calls=enable",
                 "-Xdump-declarations-to=${buildDir}/stdlib-declarations.json",
                 "-module-name", "kotlin-stdlib"
