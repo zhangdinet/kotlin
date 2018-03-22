@@ -11,10 +11,9 @@ import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
+import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.FirTypeResolver
-import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
-import org.jetbrains.kotlin.fir.resolve.impl.FirQualifierResolverImpl
-import org.jetbrains.kotlin.fir.resolve.impl.FirTypeResolverImpl
+import org.jetbrains.kotlin.fir.resolve.impl.*
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -29,7 +28,9 @@ abstract class AbstractFirResolveTestCase : KotlinTestWithEnvironment() {
     fun doCreateAndProcessFir(ktFiles: List<KtFile>): List<FirFile> {
         val session = object : FirSessionBase() {
             init {
-                registerComponent(FirProvider::class, FirProviderImpl(this))
+                val firProvider = FirProviderImpl(this)
+                registerComponent(FirProvider::class, firProvider)
+                registerComponent(FirSymbolProvider::class, FirCompositeSymbolProvider(listOf(firProvider, FirLibrarySymbolProviderImpl(this))))
                 registerComponent(FirQualifierResolver::class, FirQualifierResolverImpl(this))
                 registerComponent(FirTypeResolver::class, FirTypeResolverImpl())
             }

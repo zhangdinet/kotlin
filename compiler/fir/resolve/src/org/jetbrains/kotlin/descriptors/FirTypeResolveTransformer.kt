@@ -13,12 +13,14 @@ import org.jetbrains.kotlin.fir.resolve.FirTypeResolver
 import org.jetbrains.kotlin.fir.scopes.FirPosition
 import org.jetbrains.kotlin.fir.scopes.impl.*
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.ConeClassSymbol
+import org.jetbrains.kotlin.fir.symbols.ConeTypeAliasSymbol
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeImpl
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -50,9 +52,7 @@ class FirTypeResolveTransformer(val superTypesOnly: Boolean = false) : FirTransf
     }
 
     private fun lookupSuperTypes(klass: FirClass): List<ClassId> {
-        val superTypesBuilder = SuperClassHierarchyBuilder()
-        klass.superTypes.any { it.accept(superTypesBuilder, null) }
-        return superTypesBuilder.classes
+        return mutableListOf<ConeClassLikeType>().also { klass.symbol.collectSuperTypes(it) }.map { it.symbol.classId }
     }
 
     private fun resolveSuperTypesAndExpansions(element: FirMemberDeclaration) {
@@ -150,8 +150,9 @@ class FirTypeResolveTransformer(val superTypesOnly: Boolean = false) : FirTransf
             val symbol = typeResolver.resolveToSymbol(type, scope, position = FirPosition.SUPER_TYPE_OR_EXPANSION)
             val myTransformer = this@FirTypeResolveTransformer
 
-            if (type !is FirUserType) return myTransformer.transformType(type, data)
-            val classId = (symbol as? ConeClassLikeSymbol)?.classId ?: return myTransformer.transformType(type, data)
+            if (type !is FirUserType || symbol !is FirBasedSymbol<*> || symbol !is ConeClassLikeSymbol) return myTransformer.transformType(type, data)
+
+            val classId = symbol.classId
             val firProvider = FirProvider.getInstance(type.session)
 
             val classes = generateSequence(classId) { it.outerClassId }.toList()
@@ -172,36 +173,18 @@ class FirTypeResolveTransformer(val superTypesOnly: Boolean = false) : FirTransf
         }
     }
 
-    private inner class SuperClassHierarchyBuilder : FirVisitor<Boolean, Nothing?>() {
-
-        override fun visitElement(element: FirElement, data: Nothing?): Boolean {
-            return false
-        }
-
-        private tailrec fun ConeClassLikeType.computePartialExpansion(): ClassId {
-            return when (this) {
-                !is ConeAbbreviatedType -> this.symbol.classId
-                else -> this.directExpansion.computePartialExpansion()
+    private tailrec fun ConeClassLikeSymbol.collectSuperTypes(list: MutableList<ConeClassLikeType>) {
+        return when(this) {
+            is ConeClassSymbol -> {
+                val superClassType = this.superTypes.firstOrNull { it.symbol == ClassKind.CLASS } ?: return
+                list += superClassType
+                superClassType.symbol.collectSuperTypes(list)
             }
-        }
-
-        val classes = mutableListOf<ClassId>()
-
-        override fun visitResolvedType(resolvedType: FirResolvedType, data: Nothing?): Boolean {
-            val provider = FirProvider.getInstance(resolvedType.session)
-            val targetClassId = resolvedType.coneTypeSafe<ConeClassLikeType>()?.computePartialExpansion() ?: return false
-            val classifier = provider.getFirClassifierByFqName(targetClassId)!!
-            when (classifier) {
-                is FirClass -> {
-                    if (classifier.classKind == ClassKind.CLASS) {
-                        classes += targetClassId
-                        classifier.superTypes.any { it.accept(this, data) }
-                    }
-                }
-                is FirTypeAlias -> classifier.expandedType.accept(this, data)
+            is ConeTypeAliasSymbol -> {
+                this.expansionType.symbol.collectSuperTypes(list)
             }
-            return true
+            else -> error("?!id:1")
         }
-
     }
+
 }
