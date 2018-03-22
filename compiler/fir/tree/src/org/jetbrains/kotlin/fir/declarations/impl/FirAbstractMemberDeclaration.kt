@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirMemberPlatformStatus
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.name.Name
@@ -20,7 +21,8 @@ abstract class FirAbstractMemberDeclaration(
     declarationKind: IrDeclarationKind,
     name: Name,
     final override val visibility: Visibility,
-    final override val modality: Modality?
+    final override val modality: Modality?,
+    override val platformStatus: FirMemberPlatformStatus
 ) : FirAbstractNamedAnnotatedDeclaration(session, psi, declarationKind, name), FirMemberDeclaration {
     final override val typeParameters = mutableListOf<FirTypeParameter>()
 }
