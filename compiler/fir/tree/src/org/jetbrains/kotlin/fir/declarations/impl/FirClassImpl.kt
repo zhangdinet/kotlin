@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirMemberPlatformStatus
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
@@ -22,6 +23,7 @@ import org.jetbrains.kotlin.name.Name
 open class FirClassImpl(
     session: FirSession,
     psi: PsiElement?,
+    final override val symbol: FirBasedSymbol<FirClass>,
     name: Name,
     visibility: Visibility,
     modality: Modality?,
@@ -31,6 +33,11 @@ open class FirClassImpl(
     final override val isCompanion: Boolean,
     final override val isData: Boolean
 ) : FirAbstractMemberDeclaration(session, psi, IrDeclarationKind.CLASS, name, visibility, modality, platformStatus), FirClass {
+
+    init {
+        symbol.bind(this)
+    }
+
     override val superTypes = mutableListOf<FirType>()
 
     override val declarations = mutableListOf<FirDeclaration>()
