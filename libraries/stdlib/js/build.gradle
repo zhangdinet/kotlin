@@ -133,7 +133,6 @@ compileKotlin2Js {
         outputFile = "${buildDir}/classes/main/kotlin.js"
         sourceMap = true
         sourceMapPrefix = "./"
-        freeCompilerArgs += ["-Xmulti-platform"]
         freeCompilerArgs += ["-source-map-base-dirs", [builtinsSrcDir, jsSrcDir, commonSrcDir].collect { file(it).absoluteFile }.join(File.pathSeparator)]
     }
 }
@@ -154,7 +153,6 @@ compileTestKotlin2Js {
     dependsOn(":kotlin-stdlib-common:preprocessSourcesTest")
     kotlinOptions {
         moduleKind = "umd"
-        freeCompilerArgs += ["-Xmulti-platform"]
     }
 }
 
