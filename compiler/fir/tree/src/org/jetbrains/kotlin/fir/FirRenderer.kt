@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.fir.symbols.ConeClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.fir.types.impl.ConeKotlinErrorType
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
 import org.jetbrains.kotlin.types.Variance
@@ -450,7 +449,6 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             is ConeTypeParameterType -> {
                 symbol.asString()
             }
-            else -> "Unsupported: $this"
         }
     }
 
