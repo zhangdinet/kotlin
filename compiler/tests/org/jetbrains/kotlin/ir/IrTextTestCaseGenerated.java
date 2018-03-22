@@ -289,15 +289,9 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
         }
 
         @TestMetadata("localDelegatedPropertyWithSuspendOperators.kt")
-        public void testLocalDelegatedPropertyWithSuspendOperators_1_2() throws Exception {
+        public void testLocalDelegatedPropertyWithSuspendOperators() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedPropertyWithSuspendOperators.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("localDelegatedPropertyWithSuspendOperators.kt")
-        public void testLocalDelegatedPropertyWithSuspendOperators_1_3() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedPropertyWithSuspendOperators.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+            doTest(fileName);
         }
 
         @TestMetadata("localVarInDoWhile.kt")

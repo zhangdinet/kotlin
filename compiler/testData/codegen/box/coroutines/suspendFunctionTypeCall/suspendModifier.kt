@@ -1,9 +1,9 @@
+// !API_VERSION: 1.2
 // WITH_RUNTIME
-// COMMON_COROUTINES_TEST
 // WITH_COROUTINES
 import helpers.*
-import COROUTINES_PACKAGE.*
-import COROUTINES_PACKAGE.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 suspend fun suspendHere(v: String): String = suspendCoroutineOrReturn { x ->
     x.resume(v)

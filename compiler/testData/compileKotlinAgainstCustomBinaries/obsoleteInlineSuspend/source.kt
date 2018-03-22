@@ -1,6 +1,5 @@
 import library.*
-// COMMON_COROUTINES_TEST
-import COROUTINES_PACKAGE.*
+import kotlin.coroutines.experimental.*
 
 suspend fun test() {
     append("[foo]")

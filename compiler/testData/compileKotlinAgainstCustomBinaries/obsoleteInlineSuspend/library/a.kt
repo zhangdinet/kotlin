@@ -1,7 +1,6 @@
-// COMMON_COROUTINES_TEST
 package library
 
-import COROUTINES_PACKAGE.*
+import kotlin.coroutines.experimental.*
 
 var continuation: Continuation<Unit>? = null
 val sb = java.lang.StringBuilder()

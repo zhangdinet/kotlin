@@ -1,5 +1,4 @@
 // FILE: main.kt
-// COMMON_COROUTINES_TEST
 interface A {
     suspend fun foo()
     fun bar()
@@ -34,5 +33,5 @@ interface C : A {
 // FILE: J.java
 
 public interface J extends A {
-    Object foo(COROUTINES_PACKAGE.Continuation<kotlin.Unit> y);
+    Object foo(kotlin.coroutines.experimental.Continuation<kotlin.Unit> y);
 }

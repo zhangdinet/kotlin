@@ -1465,27 +1465,15 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
         }
 
         @TestMetadata("suspendLambda.kt")
-        public void testSuspendLambda_1_2() throws Exception {
+        public void testSuspendLambda() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/coroutines/suspendLambda.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("suspendLambda.kt")
-        public void testSuspendLambda_1_3() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/coroutines/suspendLambda.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+            doTest(fileName);
         }
 
         @TestMetadata("suspendOverridability.kt")
-        public void testSuspendOverridability_1_2() throws Exception {
+        public void testSuspendOverridability() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/coroutines/suspendOverridability.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("suspendOverridability.kt")
-        public void testSuspendOverridability_1_3() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/testsWithStdLib/coroutines/suspendOverridability.kt");
-            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+            doTest(fileName);
         }
 
         @TestMetadata("suspesionInDefaultValue.kt")

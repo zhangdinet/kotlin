@@ -1,8 +1,7 @@
 // WITH_RUNTIME
-// COMMON_COROUTINES_TEST
 
-import COROUTINES_PACKAGE.intrinsics.COROUTINE_SUSPENDED
-import COROUTINES_PACKAGE.intrinsics.suspendCoroutineOrReturn
+import kotlin.coroutines.experimental.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.experimental.intrinsics.suspendCoroutineOrReturn
 import kotlin.reflect.KProperty
 
 class A {

@@ -1,8 +1,7 @@
 // WITH_RUNTIME
 // IGNORE_BACKEND: JS
-// COMMON_COROUTINES_TEST
-import COROUTINES_PACKAGE.*
-import COROUTINES_PACKAGE.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.COROUTINE_SUSPENDED
 
 fun runCustomLambdaAsCoroutine(e: Throwable? = null, x: (Continuation<String>) -> Any?): String {
     var result = "fail"
