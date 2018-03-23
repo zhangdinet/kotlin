@@ -42,7 +42,7 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
             ProtoBuf.PackageFragment.parseFrom(stream, BuiltInSerializerProtocol.extensionRegistry)
         }
 
-        protected val nameResolver = NameResolverImpl(packageProto.strings, packageProto.qualifiedNames)
+        private val nameResolver = NameResolverImpl(packageProto.strings, packageProto.qualifiedNames)
 
         val classDataFinder = ProtoBasedClassDataFinder(packageProto, nameResolver) { SourceElement.NO_SOURCE }
 

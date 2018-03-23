@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.fir.declarations
 import org.jetbrains.kotlin.fir.BaseTransformedType
 import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirCall
-import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
 
 @BaseTransformedType
