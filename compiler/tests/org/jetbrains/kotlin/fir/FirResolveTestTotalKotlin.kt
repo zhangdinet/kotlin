@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.types.ConeKotlinErrorType
-import org.jetbrains.kotlin.fir.types.FirFunctionType
 import org.jetbrains.kotlin.fir.types.FirResolvedType
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
@@ -92,9 +91,7 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
                     }
 
                     override fun visitType(type: FirType) {
-                        if (type !is FirFunctionType) {
-                            unresolvedTypes++
-                        }
+                        unresolvedTypes++
                     }
 
                     override fun visitResolvedType(resolvedType: FirResolvedType) {
