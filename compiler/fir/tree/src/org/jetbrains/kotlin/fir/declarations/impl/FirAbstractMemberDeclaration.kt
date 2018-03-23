@@ -21,7 +21,7 @@ abstract class FirAbstractMemberDeclaration(
     declarationKind: IrDeclarationKind,
     name: Name,
     final override val visibility: Visibility,
-    final override val modality: Modality?,
+    override val modality: Modality?,
     override val platformStatus: FirMemberPlatformStatus
 ) : FirAbstractNamedAnnotatedDeclaration(session, psi, declarationKind, name), FirMemberDeclaration {
     final override val typeParameters = mutableListOf<FirTypeParameter>()

@@ -42,7 +42,7 @@ class FirDefaultPropertyGetter(
     session: FirSession,
     psi: PsiElement?,
     propertyType: FirType
-): FirDefaultPropertyAccessor(session, psi, isGetter = true) {
+) : FirDefaultPropertyAccessor(session, psi, isGetter = true) {
     override val valueParameters: List<FirValueParameter> = emptyList()
 
     override var returnType: FirType = propertyType
@@ -58,7 +58,7 @@ class FirDefaultPropertySetter(
     session: FirSession,
     psi: PsiElement?,
     propertyType: FirType
-): FirDefaultPropertyAccessor(session, psi, isGetter = false) {
+) : FirDefaultPropertyAccessor(session, psi, isGetter = false) {
     override val valueParameters = mutableListOf(FirDefaultSetterValueParameter(session, psi, propertyType))
 
     override var returnType: FirType = FirUnitType(session, psi)
