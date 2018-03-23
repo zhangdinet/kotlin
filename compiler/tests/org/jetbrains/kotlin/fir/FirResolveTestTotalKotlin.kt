@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.types.ConeKotlinErrorType
+import org.jetbrains.kotlin.fir.types.FirFunctionType
 import org.jetbrains.kotlin.fir.types.FirResolvedType
 import org.jetbrains.kotlin.fir.types.FirType
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
@@ -49,7 +50,7 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
         val session = createSession()
         val builder = RawFirBuilder(session)
 
-        val transformer = FirTotalResolveTransformer()
+        val totalTransformer = FirTotalResolveTransformer()
         val firFiles = ktFiles.map {
             val firFile = builder.buildFirFile(it)
             (session.service<FirProvider>() as FirProviderImpl).recordFile(firFile)
@@ -61,14 +62,14 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
 
         val timePerTransformer = mutableMapOf<KClass<*>, Long>()
         val counterPerTransformer = mutableMapOf<KClass<*>, Long>()
-        var totalLength = 0
+        val totalLength = 0
         var resolvedTypes = 0
         var errorTypes = 0
         var unresolvedTypes = 0
 
 
         try {
-            for (transformer in transformer.transformers) {
+            for (transformer in totalTransformer.transformers) {
                 for (file in firFiles) {
                     val time = measureNanoTime {
                         try {
@@ -91,7 +92,9 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
                     }
 
                     override fun visitType(type: FirType) {
-                        unresolvedTypes++
+                        if (type !is FirFunctionType) {
+                            unresolvedTypes++
+                        }
                     }
 
                     override fun visitResolvedType(resolvedType: FirResolvedType) {

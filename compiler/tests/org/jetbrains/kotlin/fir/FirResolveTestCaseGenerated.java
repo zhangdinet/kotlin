@@ -37,6 +37,12 @@ public class FirResolveTestCaseGenerated extends AbstractFirResolveTestCase {
         doTest(fileName);
     }
 
+    @TestMetadata("functionTypes.kt")
+    public void testFunctionTypes() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/resolve/functionTypes.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("genericFunctions.kt")
     public void testGenericFunctions() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/resolve/genericFunctions.kt");

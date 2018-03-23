@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationKind
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
 
@@ -93,6 +94,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         visitMemberDeclaration(callableMember)
         val receiverType = callableMember.receiverType
         if (receiverType != null) {
+            print(" ")
             receiverType.accept(this)
             print(".")
         }
@@ -321,7 +323,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         if (valueParameter.isVararg) {
             print("vararg ")
         }
-        print(valueParameter.name.toString() + ": ")
+        if (valueParameter.name != SpecialNames.NO_NAME_PROVIDED) {
+            print(valueParameter.name.toString() + ": ")
+        }
         valueParameter.returnType.accept(this)
         valueParameter.defaultValue?.let {
             print(" = ")
@@ -396,7 +400,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             print(".")
         }
         functionType.valueParameters.renderParameters()
-        print(": ")
+        print(" -> ")
         functionType.returnType.accept(this)
         print(" )")
         visitTypeWithNullability(functionType)
