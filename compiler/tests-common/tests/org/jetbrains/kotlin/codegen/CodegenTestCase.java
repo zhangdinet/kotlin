@@ -16,14 +16,14 @@
 
 package org.jetbrains.kotlin.codegen;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.TestDataFile;
+import kotlin.Pair;
 import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
+import kotlin.collections.MapsKt;
 import kotlin.io.FilesKt;
 import kotlin.script.experimental.dependencies.ScriptDependencies;
 import kotlin.text.Charsets;
@@ -217,12 +217,12 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
         assert settings == null && version == null : "Should not specify LANGUAGE_VERSION twice or together with !LANGUAGE directive";
     }
 
-    private static final Map<String, Class<?>> FLAG_NAMESPACE_TO_CLASS = ImmutableMap.of(
-            "CLI", CLIConfigurationKeys.class,
-            "JVM", JVMConfigurationKeys.class
-    );
+    private static final Map<String, Class<?>> FLAG_NAMESPACE_TO_CLASS = Collections.unmodifiableMap(MapsKt.mapOf(
+            new Pair<>("CLI", CLIConfigurationKeys.class),
+            new Pair<>("JVM", JVMConfigurationKeys.class)
+    ));
 
-    private static final List<Class<?>> FLAG_CLASSES = ImmutableList.of(CLIConfigurationKeys.class, JVMConfigurationKeys.class);
+    private static final List<Class<?>> FLAG_CLASSES = CollectionsKt.listOf(CLIConfigurationKeys.class, JVMConfigurationKeys.class);
 
     private static final Pattern BOOLEAN_FLAG_PATTERN = Pattern.compile("([+-])(([a-zA-Z_0-9]*)\\.)?([a-zA-Z_0-9]*)");
     private static final Pattern CONSTRUCTOR_CALL_NORMALIZATION_MODE_FLAG_PATTERN = Pattern.compile(
