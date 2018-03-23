@@ -57,8 +57,8 @@ fun suite(): TestSuite {
     req.enable()
 
     val latch = CountDownLatch(1)
-    var classLoader : ClassLoaderReference? = null
-    var thread : ThreadReference? = null
+    var classLoader: ClassLoaderReference? = null
+    var thread: ThreadReference? = null
 
     Thread {
         val eventQueue = vm.eventQueue()
@@ -89,7 +89,8 @@ fun suite(): TestSuite {
 
                         break@mainLoop
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
         }
@@ -99,10 +100,9 @@ fun suite(): TestSuite {
 
     latch.await()
 
-    var remainingTests = AtomicInteger(0)
+    val remainingTests = AtomicInteger(0)
 
-    val suite = buildTestSuite {
-        methodNode, ownerClass, expected ->
+    return buildTestSuite { methodNode, ownerClass, expected ->
         remainingTests.incrementAndGet()
         object : TestCase(getTestName(methodNode.name)) {
 
@@ -112,53 +112,49 @@ fun suite(): TestSuite {
                 val args = if ((methodNode.access and Opcodes.ACC_STATIC) == 0) {
                     // Instance method
                     val newInstance = eval.newInstance(Type.getType(ownerClass))
-                    val thisValue = eval.invokeMethod(newInstance, MethodDescription(ownerClass.name, "<init>", "()V", false), listOf(), true)
+                    val thisValue =
+                        eval.invokeMethod(newInstance, MethodDescription(ownerClass.name, "<init>", "()V", false), listOf(), true)
                     listOf(thisValue)
-                }
-                else {
+                } else {
                     listOf()
                 }
 
                 val value = interpreterLoop(
-                        methodNode,
-                        makeInitialFrame(methodNode, args),
-                        eval
+                    methodNode,
+                    makeInitialFrame(methodNode, args),
+                    eval
                 )
 
                 fun ObjectReference?.callToString(): String? {
                     if (this == null) return "null"
                     return (eval.invokeMethod(
-                                                this.asValue(),
-                                                MethodDescription(
-                                                        "java/lang/Object",
-                                                        "toString",
-                                                        "()Ljava/lang/String;",
-                                                        false
-                                                ),
-                                                listOf()).jdiObj as StringReference).value()
+                        asValue(),
+                        MethodDescription(
+                            "java/lang/Object",
+                            "toString",
+                            "()Ljava/lang/String;",
+                            false
+                        ),
+                        listOf()
+                    ).jdiObj as StringReference).value()
 
                 }
 
                 try {
                     if (expected is ValueReturned && value is ValueReturned && value.result is ObjectValue) {
                         assertEquals(expected.result.obj().toString(), value.result.jdiObj.callToString())
-                    }
-                    else if (expected is ExceptionThrown && value is ExceptionThrown) {
+                    } else if (expected is ExceptionThrown && value is ExceptionThrown) {
                         val valueObj = value.exception.obj()
                         val actual = if (valueObj is ObjectReference) valueObj.callToString() else valueObj.toString()
                         assertEquals(expected.exception.obj().toString(), actual)
-                    }
-                    else {
+                    } else {
                         assertEquals(expected, value)
                     }
-                }
-                finally {
+                } finally {
                     if (remainingTests.decrementAndGet() == 0) vm.resume()
                 }
 
             }
         }
     }
-
-    return suite
 }
