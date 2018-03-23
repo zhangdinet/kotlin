@@ -27,9 +27,11 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import org.jetbrains.plugins.gradle.service.project.GradleAutoImportAware
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 class ScriptModificationListener(private val project: Project) {
-    private val changedDocuments = HashSet<Document>()
+    private val changedDocuments = Collections.newSetFromMap<Document>(ConcurrentHashMap())
     private val changedDocumentsQueue = MergingUpdateQueue("ScriptModificationListener: Scripts queue", 1000, false, ANY_COMPONENT, project)
 
     init {
@@ -74,25 +76,19 @@ class ScriptModificationListener(private val project: Project) {
                 val file = FileDocumentManager.getInstance().getFile(doc) ?: return
 
                 if (isGradleScript(file)) {
-                    synchronized(changedDocuments) {
-                        changedDocuments.add(doc)
-                    }
+                    changedDocuments.add(doc)
 
                     changedDocumentsQueue.queue(object : Update(this) {
                         override fun run() {
-                            var copy: Array<Document> = emptyArray()
-
-                            synchronized(changedDocuments) {
-                                copy = changedDocuments.toTypedArray()
-                                changedDocuments.clear()
-                            }
+                            val documentsToSave = changedDocuments.toTypedArray()
 
                             ExternalSystemUtil.invokeLater(project) {
                                 object : WriteAction<Any>() {
                                     override fun run(result: Result<Any>) {
-                                        for (each in copy) {
-                                            PsiDocumentManager.getInstance(project).commitDocument(each)
-                                            (FileDocumentManager.getInstance() as? FileDocumentManagerImpl)?.saveDocument(each, false)
+                                        for (document in documentsToSave) {
+                                            PsiDocumentManager.getInstance(project).commitDocument(document)
+                                            (FileDocumentManager.getInstance() as? FileDocumentManagerImpl)?.saveDocument(document, false)
+                                            changedDocuments.remove(document)
                                         }
                                     }
                                 }.execute()
