@@ -7,14 +7,9 @@ plugins {
 }
 
 dependencies {
-    testRuntime(intellijDep())
-
     compileOnly(project(":compiler:plugin-api"))
     compileOnly(project(":compiler:frontend"))
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
-
-    runtime(projectRuntimeJar(":kotlin-compiler"))
-    runtime(projectDist(":kotlin-stdlib"))
 
     testCompile(project(":compiler:backend"))
     testCompile(project(":compiler:cli"))
