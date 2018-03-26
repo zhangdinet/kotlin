@@ -90,6 +90,27 @@ fun collectAllModuleInfosFromIdeaModel(project: Project): List<IdeaModuleInfo> {
     return modulesSourcesInfos + librariesInfos + sdksInfos
 }
 
+fun getScriptDependentModuleInfo(project: Project, virtualFile: VirtualFile): ModuleSourceInfo? {
+    val projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project)
+
+    val module = projectFileIndex.getModuleForFile(virtualFile)
+    if (module != null && !module.isDisposed) {
+        val moduleFileIndex = ModuleRootManager.getInstance(module).fileIndex
+        if (moduleFileIndex.isInTestSourceContent(virtualFile)) {
+            return module.testSourceInfo()
+        } else if (moduleFileIndex.isInSourceContentWithoutInjected(virtualFile)) {
+            return module.productionSourceInfo()
+        }
+    }
+
+    if (ScratchFileService.isInScratchRoot(virtualFile)) {
+        val scratchModule = virtualFile.scriptRelatedModuleName?.let { ModuleManager.getInstance(project).findModuleByName(it) }
+        return scratchModule?.testSourceInfo() ?: scratchModule?.productionSourceInfo()
+    }
+
+    return null
+}
+
 internal fun getAllProjectSdks(): Collection<Sdk> {
     return ProjectJdkTable.getInstance().allJdks.toList()
 }
@@ -216,9 +237,9 @@ private inline fun <T> collectInfosByVirtualFile(
     project: Project, virtualFile: VirtualFile,
     treatAsLibrarySource: Boolean, onOccurrence: (IdeaModuleInfo?) -> T
 ): T {
-    if (ScratchFileService.isInScratchRoot(virtualFile)) {
-        val scratchModule = virtualFile.scriptRelatedModuleName?.let { ModuleManager.getInstance(project).findModuleByName(it) }
-        onOccurrence(scratchModule?.testSourceInfo() ?: scratchModule?.productionSourceInfo())
+    val scriptDefinition = getScriptDefinition(virtualFile, project)
+    if (scriptDefinition != null) {
+        onOccurrence(ScriptModuleInfo(project, virtualFile, scriptDefinition))
     }
 
     val projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project)
@@ -235,11 +256,6 @@ private inline fun <T> collectInfosByVirtualFile(
 
     projectFileIndex.getOrderEntriesForFile(virtualFile).forEach {
         it.toIdeaModuleInfo(project, virtualFile, treatAsLibrarySource)?.let(onOccurrence)
-    }
-
-    val scriptDefinition = getScriptDefinition(virtualFile, project)
-    if (scriptDefinition != null) {
-        onOccurrence(ScriptModuleInfo(project, virtualFile, scriptDefinition))
     }
 
     val isBinary = virtualFile.fileType.isKotlinBinary()

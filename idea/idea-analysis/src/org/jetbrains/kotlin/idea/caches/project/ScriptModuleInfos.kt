@@ -42,10 +42,13 @@ data class ScriptModuleInfo(
     override fun contentScope() = GlobalSearchScope.fileScope(project, scriptFile)
 
     override fun dependencies(): List<IdeaModuleInfo> {
-        return listOf(
-            this, ScriptDependenciesModuleInfo(project, this)
-        ) + sdkDependencies(externalDependencies, project)
+        val result = arrayListOf(this, ScriptDependenciesModuleInfo(project, this))
+        dependentModuleSourceInfo?.let { result.add(it) }
+        result.addAll(sdkDependencies(externalDependencies, project))
+        return result
     }
+
+    val dependentModuleSourceInfo: ModuleSourceInfo? = getScriptDependentModuleInfo(project, scriptFile)
 }
 
 private fun sdkDependencies(scriptDependencies: ScriptDependencies?, project: Project): List<SdkInfo> =
