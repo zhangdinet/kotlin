@@ -24,6 +24,7 @@ abstract class FirAbstractFunction(
     final override val valueParameters = mutableListOf<FirValueParameter>()
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
+        annotations.transformInplace(transformer, data)
         valueParameters.transformInplace(transformer, data)
 
         return this

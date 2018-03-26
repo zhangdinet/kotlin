@@ -38,6 +38,7 @@ class FirTypeAliasImpl(
         get() = super.modality ?: Modality.FINAL
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
+        annotations.transformInplace(transformer, data)
         typeParameters.transformInplace(transformer, data)
         expandedType = expandedType.transformSingle(transformer, data)
 
