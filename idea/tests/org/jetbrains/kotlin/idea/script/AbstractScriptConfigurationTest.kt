@@ -20,7 +20,7 @@ import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.idea.completion.test.KotlinCompletionTestCase
@@ -93,8 +93,7 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
             module.addDependency(projectLibrary("sharedLib", classesRoot = sharedLib))
         }
 
-        val scriptFile = createFileAndSyncDependencies(path)
-        configureByExistingFile(scriptFile)
+        createFileAndSyncDependencies(path)
     }
 
 
@@ -142,13 +141,13 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
         )
     }
 
-    private fun createFileAndSyncDependencies(path: String): VirtualFile {
-        val scriptDir = KotlinTestUtils.tmpDir("scriptDir")
-        val target = File(scriptDir, "script.kts")
-        File("${path}script.kts").copyTo(target)
-        val scriptFile = LocalFileSystem.getInstance().findFileByPath(target.path)!!
-        updateScriptDependenciesSynchronously(scriptFile, project)
-        return scriptFile
+    private fun createFileAndSyncDependencies(path: String) {
+        configureByFile(LocalFileSystem.getInstance().findFileByPath("${path}script.kts")!!)
+        val virtualFile = myFile.virtualFile
+        updateScriptDependenciesSynchronously(virtualFile, project)
+        VfsUtil.markDirtyAndRefresh(false, true, true, project.baseDir)
+        // This is needed because updateScriptDependencies invalidates psiFile that was stored in myFile field
+        myFile = psiManager.findFile(virtualFile)
     }
 
     private fun compileLibToDir(srcDir: File, vararg classpath: String): File {
