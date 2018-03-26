@@ -418,7 +418,13 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
 
     private fun getResolutionFacadeByModuleInfo(moduleInfo: IdeaModuleInfo, platform: TargetPlatform): ResolutionFacade {
         val settings = PlatformAnalysisSettings(platform, moduleInfo.sdk, moduleInfo.supportsAdditionalBuiltInsMembers())
-        val projectFacade = globalFacade(settings)
+        val projectFacade = when (moduleInfo) {
+            is ScriptModuleInfo -> facadesForScriptDependencies[moduleInfo]
+            is ScriptDependenciesInfo.ForProject -> facadesForScriptDependencies[null]
+            is ScriptDependenciesInfo.ForFile -> facadesForScriptDependencies[moduleInfo.scriptModuleInfo]
+            is ScriptDependenciesSourceInfo -> facadesForScriptDependencies[null]
+            else -> globalFacade(settings)
+        }
         return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
     }
 

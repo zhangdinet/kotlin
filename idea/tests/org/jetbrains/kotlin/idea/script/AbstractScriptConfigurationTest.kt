@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.idea.script
 
+import com.intellij.codeInsight.highlighting.HighlightUsagesHandler
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -44,6 +45,10 @@ import kotlin.script.dependencies.Environment
 abstract class AbstractScriptConfigurationHighlightingTest : AbstractScriptConfigurationTest() {
     fun doTest(path: String) {
         configureScriptFile(path)
+
+        // Highlight references at caret
+        HighlightUsagesHandler.invoke(project, editor, myFile)
+
         checkHighlighting(
             editor,
             InTextDirectivesUtils.isDirectiveDefined(file.text, "// CHECK_WARNINGS"),
@@ -142,7 +147,16 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
     }
 
     private fun createFileAndSyncDependencies(path: String) {
-        configureByFile(LocalFileSystem.getInstance().findFileByPath("${path}script.kts")!!)
+        val testFile = File("${path}script.kts")
+        if (InTextDirectivesUtils.isDirectiveDefined(testFile.readText(), "OUTSIDE_PROJECT_ROOTS")) {
+            val scriptDir = KotlinTestUtils.tmpDir("scriptDir")
+            val target = File(scriptDir, "script.kts")
+            testFile.copyTo(target)
+            configureByExistingFile(LocalFileSystem.getInstance().findFileByPath(target.path)!!)
+        } else {
+            configureByFile(LocalFileSystem.getInstance().findFileByIoFile(testFile)!!)
+        }
+
         val virtualFile = myFile.virtualFile
         updateScriptDependenciesSynchronously(virtualFile, project)
         VfsUtil.markDirtyAndRefresh(false, true, true, project.baseDir)
