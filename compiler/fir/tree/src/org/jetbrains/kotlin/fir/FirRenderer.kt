@@ -164,6 +164,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
             if (memberDeclaration.isConst) {
                 print("const ")
             }
+            if (memberDeclaration.isLateInit) {
+                print("lateinit ")
+            }
         }
 
         visitNamedDeclaration(memberDeclaration)
