@@ -6,11 +6,17 @@
 package org.jetbrains.kotlin.fir
 
 import com.intellij.testFramework.TestDataPath
+import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveTransformer
 import org.jetbrains.kotlin.fir.builder.RawFirBuilder
+import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.FirProvider
-import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
+import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
+import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
+import org.jetbrains.kotlin.fir.resolve.FirTypeResolver
+import org.jetbrains.kotlin.fir.resolve.impl.*
+import org.jetbrains.kotlin.fir.types.ConeClassErrorType
 import org.jetbrains.kotlin.fir.types.ConeKotlinErrorType
 import org.jetbrains.kotlin.fir.types.FirResolvedType
 import org.jetbrains.kotlin.fir.types.FirType
@@ -18,6 +24,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.jetbrains.kotlin.test.TestJdkKind
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.system.measureNanoTime
@@ -26,8 +33,37 @@ import kotlin.system.measureNanoTime
 class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
 
     override fun createEnvironment(): KotlinCoreEnvironment {
-        return createEnvironmentWithMockJdk(ConfigurationKind.JDK_NO_RUNTIME)
+
+        val configurationKind = ConfigurationKind.JDK_NO_RUNTIME
+        val testJdkKind = TestJdkKind.MOCK_JDK
+
+
+        val javaFiles = File(".").walkTopDown().filter { file ->
+            (!file.isDirectory) && !(file.path.contains("testData") || file.path.contains("resources"))
+                    && (file.extension == "java")
+        }.toList()
+
+        val configuration = KotlinTestUtils.newConfiguration(configurationKind, testJdkKind, emptyList(), javaFiles)
+
+        val env = KotlinCoreEnvironment.createForTests(testRootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+        return env
     }
+
+    override fun createSession(): FirSession {
+        return object : FirSessionBase() {
+            init {
+                val firProvider = FirProviderImpl(this)
+                registerComponent(FirProvider::class, firProvider)
+                registerComponent(
+                    FirSymbolProvider::class,
+                    FirCompositeSymbolProvider(listOf(firProvider, JavaSymbolProvider(project), FirLibrarySymbolProviderImpl(this)))
+                )
+                registerComponent(FirQualifierResolver::class, FirQualifierResolverImpl(this))
+                registerComponent(FirTypeResolver::class, FirTypeResolverImpl())
+            }
+        }
+    }
+
 
     fun testTotalKotlin() {
 
@@ -37,8 +73,10 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
         println("BASE PATH: ${root.absolutePath}")
 
         val allFiles = root.walkTopDown().filter { file ->
-            (!file.isDirectory) && !(file.path.contains("testData") || file.path.contains("resources")) && file.extension == "kt"
+            (!file.isDirectory) && !(file.path.contains("testData") || file.path.contains("resources"))
+                    && (file.extension == "kt")
         }
+
 
         val ktFiles = allFiles.map {
             val text = KotlinTestUtils.doLoadFile(it)
@@ -84,6 +122,10 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
                 }
             }
 
+
+            println("SUCCESS!")
+        } finally {
+
             firFiles.forEach {
                 it.accept(object : FirVisitorVoid() {
                     override fun visitElement(element: FirElement) {
@@ -96,13 +138,14 @@ class FirResolveTestTotalKotlin : AbstractFirResolveWithSessionTestCase() {
 
                     override fun visitResolvedType(resolvedType: FirResolvedType) {
                         resolvedTypes++
-                        if (resolvedType.type is ConeKotlinErrorType) errorTypes++
+                        val type = resolvedType.type
+                        if (type is ConeKotlinErrorType || type is ConeClassErrorType) {
+                            errorTypes++
+                        }
                     }
                 })
             }
 
-            println("SUCCESS!")
-        } finally {
             println("TOTAL LENGTH: $totalLength")
             println("UNRESOLVED TYPES: $unresolvedTypes")
             println("RESOLVED TYPES: $resolvedTypes")
