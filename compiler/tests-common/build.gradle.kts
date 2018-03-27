@@ -30,7 +30,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompile(androidDxJar()) { isTransitive = false }
     testCompile(intellijDep()) {
-        includeJars("openapi", "extensions", "util", "idea", "idea_rt",
+        includeJars("openapi", "extensions", "util", "idea", "idea_rt", "openapi",
                     "guava", "trove4j", "picocontainer", "asm-all", "log4j", "jdom", "annotations",
                     rootProject = rootProject)
         isTransitive = false
