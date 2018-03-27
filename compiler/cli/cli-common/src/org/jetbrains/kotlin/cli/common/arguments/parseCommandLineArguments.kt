@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.cli.common.arguments
 import org.jetbrains.kotlin.utils.SmartList
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
 
 @Target(AnnotationTarget.PROPERTY)
@@ -37,6 +36,8 @@ val Argument.isAdvanced: Boolean
 
 private const val ADVANCED_ARGUMENT_PREFIX = "-X"
 private const val FREE_ARGS_DELIMITER = "--"
+
+
 
 data class ArgumentParseErrors(
     val unknownArgs: MutableList<String> = SmartList<String>(),
@@ -102,6 +103,7 @@ fun <A : CommonToolArguments> parseCommandLineArguments(args: List<String>, resu
     }
 
     val freeArgs = ArrayList<String>()
+    val internalArguments = ArrayList<String>()
 
     var i = 0
     loop@ while (i < args.size) {
@@ -113,6 +115,21 @@ fun <A : CommonToolArguments> parseCommandLineArguments(args: List<String>, resu
         }
         if (arg == FREE_ARGS_DELIMITER) {
             freeArgsStarted = true
+            continue
+        }
+
+        if (arg.startsWith(InternalArgumentParser.INTERNAL_ARGUMENT_PREFIX)) {
+            val matchingParsers = InternalArgumentParser.PARSERS.filter { it.canParse(arg) }
+            assert(matchingParsers.size <= 1) { "Internal error: internal argument $arg can be ambiguously parsed by parsers ${matchingParsers.joinToString()}" }
+
+            val parser = matchingParsers.firstOrNull()
+
+            if (parser == null) {
+                errors.unknownExtraFlags += arg
+            } else {
+                internalArguments.add(arg)
+            }
+
             continue
         }
 
@@ -154,6 +171,7 @@ fun <A : CommonToolArguments> parseCommandLineArguments(args: List<String>, resu
     }
 
     result.freeArgs += freeArgs
+    result.internalArguments += internalArguments
 }
 
 private fun <A : CommonToolArguments> updateField(property: KMutableProperty1<A, Any?>, result: A, value: Any, delimiter: String) {
