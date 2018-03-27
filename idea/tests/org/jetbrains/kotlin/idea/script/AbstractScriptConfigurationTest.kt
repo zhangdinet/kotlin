@@ -22,6 +22,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.idea.completion.test.KotlinCompletionTestCase
@@ -99,6 +100,10 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
         }
 
         createFileAndSyncDependencies(path)
+
+        File(path, "module").takeIf { it.exists() }?.let {
+            PlatformTestCase.copyDirContentsTo(LocalFileSystem.getInstance().findFileByIoFile(it)!!, file.virtualFile.parent)
+        }
     }
 
 
