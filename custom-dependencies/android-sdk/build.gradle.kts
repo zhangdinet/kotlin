@@ -21,7 +21,7 @@ val dxSources by configurations.creating
 val buildTools by configurations.creating
 
 val libsDestDir = File(buildDir, "libs")
-val sdkDestDir: File by extra(File(buildDir, "androidSdk"))
+val sdkDestDir = File(buildDir, "androidSdk")
 
 val toolsOs = when {
     OperatingSystem.current().isWindows -> "windows"
