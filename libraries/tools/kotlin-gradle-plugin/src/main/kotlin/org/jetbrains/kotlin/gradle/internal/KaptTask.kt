@@ -89,7 +89,7 @@ open class KaptTask : ConventionTask(), CompilerArgumentAwareWithInput<K2JVMComp
             val sourcesFromKotlinTask = kotlinCompileTask.source
                     .filter { it.extension == "java" && !isInsideDestinationDirs(it) }
 
-            val stubSources = project.fileTree(stubsDir)
+            val stubSources = project.fileTree(stubsDir).filter { it.extension == "java" }
             return sourcesFromKotlinTask + stubSources
         }
 

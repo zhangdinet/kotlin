@@ -142,13 +142,25 @@ open class Kapt3IT : Kapt3BaseIT() {
 
     @Test
     fun testInheritedAnnotations() {
-        Project("inheritedAnnotations", directoryPrefix = "kapt2").build("build") {
+        val project = Project("inheritedAnnotations", directoryPrefix = "kapt2")
+
+        project.build("build") {
             assertSuccessful()
             assertKaptSuccessful()
             assertFileExists("build/generated/source/kapt/main/example/TestClassGenerated.java")
+            assertFileExists("build/tmp/kapt3/stubs/main/example/TestClass.java")
+            assertFileExists("build/tmp/kapt3/stubs/main/example/TestClass.kapt_metadata")
             assertFileExists("build/generated/source/kapt/main/example/AncestorClassGenerated.java")
             assertFileExists(javaClassesDir() + "example/TestClassGenerated.class")
             assertFileExists(javaClassesDir() + "example/AncestorClassGenerated.class")
+        }
+
+        project.projectDir.getFileByName("TestClass.kapt_metadata").modify { it + "\n\n" }
+
+        project.build("build") {
+            assertSuccessful()
+            assertKaptSuccessful()
+            assertContains(":kaptKotlin UP-TO-DATE")
         }
     }
 
