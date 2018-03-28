@@ -36,7 +36,7 @@ class PackageDirectoryMismatchInspection : AbstractKotlinInspection() {
                 if (directive.text.isEmpty()) return
 
                 val file = directive.containingKtFile
-                if (file.isInjectedFragment || file.packageMatchesDirectoryOrImplicit()) return
+                if (file.packageMatchesDirectoryOrImplicit() || file.isInjectedFragment) return
 
                 val fixes = mutableListOf<LocalQuickFix>()
                 val qualifiedName = directive.qualifiedName
