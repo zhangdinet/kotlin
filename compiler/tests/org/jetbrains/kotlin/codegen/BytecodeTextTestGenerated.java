@@ -1155,6 +1155,57 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
             doTest(fileName);
         }
 
+        @TestMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class DestructuringInLambda extends AbstractBytecodeTextTest {
+            public void testAllFilesPresentInDestructuringInLambda() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("dataClass.kt")
+            public void testDataClass() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/dataClass.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("extensionComponents.kt")
+            public void testExtensionComponents() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/extensionComponents.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("generic.kt")
+            public void testGeneric() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/generic.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inline.kt")
+            public void testInline() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/inline.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("inlineSeparateFiles.kt")
+            public void testInlineSeparateFiles() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/inlineSeparateFiles.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("otherParameters.kt")
+            public void testOtherParameters() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/otherParameters.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("underscoreNames.kt")
+            public void testUnderscoreNames() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/bytecodeText/coroutines/destructuringInLambda/underscoreNames.kt");
+                doTest(fileName);
+            }
+        }
+
         @TestMetadata("compiler/testData/codegen/bytecodeText/coroutines/intLikeVarSpilling")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
