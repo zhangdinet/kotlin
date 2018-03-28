@@ -1,11 +1,10 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.idea.intentions
+package org.jetbrains.kotlin.idea.inspections
 
-import com.intellij.codeInspection.CleanupLocalInspectionTool
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.LabeledComponent
@@ -22,7 +21,7 @@ import org.jetbrains.kotlin.idea.configuration.ui.NotPropertyListPanel
 import org.jetbrains.kotlin.idea.core.NotPropertiesService
 import org.jetbrains.kotlin.idea.core.copied
 import org.jetbrains.kotlin.idea.core.replaced
-import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspection
+import org.jetbrains.kotlin.idea.intentions.ConvertToBlockBodyIntention
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.resolve.frontendService
 import org.jetbrains.kotlin.idea.util.getResolutionScope
@@ -57,28 +56,6 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import javax.swing.JComponent
 
-class UsePropertyAccessSyntaxInspection : IntentionBasedInspection<KtCallExpression>(UsePropertyAccessSyntaxIntention::class), CleanupLocalInspectionTool {
-
-    val fqNameList = mutableListOf<FqNameUnsafe>()
-
-    private var fqNameStrings: List<String>
-        get() = fqNameList.map { it.asString() }
-        set(value) {
-            fqNameList.clear()
-            value.mapTo(fqNameList, ::FqNameUnsafe)
-        }
-
-    init {
-        fqNameStrings = NotPropertiesServiceImpl.default
-    }
-
-    override fun createOptionsPanel(): JComponent? {
-        val list = NotPropertyListPanel(fqNameList)
-        return LabeledComponent.create(list, "Excluded methods")
-    }
-}
-
-
 class NotPropertiesServiceImpl(private val project: Project) : NotPropertiesService {
     override fun getNotProperties(element: PsiElement): Set<FqNameUnsafe> {
         val profile = InspectionProjectProfileManager.getInstance(project).currentProfile
@@ -104,12 +81,37 @@ class NotPropertiesServiceImpl(private val project: Project) : NotPropertiesServ
     }
 }
 
-class UsePropertyAccessSyntaxIntention : SelfTargetingOffsetIndependentIntention<KtCallExpression>(KtCallExpression::class.java, "Use property access syntax") {
-    override fun isApplicableTo(element: KtCallExpression): Boolean {
+class UsePropertyAccessSyntaxInspection : AbstractApplicabilityBasedInspection<KtCallExpression>(
+    KtCallExpression::class.java
+) {
+    override fun inspectionText(element: KtCallExpression): String = "Use property access syntax"
+
+    override val defaultFixText = "Use property access syntax"
+
+    val fqNameList = mutableListOf<FqNameUnsafe>()
+
+    private var fqNameStrings: List<String>
+        get() = fqNameList.map { it.asString() }
+        set(value) {
+            fqNameList.clear()
+            value.mapTo(fqNameList, ::FqNameUnsafe)
+        }
+
+    init {
+        fqNameStrings = NotPropertiesServiceImpl.default
+    }
+
+    override fun createOptionsPanel(): JComponent? {
+        val list = NotPropertyListPanel(fqNameList)
+        return LabeledComponent.create(list, "Excluded methods")
+    }
+
+    override fun isApplicable(element: KtCallExpression): Boolean {
         return detectPropertyNameToUse(element) != null
     }
 
-    override fun applyTo(element: KtCallExpression, editor: Editor?) {
+    override fun applyTo(element: PsiElement, project: Project, editor: Editor?) {
+        element as? KtCallExpression ?: return
         applyTo(element, detectPropertyNameToUse(element)!!, reformat = true)
     }
 
@@ -135,8 +137,7 @@ class UsePropertyAccessSyntaxIntention : SelfTargetingOffsetIndependentIntention
 
         val function = resolvedCall.resultingDescriptor as? FunctionDescriptor ?: return null
 
-        val notProperties = (inspection as? UsePropertyAccessSyntaxInspection)?.fqNameList?.toSet() ?:
-                            NotPropertiesService.getNotProperties(callExpression)
+        val notProperties = fqNameList.toSet()
         if (function.shouldNotConvertToProperty(notProperties)) return null
 
         val resolutionScope = callExpression.getResolutionScope(bindingContext, resolutionFacade)

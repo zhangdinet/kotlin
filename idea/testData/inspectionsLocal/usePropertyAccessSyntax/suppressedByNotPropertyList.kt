@@ -1,9 +1,9 @@
 // WITH_RUNTIME
 // WITH_JDK
-// IS_APPLICABLE: false
+// PROBLEM: none
 import java.net.Socket
 
 fun main(args: Array<String>) {
     val s = Socket()
-    val stream = s.getInputStream()<caret>
+    val stream = s.getInputStream<caret>()
 }

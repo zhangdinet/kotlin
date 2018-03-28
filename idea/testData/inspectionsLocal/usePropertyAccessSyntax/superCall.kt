@@ -1,12 +1,9 @@
 // WITH_RUNTIME
+// PROBLEM: none
 import java.io.File
 
 class MyFile : File("file") {
     override fun getCanonicalFile(): File {
-        return super.getCanonicalFile()
+        return super.getCanonicalFile<caret>()
     }
-}
-
-fun foo(file: MyFile) {
-    file.getCanonicalFile()<caret>
 }

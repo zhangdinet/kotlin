@@ -2,5 +2,5 @@
 import java.io.File
 
 fun File.foo() {
-    getAbsolutePath()<caret>
+    getAbsolutePath<caret>()
 }

@@ -1,4 +1,4 @@
-// IS_APPLICABLE: false
+// PROBLEM: none
 // WITH_RUNTIME
 
 abstract class KotlinClass : JavaInterface {

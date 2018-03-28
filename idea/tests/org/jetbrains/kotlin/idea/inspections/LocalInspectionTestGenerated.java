@@ -5014,6 +5014,159 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
         }
     }
 
+    @TestMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class UsePropertyAccessSyntax extends AbstractLocalInspectionTest {
+        @TestMetadata("accessThroughKotlinClassInstance.kt")
+        public void testAccessThroughKotlinClassInstance() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/accessThroughKotlinClassInstance.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("accessThroughKotlinClassInstanceWithOverride.kt")
+        public void testAccessThroughKotlinClassInstanceWithOverride() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/accessThroughKotlinClassInstanceWithOverride.kt");
+            doTest(fileName);
+        }
+
+        public void testAllFilesPresentInUsePropertyAccessSyntax() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/inspectionsLocal/usePropertyAccessSyntax"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("conflict1.kt")
+        public void testConflict1() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/conflict1.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("conflict2.kt")
+        public void testConflict2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/conflict2.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("genericClassMethod.kt")
+        public void testGenericClassMethod() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/genericClassMethod.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("get.kt")
+        public void testGet() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/get.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("getImplicitReceiver.kt")
+        public void testGetImplicitReceiver() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/getImplicitReceiver.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("getSafeCall.kt")
+        public void testGetSafeCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/getSafeCall.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("isGet.kt")
+        public void testIsGet() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/isGet.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("isSet.kt")
+        public void testIsSet() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/isSet.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("nonVoidSetter1.kt")
+        public void testNonVoidSetter1() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/nonVoidSetter1.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("nonVoidSetter2.kt")
+        public void testNonVoidSetter2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/nonVoidSetter2.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("propertyTypeIsMoreSpecific1.kt")
+        public void testPropertyTypeIsMoreSpecific1() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/propertyTypeIsMoreSpecific1.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("propertyTypeIsMoreSpecific2.kt")
+        public void testPropertyTypeIsMoreSpecific2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/propertyTypeIsMoreSpecific2.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("set.kt")
+        public void testSet() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/set.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("setAsExpressionBody.kt")
+        public void testSetAsExpressionBody() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/setAsExpressionBody.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("setAsExpressionBodyProperty.kt")
+        public void testSetAsExpressionBodyProperty() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/setAsExpressionBodyProperty.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("setAsExpressionBodyUnqualified.kt")
+        public void testSetAsExpressionBodyUnqualified() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/setAsExpressionBodyUnqualified.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("setImplicitReceiver.kt")
+        public void testSetImplicitReceiver() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/setImplicitReceiver.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("setSafeCall.kt")
+        public void testSetSafeCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/setSafeCall.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("smartCast.kt")
+        public void testSmartCast() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/smartCast.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("superCall.kt")
+        public void testSuperCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/superCall.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("suppressedByNotPropertyList.kt")
+        public void testSuppressedByNotPropertyList() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/suppressedByNotPropertyList.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("typeParameterReceiver.kt")
+        public void testTypeParameterReceiver() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/inspectionsLocal/usePropertyAccessSyntax/typeParameterReceiver.kt");
+            doTest(fileName);
+        }
+    }
+
     @TestMetadata("idea/testData/inspectionsLocal/whenWithOnlyElse")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

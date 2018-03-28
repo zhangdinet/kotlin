@@ -1,4 +1,4 @@
 // WITH_RUNTIME
 fun Thread.foo() {
-    name = "name"<caret>
+    setName<caret>("name")
 }

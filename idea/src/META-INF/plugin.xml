@@ -327,7 +327,7 @@
                     serviceImplementation="org.jetbrains.kotlin.idea.facet.KotlinFacetSettingsProviderImpl"/>
 
     <projectService serviceInterface="org.jetbrains.kotlin.idea.core.NotPropertiesService"
-                    serviceImplementation="org.jetbrains.kotlin.idea.intentions.NotPropertiesServiceImpl"/>
+                    serviceImplementation="org.jetbrains.kotlin.idea.inspections.NotPropertiesServiceImpl"/>
 
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
                     serviceImplementation="org.jetbrains.kotlin.idea.kdoc.IdeSampleResolutionService"/>
@@ -1234,11 +1234,6 @@
     </intentionAction>
 
     <intentionAction>
-      <className>org.jetbrains.kotlin.idea.intentions.UsePropertyAccessSyntaxIntention</className>
-      <category>Kotlin</category>
-    </intentionAction>
-
-    <intentionAction>
       <className>org.jetbrains.kotlin.idea.quickfix.AddConstModifierIntention</className>
       <category>Kotlin</category>
     </intentionAction>
@@ -1718,7 +1713,7 @@
                      language="kotlin"
     />
 
-    <localInspection implementationClass="org.jetbrains.kotlin.idea.intentions.UsePropertyAccessSyntaxInspection"
+    <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.UsePropertyAccessSyntaxInspection"
                      displayName="Accessor call that can be replaced with property access syntax"
                      shortName="UsePropertyAccessSyntax"
                      groupPath="Kotlin"

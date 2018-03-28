@@ -1,7 +1,7 @@
 // WITH_RUNTIME
-// IS_APPLICABLE: false
+// PROBLEM: none
 import java.io.File
 
 fun File.foo(absolutePath: String) {
-    getAbsolutePath()<caret>
+    getAbsolutePath<caret>()
 }

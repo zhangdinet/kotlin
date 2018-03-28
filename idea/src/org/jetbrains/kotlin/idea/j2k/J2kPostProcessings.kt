@@ -72,7 +72,7 @@ object J2KPostProcessingRegistrar {
         _processings.add(MoveLambdaOutsideParenthesesProcessing())
         _processings.add(FixObjectStringConcatenationProcessing())
         _processings.add(ConvertToStringTemplateProcessing())
-        _processings.add(UsePropertyAccessSyntaxProcessing())
+        registerInspectionBasedProcessing(UsePropertyAccessSyntaxInspection())
         _processings.add(UninitializedVariableReferenceFromInitializerToThisReferenceProcessing())
         _processings.add(UnresolvedVariableReferenceFromInitializerToThisReferenceProcessing())
         _processings.add(RemoveRedundantSamAdaptersProcessing())
@@ -268,18 +268,6 @@ object J2KPostProcessingRegistrar {
             else {
                 return null
             }
-        }
-    }
-
-    private class UsePropertyAccessSyntaxProcessing : J2kPostProcessing {
-        override val writeActionNeeded = true
-
-        private val intention = UsePropertyAccessSyntaxIntention()
-
-        override fun createAction(element: KtElement, diagnostics: Diagnostics): (() -> Unit)? {
-            if (element !is KtCallExpression) return null
-            val propertyName = intention.detectPropertyNameToUse(element) ?: return null
-            return { intention.applyTo(element, propertyName, reformat = true) }
         }
     }
 
