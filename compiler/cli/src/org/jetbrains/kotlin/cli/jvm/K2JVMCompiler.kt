@@ -18,10 +18,7 @@ package org.jetbrains.kotlin.cli.jvm
 
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.cli.common.CLICompiler
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.CLITool
-import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.*
 import org.jetbrains.kotlin.cli.common.ExitCode.*
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
@@ -51,24 +48,23 @@ import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompil
 import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromAnnotatedTemplate
 import org.jetbrains.kotlin.script.ScriptDefinitionProvider
 import org.jetbrains.kotlin.script.StandardScriptDefinition
-import org.jetbrains.kotlin.util.PerformanceCounter
 import org.jetbrains.kotlin.utils.KotlinPaths
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
-import java.lang.management.ManagementFactory
 import java.net.URLClassLoader
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
+    private val performanceManager: CommonCompilerPerformanceManager = object : CommonCompilerPerformanceManager() {
+        override val presentableName: String = "Kotlin to JVM Compiler"
+    }
+
     override fun doExecute(
         arguments: K2JVMCompilerArguments,
         configuration: CompilerConfiguration,
         rootDisposable: Disposable,
         paths: KotlinPaths?
     ): ExitCode {
-        PerformanceCounter.setTimeCounterEnabled(arguments.reportPerf)
-
         val messageCollector = configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
 
         configureJdkHome(arguments, configuration, messageCollector).let {
@@ -211,11 +207,7 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
                 }
             }
 
-            if (arguments.reportPerf) {
-                reportGCTime(configuration)
-                reportCompilationTime(configuration)
-                PerformanceCounter.report { s -> reportPerf(configuration, s) }
-            }
+
             return OK
         } catch (e: CompilationException) {
             messageCollector.report(
@@ -226,6 +218,8 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
             return INTERNAL_ERROR
         }
     }
+
+    override fun getPerformanceManager(): CommonCompilerPerformanceManager = performanceManager
 
     private fun registerJavacIfNeeded(
         environment: KotlinCoreEnvironment,
@@ -264,11 +258,7 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
 
         val environment = KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
-        if (initStartNanos != 0L) {
-            val initNanos = System.nanoTime() - initStartNanos
-            reportPerf(configuration, "INIT: Compiler initialized in " + TimeUnit.NANOSECONDS.toMillis(initNanos) + " ms")
-            initStartNanos = 0L
-        }
+        performanceManager.notifyCompilerInitialized()
 
         if (!messageCollector.hasErrors()) {
             scriptResolverEnv.put("projectRoot", environment.project.run { basePath ?: baseDir?.canonicalPath }?.let(::File))
@@ -313,28 +303,9 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
     override fun executableScriptFileName(): String = "kotlinc-jvm"
 
     companion object {
-        private var initStartNanos = System.nanoTime()
-
         @JvmStatic
         fun main(args: Array<String>) {
             CLITool.doMain(K2JVMCompiler(), args)
-        }
-
-        fun reportPerf(configuration: CompilerConfiguration, message: String) {
-            if (!configuration.getBoolean(CLIConfigurationKeys.REPORT_PERF)) return
-
-            configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY).report(INFO, "PERF: $message")
-        }
-
-        fun reportGCTime(configuration: CompilerConfiguration) {
-            ManagementFactory.getGarbageCollectorMXBeans().forEach {
-                reportPerf(configuration, "GC time for ${it.name} is ${it.collectionTime} ms")
-            }
-        }
-
-        fun reportCompilationTime(configuration: CompilerConfiguration) {
-            val bean = ManagementFactory.getCompilationMXBean() ?: return
-            reportPerf(configuration, "JIT time is ${bean.totalCompilationTime} ms")
         }
 
         private fun putAdvancedOptions(configuration: CompilerConfiguration, arguments: K2JVMCompilerArguments) {
@@ -372,7 +343,6 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
             }
 
             configuration.put(CLIConfigurationKeys.ALLOW_KOTLIN_PACKAGE, arguments.allowKotlinPackage)
-            configuration.put(CLIConfigurationKeys.REPORT_PERF, arguments.reportPerf)
             configuration.put(JVMConfigurationKeys.USE_SINGLE_MODULE, arguments.singleModule)
             configuration.put(JVMConfigurationKeys.ADD_BUILT_INS_FROM_COMPILER_TO_DEPENDENCIES, arguments.addCompilerBuiltIns)
             configuration.put(JVMConfigurationKeys.CREATE_BUILT_INS_FROM_MODULE_DEPENDENCIES, arguments.loadBuiltInsFromDependencies)
