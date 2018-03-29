@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.analyzer.AnalysisResult;
 import org.jetbrains.kotlin.backend.common.output.OutputFileCollection;
 import org.jetbrains.kotlin.cli.common.CLICompiler;
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys;
+import org.jetbrains.kotlin.cli.common.CommonCompilerPerformanceManager;
 import org.jetbrains.kotlin.cli.common.ExitCode;
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants;
@@ -94,6 +95,14 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
     public static void main(String... args) {
         doMain(new K2JSCompiler(), args);
     }
+
+    private final CommonCompilerPerformanceManager performanceManager = new CommonCompilerPerformanceManager() {
+        @NotNull
+        @Override
+        public String getPresentableName() {
+            return "Kotlin to JavaScript compiler";
+        }
+    };
 
     @NotNull
     @Override
@@ -511,6 +520,11 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
         return commonPath != null ? commonPath.getPath() : ".";
     }
 
+    @NotNull
+    @Override
+    protected CommonCompilerPerformanceManager getPerformanceManager() {
+        return performanceManager;
+    }
 
     private static MainCallParameters createMainCallParameters(String main) {
         if (K2JsArgumentConstants.NO_CALL.equals(main)) {
