@@ -222,4 +222,24 @@ class MultiplatformGradleIT : BaseGradleIT() {
             assertContains("Dependency: 'lib'")
         }
     }
+
+    @Test
+    fun testKt23092() = with(Project("multiplatformProject")) {
+        setupWorkingDir()
+        val successMarker = "Found JavaCompile task:"
+
+        gradleBuildScript("lib").appendText("\n" + """
+            afterEvaluate {
+                println('$successMarker ' + tasks.getByName('compileJava').path)
+                println('$successMarker ' + tasks.getByName('compileTestJava').path)
+            }
+            """.trimIndent()
+        )
+
+        build(":lib:tasks") {
+            assertSuccessful()
+            assertContains("$successMarker :lib:compileJava")
+            assertContains("$successMarker :lib:compileTestJava")
+        }
+    }
 }
