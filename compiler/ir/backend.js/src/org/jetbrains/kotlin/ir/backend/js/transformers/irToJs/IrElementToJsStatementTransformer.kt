@@ -56,6 +56,17 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
         return expression.accept(IrElementToJsExpressionTransformer(), context).makeStmt()
     }
 
+    override fun visitField(irField: IrField, context: JsGenerationContext): JsStatement {
+//        return super.visitField(declaration, data)
+        val fieldName = irField.name.toJsName()
+        val initExpression =
+            irField.initializer?.accept(IrElementToJsExpressionTransformer(), context) ?: JsPrefixOperation(
+                JsUnaryOperator.VOID,
+                JsIntLiteral(1)
+            )
+        return jsAssignment(JsNameRef(fieldName, JsThisRef()), initExpression).makeStmt()
+    }
+
     override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, context: JsGenerationContext): JsStatement {
 
         // TODO: implement

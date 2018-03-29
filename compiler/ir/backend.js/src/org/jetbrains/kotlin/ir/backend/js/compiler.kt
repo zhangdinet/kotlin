@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.ir.backend.js.lower.SecondaryCtorLowering
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrModuleToJsTransformer
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOriginImpl
@@ -50,8 +51,9 @@ fun compile(
 
 fun JsIrBackendContext.lower(file: IrFile) {
     LateinitLowering(this, true).lower(file)
-    PropertiesLowering().lower(file)
     LocalFunctionsLowering(this).lower(file)
     DefaultArgumentStubGenerator(this).runOnFilePostfix(file)
+    PropertiesLowering().lower(file)
+    SecondaryCtorLowering(this).lower(file)
     InitializersLowering(this, JsLoweredDeclarationOrigin.CLASS_STATIC_INITIALIZER).runOnFilePostfix(file)
 }

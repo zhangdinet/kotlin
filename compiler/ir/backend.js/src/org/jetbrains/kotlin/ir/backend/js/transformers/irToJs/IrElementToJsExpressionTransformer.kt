@@ -13,6 +13,10 @@ import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.js.backend.ast.*
 
 class IrElementToJsExpressionTransformer : BaseIrElementToJsNodeTransformer<JsExpression, JsGenerationContext> {
+    override fun visitBlock(body: IrBlock, data: JsGenerationContext): JsExpression {
+        TODO()
+    }
+
     override fun visitExpressionBody(body: IrExpressionBody, context: JsGenerationContext): JsExpression {
         return body.expression.accept(this, context)
     }

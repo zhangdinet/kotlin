@@ -44,7 +44,7 @@ class InitializersLowering(val context: CommonBackendContext, val declarationOri
 
         classInitializersBuilder.transformInstanceInitializerCallsInConstructors(irClass)
 
-        classInitializersBuilder.createStaticInitializationMethod(irClass)
+//        classInitializersBuilder.createStaticInitializationMethod(irClass)
     }
 
     private inner class ClassInitializersBuilder(val irClass: IrClass) : IrElementVisitorVoid {
