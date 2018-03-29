@@ -158,6 +158,16 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     )
     var properIeee754Comparisons by FreezableVar(false)
 
+    @Argument(
+        value = "-Xprogressive",
+        description = "Enable compiler progressive mode.\n" +
+                "In this mode, deprecations and bug fixes for unstable code take effect immediately,\n" +
+                "instead of a going through graceful migration cycle.\n" +
+                "Code, written in progressive mode is backward compatible; however, code written in\n" +
+                "non-progressive mode may cause compilation errors in progressive mode."
+    )
+    var progressiveMode by FreezableVar(false)
+
     open fun configureAnalysisFlags(collector: MessageCollector): MutableMap<AnalysisFlag<*>, Any> {
         return HashMap<AnalysisFlag<*>, Any>().apply {
             put(AnalysisFlag.skipMetadataVersionCheck, skipMetadataVersionCheck)
@@ -204,6 +214,14 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
 
             if (properIeee754Comparisons) {
                 put(LanguageFeature.ProperIeee754Comparisons, LanguageFeature.State.ENABLED)
+            }
+
+            if (progressiveMode) {
+                LanguageFeature.values().filter { it.enabledInProgressiveMode }.forEach {
+                    // Don't overwrite other settings: users may want to turn off some particular
+                    // breaking change manually instead of turning off whole progressive mode
+                    if (!contains(it)) put(it, LanguageFeature.State.ENABLED)
+                }
             }
         }
 

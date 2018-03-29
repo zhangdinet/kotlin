@@ -1,0 +1,7 @@
+$TESTDATA_DIR$/progressive/dataClassOverridingCopy.kt
+$TESTDATA_DIR$/progressive/nonConstValueAsVarargInAnnotation.kt
+$TESTDATA_DIR$/progressive/valReassignmentViaBackingField.kt
+-d
+$TEMP_DIR$
+-language-version
+1.2
