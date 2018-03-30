@@ -79,22 +79,31 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             }
         }
 
+    private val facadesForScriptDependenciesLock = Any()
 
-    private val facadesForScriptDependencies: SLRUCache<ScriptModuleInfo, ProjectResolutionFacade> =
-        object : SLRUCache<ScriptModuleInfo, ProjectResolutionFacade>(2, 3) {
-            override fun createValue(scriptModuleInfo: ScriptModuleInfo?): ProjectResolutionFacade {
-                val dependenciesInfo = if (scriptModuleInfo != null) {
-                    ScriptDependenciesInfo.ForFile(project, scriptModuleInfo)
-                } else {
-                    ScriptDependenciesInfo.ForProject(project)
+    private val facadesForScriptDependenciesProvider = CachedValueProvider {
+        CachedValueProvider.Result(
+            object : SLRUCache<ScriptModuleInfo?, ProjectResolutionFacade>(2, 3) {
+                override fun createValue(scriptModuleInfo: ScriptModuleInfo?): ProjectResolutionFacade {
+                    val dependenciesInfo = if (scriptModuleInfo != null) {
+                        ScriptDependenciesInfo.ForFile(project, scriptModuleInfo)
+                    } else {
+                        ScriptDependenciesInfo.ForProject(project)
+                    }
+                    return createFacadeForScriptDependencies(dependenciesInfo)
                 }
-                return createFacadeForScriptDependencies(dependenciesInfo)
-            }
-        }
+            },
+            ScriptDependenciesModificationTracker.getInstance(project),
+            ProjectRootModificationTracker.getInstance(project)
+        )
+    }
 
-    private fun getFacadeForScriptDependencies(scriptModuleInfo: ScriptModuleInfo): ProjectResolutionFacade {
-        return synchronized(facadesForScriptDependencies) {
-            facadesForScriptDependencies.get(scriptModuleInfo)
+    private fun getFacadeForScriptDependencies(scriptModuleInfo: ScriptModuleInfo?): ProjectResolutionFacade {
+        val cachedValue = synchronized(facadesForScriptDependenciesLock) {
+            CachedValuesManager.getManager(project).getCachedValue(project, facadesForScriptDependenciesProvider)
+        }
+        synchronized(cachedValue) {
+            return cachedValue.get(scriptModuleInfo)
         }
     }
 
@@ -378,9 +387,13 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     private val specialFileCachesLock = Any()
 
     private val specialFilesCacheProvider = CachedValueProvider {
-        CachedValueProvider.Result(object : SLRUCache<Set<KtFile>, ProjectResolutionFacade>(2, 3) {
-            override fun createValue(files: Set<KtFile>) = createFacadeForFilesWithSpecialModuleInfo(files)
-        }, LibraryModificationTracker.getInstance(project), ProjectRootModificationTracker.getInstance(project))
+        CachedValueProvider.Result(
+            object : SLRUCache<Set<KtFile>, ProjectResolutionFacade>(2, 3) {
+                override fun createValue(files: Set<KtFile>) = createFacadeForFilesWithSpecialModuleInfo(files)
+            },
+            LibraryModificationTracker.getInstance(project),
+            ProjectRootModificationTracker.getInstance(project),
+            ScriptDependenciesModificationTracker.getInstance(project))
     }
 
     private fun getFacadeForSpecialFiles(files: Set<KtFile>): ProjectResolutionFacade {
@@ -419,10 +432,10 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     private fun getResolutionFacadeByModuleInfo(moduleInfo: IdeaModuleInfo, platform: TargetPlatform): ResolutionFacade {
         val settings = PlatformAnalysisSettings(platform, moduleInfo.sdk, moduleInfo.supportsAdditionalBuiltInsMembers())
         val projectFacade = when (moduleInfo) {
-            is ScriptModuleInfo -> facadesForScriptDependencies[moduleInfo]
-            is ScriptDependenciesInfo.ForProject -> facadesForScriptDependencies[null]
-            is ScriptDependenciesInfo.ForFile -> facadesForScriptDependencies[moduleInfo.scriptModuleInfo]
-            is ScriptDependenciesSourceInfo -> facadesForScriptDependencies[null]
+            is ScriptModuleInfo -> getFacadeForScriptDependencies(moduleInfo)
+            is ScriptDependenciesInfo.ForProject -> getFacadeForScriptDependencies(null)
+            is ScriptDependenciesInfo.ForFile -> getFacadeForScriptDependencies(moduleInfo.scriptModuleInfo)
+            is ScriptDependenciesSourceInfo -> getFacadeForScriptDependencies(null)
             else -> globalFacade(settings)
         }
         return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
