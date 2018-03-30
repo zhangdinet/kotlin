@@ -82,6 +82,12 @@ public class KotlinSourceFileCollector {
                                  });
     }
 
+    /**
+     * @deprecated use {@link org.jetbrains.kotlin.jps.model.KotlinModule}
+     * @param target
+     * @return
+     */
+    @Deprecated()
     @NotNull
     public static List<File> getAllKotlinSourceFiles(@NotNull ModuleBuildTarget target) {
         final List<File> moduleExcludes = ContainerUtil.map(target.getModule().getExcludeRootsList().getUrls(), new Function<String, File>() {
@@ -124,6 +130,11 @@ public class KotlinSourceFileCollector {
         return result;
     }
 
+    /**
+     * @deprecated use {@link org.jetbrains.kotlin.jps.model.KotlinModule}
+     * @param target
+     * @return
+     */
     public static Iterable<JpsModuleSourceRoot> getRelevantSourceRoots(ModuleBuildTarget target) {
         JavaSourceRootType sourceRootType = target.isTests() ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
 

@@ -56,6 +56,7 @@ import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.jps.JpsKotlinCompilerSettings
 import org.jetbrains.kotlin.jps.build.JpsJsModuleUtils.getOutputMetaFile
 import org.jetbrains.kotlin.jps.incremental.*
+import org.jetbrains.kotlin.jps.targetPlatform
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.modules.TargetId
@@ -483,6 +484,13 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
                                                            argumentProvider.getClasspath(representativeTarget, context))
 
             LOG.debug("Plugin loaded: ${argumentProvider::class.java.simpleName}")
+        }
+
+        val targetPlatform = chunk.representativeTarget().module.targetPlatform
+        if (targetPlatform == TargetPlatformKind.Common) {
+            return OutputItemsCollector { sourceFiles, outputFile ->
+                // TODO: compile metadata
+            }
         }
 
         if (JpsUtils.isJsKotlinModule(chunk.representativeTarget())) {

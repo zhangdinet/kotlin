@@ -18,11 +18,8 @@ package org.jetbrains.kotlin.jps.build
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.util.SmartList
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
-import com.intellij.util.io.URLUtil
 import org.jetbrains.jps.ModuleChunk
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType
 import org.jetbrains.jps.incremental.CompileContext
@@ -30,10 +27,7 @@ import org.jetbrains.jps.incremental.ModuleBuildTarget
 import org.jetbrains.jps.incremental.ProjectBuildException
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.module.JpsModule
-import org.jetbrains.jps.model.module.JpsSdkDependency
-import org.jetbrains.kotlin.build.JvmSourceRoot
-import org.jetbrains.kotlin.config.IncrementalCompilation
-import org.jetbrains.kotlin.jps.build.JpsUtils.getAllDependencies
+import org.jetbrains.kotlin.jps.model.PlatformModuleBuildTarget
 import org.jetbrains.kotlin.modules.KotlinModuleXmlBuilder
 import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -92,15 +86,10 @@ object KotlinBuilderModuleScriptGenerator {
         val logger = context.loggingManager.projectBuilderLogger
         for (target in chunk.targets) {
             val outputDir = getOutputDirSafe(target)
-            val friendDirs = getAdditionalOutputDirsWhereInternalsAreVisible(target)
+            val platformModule = PlatformModuleBuildTarget(target)
+            val moduleSources = platformModule.findSources(sourceFiles)
 
-            val moduleSources = ArrayList(
-                    if (IncrementalCompilation.isEnabled())
-                        sourceFiles.get(target)
-                    else
-                        KotlinSourceFileCollector.getAllKotlinSourceFiles(target))
-
-            if (moduleSources.size > 0 || hasRemovedFiles) {
+            if (moduleSources.isNotEmpty() || hasRemovedFiles) {
                 noSources = false
 
                 if (logger.isEnabled) {
@@ -112,17 +101,18 @@ object KotlinBuilderModuleScriptGenerator {
             assert(targetType is JavaModuleBuildTargetType)
             val targetId = TargetId(target)
             builder.addModule(
-                    targetId.name,
-                    outputDir.absolutePath,
-                    moduleSources,
-                    findSourceRoots(context, target),
-                    findClassPathRoots(target),
-                    findModularJdkRoot(target),
-                    targetId.type,
-                    (targetType as JavaModuleBuildTargetType).isTests,
-                    // this excludes the output directories from the class path, to be removed for true incremental compilation
-                    outputDirs,
-                    friendDirs)
+                targetId.name,
+                outputDir.absolutePath,
+                moduleSources,
+                platformModule.findSourceRoots(context),
+                platformModule.findClassPathRoots(),
+                platformModule.findModularJdkRoot(),
+                targetId.type,
+                (targetType as JavaModuleBuildTargetType).isTests,
+                // this excludes the output directories from the class path, to be removed for true incremental compilation
+                outputDirs,
+                platformModule.additionalOutputDirsWhereInternalsAreVisible
+            )
         }
 
         if (noSources) return null
@@ -173,49 +163,4 @@ object KotlinBuilderModuleScriptGenerator {
         return result.filter { it.hasProductionSourceRoot }
     }
 
-    fun getAdditionalOutputDirsWhereInternalsAreVisible(target: ModuleBuildTarget): List<File> {
-        return getProductionModulesWhichInternalsAreVisible(target).mapNotNullTo(SmartList<File>()) {
-            JpsJavaExtensionService.getInstance().getOutputDirectory(it, false)
-        }
-    }
-
-    private fun findClassPathRoots(target: ModuleBuildTarget): Collection<File> {
-        return getAllDependencies(target).classes().roots.filter { file ->
-            if (!file.exists()) {
-                val extension = file.extension
-
-                // Don't filter out files, we want to report warnings about absence through the common place
-                if (!(extension == "class" || extension == "jar")) {
-                    return@filter false
-                }
-            }
-
-            true
-        }
-    }
-
-    private fun findModularJdkRoot(target: ModuleBuildTarget): File? {
-        // List of paths to JRE modules in the following format:
-        // jrt:///Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home!/java.base
-        val urls = JpsJavaExtensionService.dependencies(target.module)
-                .satisfying { dependency -> dependency is JpsSdkDependency }
-                .classes().urls
-
-        val url = urls.firstOrNull { it.startsWith(StandardFileSystems.JRT_PROTOCOL_PREFIX) } ?: return null
-
-        return File(url.substringAfter(StandardFileSystems.JRT_PROTOCOL_PREFIX).substringBeforeLast(URLUtil.JAR_SEPARATOR))
-    }
-
-    private fun findSourceRoots(context: CompileContext, target: ModuleBuildTarget): List<JvmSourceRoot> {
-        val roots = context.projectDescriptor.buildRootIndex.getTargetRoots(target, context)
-        val result = ContainerUtil.newArrayList<JvmSourceRoot>()
-        for (root in roots) {
-            val file = root.rootFile
-            val prefix = root.packagePrefix
-            if (file.exists()) {
-                result.add(JvmSourceRoot(file, if (prefix.isEmpty()) null else prefix))
-            }
-        }
-        return result
-    }
 }
