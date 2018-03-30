@@ -38,13 +38,18 @@ fun compile(
 
     val moduleFragment = psi2IrTranslator.generateModuleFragment(psi2IrContext, files)
 
-    val context = JsIrBackendContext(analysisResult.moduleDescriptor, psi2IrContext.irBuiltIns, moduleFragment, psi2IrContext.symbolTable)
+    val context = JsIrBackendContext(
+        analysisResult.moduleDescriptor,
+        psi2IrContext.irBuiltIns,
+        moduleFragment,
+        psi2IrContext.symbolTable
+    )
 
     ExternalDependenciesGenerator(psi2IrContext.symbolTable, psi2IrContext.irBuiltIns).generateUnboundSymbolsAsDependencies(moduleFragment)
 
     moduleFragment.files.forEach { context.lower(it) }
 
-    val program = moduleFragment.accept(IrModuleToJsTransformer(), null)
+    val program = moduleFragment.accept(IrModuleToJsTransformer(context), null)
 
     return program.toString()
 }
@@ -54,6 +59,6 @@ fun JsIrBackendContext.lower(file: IrFile) {
     LocalFunctionsLowering(this).lower(file)
     DefaultArgumentStubGenerator(this).runOnFilePostfix(file)
     PropertiesLowering().lower(file)
-    SecondaryCtorLowering(this).lower(file)
     InitializersLowering(this, JsLoweredDeclarationOrigin.CLASS_STATIC_INITIALIZER).runOnFilePostfix(file)
+    SecondaryCtorLowering(this).lower(file)
 }

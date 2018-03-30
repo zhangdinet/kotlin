@@ -9,23 +9,32 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ReflectionTypes
 import org.jetbrains.kotlin.backend.common.ir.Ir
 import org.jetbrains.kotlin.backend.common.ir.Symbols
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.TypeParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.KotlinTypeFactory
+import org.jetbrains.kotlin.types.Variance
 
 class JsIrBackendContext(
     val module: ModuleDescriptor,
     override val irBuiltIns: IrBuiltIns,
     irModuleFragment: IrModuleFragment,
-    symbolTable: SymbolTable
+    val symbolTable: SymbolTable
 ) : CommonBackendContext {
     override val builtIns = module.builtIns
     override val sharedVariablesManager = JsSharedVariablesManager(builtIns)
@@ -78,6 +87,37 @@ class JsIrBackendContext(
         }
 
         override fun shouldGenerateHandlerParameterForDefaultBodyFun() = true
+    }
+
+    val objectCreate: IrSimpleFunction = defineObjectCreateIntrinsic()
+
+    private val OBJECT_CREATE_INTRINSIC_NAME = "Object.create"
+    private val stubBuilder = DeclarationStubGenerator(symbolTable, JsLoweredDeclarationOrigin.JS_INTRINSICS_STUB)
+    private fun defineObjectCreateIntrinsic(): IrSimpleFunction {
+
+        val typeParam = TypeParameterDescriptorImpl.createWithDefaultBound(
+            builtIns.any,
+            Annotations.EMPTY,
+            true,
+            Variance.INVARIANT,
+            Name.identifier("T"),
+            0
+        )
+
+        val returnType = KotlinTypeFactory.simpleType(Annotations.EMPTY, typeParam.typeConstructor, emptyList(), false)
+
+        val desc = SimpleFunctionDescriptorImpl.create(
+            module,
+            Annotations.EMPTY,
+            Name.identifier(OBJECT_CREATE_INTRINSIC_NAME),
+            CallableMemberDescriptor.Kind.SYNTHESIZED,
+            SourceElement.NO_SOURCE
+        ).apply {
+            initialize(null, null, listOf(typeParam), emptyList(), returnType, Modality.FINAL, Visibilities.PUBLIC)
+            isInline = true
+        }
+
+        return stubBuilder.generateFunctionStub(desc)
     }
 
     private fun find(memberScope: MemberScope, className: String): ClassDescriptor {

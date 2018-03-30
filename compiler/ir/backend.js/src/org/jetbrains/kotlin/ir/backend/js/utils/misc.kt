@@ -15,13 +15,3 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
 
 fun TODO(element: IrElement): Nothing = TODO(element::class.java.simpleName + " is not supported yet here")
-
-fun CallableMemberDescriptor.createValueParameter(index: Int, name: String, type: KotlinType): ValueParameterDescriptor =
-    ValueParameterDescriptorImpl(
-        this, null,
-        index,
-        Annotations.EMPTY,
-        Name.identifier(name),
-        type,
-        false, false, false, null, SourceElement.NO_SOURCE
-    )
