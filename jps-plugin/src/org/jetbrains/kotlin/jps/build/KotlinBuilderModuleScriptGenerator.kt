@@ -165,10 +165,7 @@ object KotlinBuilderModuleScriptGenerator {
 
     fun getOutputDirSafe(target: ModuleBuildTarget): File {
         val explicitOutputPath = if (target.isTests) target.module.testOutputFilePath else target.module.productionOutputFilePath
-        val explicitOutputDir = explicitOutputPath?.let {
-            val file = File(it)
-            file.parentFile ?: file.absoluteFile.parentFile
-        }
+        val explicitOutputDir = explicitOutputPath?.let { File(it).absoluteFile.parentFile }
         return explicitOutputDir ?: target.outputDir ?: throw ProjectBuildException("No output directory found for " + target)
     }
 
