@@ -33,11 +33,6 @@ class RuntimePublicAPITest {
         snapshotAPIAndCompare("../../stdlib/runtime/build/libs", "kotlin-runtime", listOf("../runtime-declarations.json"), listOf("kotlin.jvm.internal"))
     }
 
-    @Ignore("Original stdlib jar is no longer produced")
-    @Test fun kotlinStdlib() {
-        snapshotAPIAndCompare("../../stdlib/build/libs", "original-kotlin-stdlib", listOf("../stdlib-declarations.json"))
-    }
-
     @Test fun kotlinStdlibRuntimeMerged() {
         snapshotAPIAndCompare(
             "../../stdlib/build/libs", "kotlin-stdlib",
