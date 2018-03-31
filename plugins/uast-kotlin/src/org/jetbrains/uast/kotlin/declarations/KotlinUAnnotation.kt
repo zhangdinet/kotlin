@@ -107,7 +107,7 @@ class KotlinUAnnotation(
     givenParent: UElement?
 ) : KotlinUAnnotationBase(annotationEntry, givenParent), UAnnotation {
 
-    override val javaPsi = annotationEntry.toLightAnnotation()
+    override val javaPsi by lazy { annotationEntry.toLightAnnotation() }
 
     private val resolvedAnnotation: AnnotationDescriptor? by lz { annotationEntry.analyze()[BindingContext.ANNOTATION, annotationEntry] }
 
@@ -118,7 +118,7 @@ class KotlinUAnnotation(
 
     override val uastAnchor by lazy {
         KotlinUIdentifier(
-            javaPsi?.nameReferenceElement?.referenceNameElement,
+            { javaPsi?.nameReferenceElement?.referenceNameElement },
             annotationEntry.typeReference?.typeElement?.let {
                 (it as? KtUserType)?.referenceExpression?.getReferencedNameElement() ?: it.navigationElement
             },
