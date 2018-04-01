@@ -34,8 +34,6 @@ compileKotlinCommon {
 //    compilerJarFile = compilerJarWithBootstrapRuntime
 }
 
-/*
-// TODO: currently unsupported
 compileKotlinCommon {
     kotlinOptions {
         freeCompilerArgs = [
@@ -43,7 +41,6 @@ compileKotlinCommon {
         ]
     }
 }
-*/
 
 
 kotlin.experimental.coroutines 'enable'
