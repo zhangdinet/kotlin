@@ -39,9 +39,7 @@ import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
 
 class K2MetadataCompiler : CLICompiler<K2MetadataCompilerArguments>() {
-    private val performanceManager: CommonCompilerPerformanceManager = object : CommonCompilerPerformanceManager() {
-        override val presentableName: String = "Kotlin to Metadata compiler"
-    }
+    private val performanceManager: K2MetadataCompilerPerformanceManager = K2MetadataCompilerPerformanceManager()
 
     override fun createArguments() = K2MetadataCompilerArguments()
 
@@ -112,4 +110,6 @@ class K2MetadataCompiler : CLICompiler<K2MetadataCompilerArguments>() {
             doMain(K2MetadataCompiler(), args)
         }
     }
+
+    private class K2MetadataCompilerPerformanceManager : CommonCompilerPerformanceManager("Kotlin to Metadata compiler")
 }

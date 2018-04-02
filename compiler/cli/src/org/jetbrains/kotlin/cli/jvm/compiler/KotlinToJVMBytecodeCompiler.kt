@@ -353,8 +353,9 @@ object KotlinToJVMBytecodeCompiler {
         val sourceFiles = environment.getSourceFiles()
         val collector = environment.messageCollector
 
-        val performanceManager = environment.configuration.getNotNull(CLIConfigurationKeys.PERF_MANAGER)
-        performanceManager.notifyAnalysisStarted()
+        // Can be null for Scripts/REPL
+        val performanceManager = environment.configuration.get(CLIConfigurationKeys.PERF_MANAGER)
+        performanceManager?.notifyAnalysisStarted()
 
         val analyzerWithCompilerReport = AnalyzerWithCompilerReport(collector, environment.configuration.languageVersionSettings)
         analyzerWithCompilerReport.analyzeAndReport(sourceFiles) {
@@ -376,7 +377,7 @@ object KotlinToJVMBytecodeCompiler {
             )
         }
 
-        performanceManager.notifyAnalysisFinished(sourceFiles.size, environment.countLinesOfCode(sourceFiles), targetDescription)
+        performanceManager?.notifyAnalysisFinished(sourceFiles.size, environment.countLinesOfCode(sourceFiles), targetDescription)
 
         val analysisResult = analyzerWithCompilerReport.analysisResult
 
@@ -435,12 +436,12 @@ object KotlinToJVMBytecodeCompiler {
 
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
 
-        val performanceManager = environment.configuration.getNotNull(CLIConfigurationKeys.PERF_MANAGER)
-        performanceManager.notifyGenerationStarted()
+        val performanceManager = environment.configuration.get(CLIConfigurationKeys.PERF_MANAGER)
+        performanceManager?.notifyGenerationStarted()
 
         KotlinCodegenFacade.compileCorrectFiles(generationState, CompilationErrorHandler.THROW_EXCEPTION)
 
-        performanceManager.notifyGenerationFinished(
+        performanceManager?.notifyGenerationFinished(
             sourceFiles.size,
             environment.countLinesOfCode(sourceFiles),
             additionalDescription = if (module != null) "target " + module.getModuleName() + "-" + module.getModuleType() + " " else ""

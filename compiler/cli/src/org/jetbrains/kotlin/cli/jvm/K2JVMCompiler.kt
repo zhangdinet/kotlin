@@ -55,9 +55,8 @@ import java.net.URLClassLoader
 import java.util.*
 
 class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
-    private val performanceManager: CommonCompilerPerformanceManager = object : CommonCompilerPerformanceManager() {
-        override val presentableName: String = "Kotlin to JVM Compiler"
-    }
+    
+    private val performanceManager: K2JVMCompilerPerformanceManager = K2JVMCompilerPerformanceManager()
 
     override fun doExecute(
         arguments: K2JVMCompilerArguments,
@@ -301,6 +300,8 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
     }
 
     override fun executableScriptFileName(): String = "kotlinc-jvm"
+
+    private class K2JVMCompilerPerformanceManager : CommonCompilerPerformanceManager("Kotlin to JVM Compiler")
 
     companion object {
         @JvmStatic

@@ -96,13 +96,7 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
         doMain(new K2JSCompiler(), args);
     }
 
-    private final CommonCompilerPerformanceManager performanceManager = new CommonCompilerPerformanceManager() {
-        @NotNull
-        @Override
-        public String getPresentableName() {
-            return "Kotlin to JavaScript compiler";
-        }
-    };
+    private final K2JSCompilerPerformanceManager performanceManager = new K2JSCompilerPerformanceManager();
 
     @NotNull
     @Override
@@ -540,4 +534,12 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
     public String executableScriptFileName() {
         return "kotlinc-js";
     }
+
+    private static final class K2JSCompilerPerformanceManager extends CommonCompilerPerformanceManager {
+        public K2JSCompilerPerformanceManager() {
+            super("Kotlin to JS Compiler");
+        }
+    }
+
+
 }

@@ -10,14 +10,12 @@ import java.io.File
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 
-abstract class CommonCompilerPerformanceManager {
+abstract class CommonCompilerPerformanceManager(private val presentableName: String) {
     protected val measurements: MutableList<PerformanceMeasurement> = mutableListOf()
     protected var isEnabled: Boolean = false
     private var initStartNanos = PerformanceCounter.currentTime()
     private var analysisStart: Long = 0
     private var generationStart: Long = 0
-
-    abstract val presentableName: String
 
     fun getMeasurementResults(): List<PerformanceMeasurement> = measurements
 
