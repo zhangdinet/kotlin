@@ -23,9 +23,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.codegen.binding.CalculatedClosure;
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding;
 import org.jetbrains.kotlin.codegen.context.*;
-import org.jetbrains.kotlin.codegen.coroutines.CoroutineCodegenForLambda;
-import org.jetbrains.kotlin.codegen.coroutines.CoroutineCodegenUtilKt;
-import org.jetbrains.kotlin.codegen.coroutines.ResolvedCallWithRealDescriptor;
+import org.jetbrains.kotlin.codegen.coroutines.*;
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension;
 import org.jetbrains.kotlin.codegen.inline.*;
 import org.jetbrains.kotlin.codegen.intrinsics.*;
@@ -103,6 +101,7 @@ import static org.jetbrains.kotlin.resolve.BindingContextUtils.getDelegationCons
 import static org.jetbrains.kotlin.resolve.BindingContextUtils.isVarCapturedInClosure;
 import static org.jetbrains.kotlin.resolve.DescriptorUtils.*;
 import static org.jetbrains.kotlin.resolve.jvm.AsmTypes.*;
+import static org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKt.OtherOrigin;
 import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionExpression;
 import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.isFunctionLiteral;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
@@ -2936,7 +2935,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         ClassDescriptor classDescriptor = CodegenBinding.anonymousClassForCallable(bindingContext, variableDescriptor);
 
         ClassBuilder classBuilder = state.getFactory().newVisitor(
-                JvmDeclarationOriginKt.OtherOrigin(element),
+                OtherOrigin(element),
                 typeMapper.mapClass(classDescriptor),
                 element.getContainingFile()
         );

@@ -196,7 +196,11 @@ fun CallableDescriptor.isSuspendFunctionNotSuspensionView(): Boolean {
 // and return type Any?
 // This function returns a function descriptor reflecting how the suspend function looks from point of view of JVM
 @JvmOverloads
-fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(function: D, bindingContext: BindingContext? = null): D {
+fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(
+    function: D,
+    bindingContext: BindingContext? = null,
+    dropSuspend: Boolean = false
+): D {
     assert(function.isSuspend) {
         "Suspended function is expected, but $function was found"
     }
@@ -220,6 +224,9 @@ fun <D : FunctionDescriptor> getOrCreateJvmSuspendFunctionView(function: D, bind
         setPreserveSourceElement()
         setReturnType(function.builtIns.nullableAnyType)
         setValueParameters(it.valueParameters + continuationParameter)
+        if (dropSuspend) {
+            setDropSuspend()
+        }
         putUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION, it)
     }
 }
