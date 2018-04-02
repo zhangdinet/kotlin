@@ -57,9 +57,6 @@ abstract class CommonCompilerPerformanceManager {
     }
 
     fun dumpPerformanceReport(destination: File) {
-        if (!destination.exists()) {
-            destination.createNewFile()
-        }
         destination.writeBytes(createPerformanceReport())
     }
 
