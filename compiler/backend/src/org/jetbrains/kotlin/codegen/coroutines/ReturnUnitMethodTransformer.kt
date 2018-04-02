@@ -45,24 +45,27 @@ object ReturnUnitMethodTransformer : MethodTransformer() {
         val units = findReturnUnitSequences(methodNode)
         if (units.isEmpty()) return
 
-        val pops = methodNode.instructions.asSequence().filter { it.opcode == Opcodes.POP }.toList()
-        val popSuccessors = findSuccessors(methodNode, pops)
-        val sourceInsns = findSourceInstructions(internalClassName, methodNode, pops, ignoreCopy = true)
-        val safePops = filterOutUnsafes(popSuccessors, units, sourceInsns)
-
-        // Replace POP with ARETURN for tail call optimization
-        safePops.forEach { methodNode.instructions.set(it, InsnNode(Opcodes.ARETURN)) }
+        replaceSafeInsnsWithUnit(methodNode, internalClassName, units) { it.opcode == Opcodes.POP }
     }
 
     private fun replaceCheckcastUnitWithAreturn(methodNode: MethodNode, internalClassName: String) {
-        val checkcasts = methodNode.instructions.asSequence().filter { it.opcode == Opcodes.CHECKCAST }.toList()
         val areturns = methodNode.instructions.asSequence().filter { it.opcode == Opcodes.ARETURN }.toList()
-        val checkcastSuccessors = findSuccessors(methodNode, checkcasts)
-        val sourceInsns = findSourceInstructions(internalClassName, methodNode, checkcasts, ignoreCopy = true)
-        val safeCheckcasts = filterOutUnsafes(checkcastSuccessors, areturns, sourceInsns)
 
-        // Replace CHECKCAST with ARETURN for tail call optimization
-        safeCheckcasts.forEach { methodNode.instructions.set(it, InsnNode(Opcodes.ARETURN)) }
+        replaceSafeInsnsWithUnit(methodNode, internalClassName, areturns) { it.opcode == Opcodes.CHECKCAST }
+    }
+
+    // Find all instructions, which can be safely replaced with ARETURN and replace them with ARETURN for tail-call optimization
+    private fun replaceSafeInsnsWithUnit(
+        methodNode: MethodNode,
+        internalClassName: String,
+        safeSuccessors: Collection<AbstractInsnNode>,
+        predicate: (AbstractInsnNode) -> Boolean
+    ) {
+        val insns = methodNode.instructions.asSequence().filter(predicate).toList()
+        val successors = findSuccessors(methodNode, insns)
+        val sourceInsns = findSourceInstructions(internalClassName, methodNode, insns, ignoreCopy = true)
+        val safeInsns = filterOutUnsafes(successors, safeSuccessors, sourceInsns)
+        safeInsns.forEach { methodNode.instructions.set(it, InsnNode(Opcodes.ARETURN)) }
     }
 
     // Return list of instructions, which can be safely replaced by ARETURNs
