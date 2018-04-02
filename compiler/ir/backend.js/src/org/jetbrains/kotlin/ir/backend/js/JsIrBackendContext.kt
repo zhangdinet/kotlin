@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.SymbolTable
@@ -89,9 +90,8 @@ class JsIrBackendContext(
         override fun shouldGenerateHandlerParameterForDefaultBodyFun() = true
     }
 
-    val objectCreate: IrSimpleFunction = defineObjectCreateIntrinsic()
-
     private val OBJECT_CREATE_INTRINSIC_NAME = "Object.create"
+
     private val stubBuilder = DeclarationStubGenerator(symbolTable, JsLoweredDeclarationOrigin.JS_INTRINSICS_STUB)
     private fun defineObjectCreateIntrinsic(): IrSimpleFunction {
 
@@ -119,6 +119,12 @@ class JsIrBackendContext(
 
         return stubBuilder.generateFunctionStub(desc)
     }
+
+    val objectCreate: IrSimpleFunction = defineObjectCreateIntrinsic()
+
+    data class ConstructorsPair(val delegate: IrSimpleFunctionSymbol, val stub: IrSimpleFunctionSymbol)
+
+    val secondaryConstructorsMap = mutableMapOf<IrConstructorSymbol, ConstructorsPair>()
 
     private fun find(memberScope: MemberScope, className: String): ClassDescriptor {
         return find(memberScope, Name.identifier(className))
