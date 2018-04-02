@@ -21405,6 +21405,23 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
         }
 
+        @TestMetadata("primCtorDelegation1.kt")
+        public void testPrimCtorDelegation1() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/primCtorDelegation1.kt");
+            if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
+                doTest(fileName);
+                return;
+            }
+            try {
+                doTest(fileName);
+            }
+            catch (Throwable ignore) {
+                ignore.printStackTrace();
+                return;
+            }
+            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
         @TestMetadata("propertiesAsParametersInitialized.kt")
         public void testPropertiesAsParametersInitialized() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/propertiesAsParametersInitialized.kt");
@@ -21425,6 +21442,74 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
         @TestMetadata("propertyAccess.kt")
         public void testPropertyAccess() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/propertyAccess.kt");
+            if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
+                doTest(fileName);
+                return;
+            }
+            try {
+                doTest(fileName);
+            }
+            catch (Throwable ignore) {
+                ignore.printStackTrace();
+                return;
+            }
+            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
+        @TestMetadata("secCtorDelegation1.kt")
+        public void testSecCtorDelegation1() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/secCtorDelegation1.kt");
+            if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
+                doTest(fileName);
+                return;
+            }
+            try {
+                doTest(fileName);
+            }
+            catch (Throwable ignore) {
+                ignore.printStackTrace();
+                return;
+            }
+            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
+        @TestMetadata("secCtorDelegation2.kt")
+        public void testSecCtorDelegation2() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/secCtorDelegation2.kt");
+            if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
+                doTest(fileName);
+                return;
+            }
+            try {
+                doTest(fileName);
+            }
+            catch (Throwable ignore) {
+                ignore.printStackTrace();
+                return;
+            }
+            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
+        @TestMetadata("secCtorDelegation3.kt")
+        public void testSecCtorDelegation3() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/secCtorDelegation3.kt");
+            if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
+                doTest(fileName);
+                return;
+            }
+            try {
+                doTest(fileName);
+            }
+            catch (Throwable ignore) {
+                ignore.printStackTrace();
+                return;
+            }
+            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive or add it to whitelist for that.");
+        }
+
+        @TestMetadata("secCtorDelegation4.kt")
+        public void testSecCtorDelegation4() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/simple/secCtorDelegation4.kt");
             if (KotlinTestUtils.RUN_IGNORED_TESTS_AS_REGULAR) {
                 doTest(fileName);
                 return;
