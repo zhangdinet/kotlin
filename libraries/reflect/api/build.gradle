@@ -22,7 +22,7 @@ dependencies {
     compileOnly project(':core:util.runtime')
 }
 
-createCompileJava9Task(project, "compileJava9", "kotlin.reflect", [configurations.compileOnly])
+compileJava9ModuleInfo(project, 'kotlin.reflect', [sourceSets.main.output, configurations.compileOnly])
 
 compileKotlin {
     kotlinOptions {
@@ -35,7 +35,6 @@ compileKotlin {
 }
 
 task java9Jar(type: Jar) {
-    dependsOn(compileJava9)
     classifier = "java9"
     from sourceSets.java9.output
 }
