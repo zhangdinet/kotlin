@@ -69,7 +69,7 @@ compileTestKotlin {
     kotlinOptions.freeCompilerArgs = ["-Xallow-kotlin-package"]
 }
 
-compileJava9ModuleInfo(project, 'kotlin.stdlib.jdk8')
+compileJava9Sources(project, 'kotlin.stdlib.jdk8')
 
 kotlin.experimental.coroutines 'enable'
 

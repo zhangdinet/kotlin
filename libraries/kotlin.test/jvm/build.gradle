@@ -44,4 +44,4 @@ compileTestKotlin {
     kotlinOptions.freeCompilerArgs = ["-Xallow-kotlin-package"]
 }
 
-compileJava9ModuleInfo(project, 'kotlin.test')
+compileJava9Sources(project, 'kotlin.test')

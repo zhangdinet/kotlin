@@ -52,7 +52,7 @@ ext.configureJvm6Project = { Project project ->
     }
 }
 
-ext.compileJava9ModuleInfo = { Project project, String moduleName, Collection<FileCollection> moduleOutputs = [project.sourceSets.main.output] ->
+ext.compileJava9Sources = { Project project, String moduleName, Collection<FileCollection> moduleOutputs = [project.sourceSets.main.output] ->
     // module-info.java should be in java9 source set by convention
     SourceDirectorySet java9SourceSet = project.sourceSets.java9.java
     project.tasks.getByName("compileJava9Java").configure { JavaCompile it ->

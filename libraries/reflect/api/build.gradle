@@ -22,7 +22,7 @@ dependencies {
     compileOnly project(':core:util.runtime')
 }
 
-compileJava9ModuleInfo(project, 'kotlin.reflect', [sourceSets.main.output, configurations.compileOnly])
+compileJava9Sources(project, 'kotlin.reflect', [sourceSets.main.output, configurations.compileOnly])
 
 compileKotlin {
     kotlinOptions {
