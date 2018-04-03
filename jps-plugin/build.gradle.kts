@@ -27,6 +27,7 @@ dependencies {
     testCompileOnly(intellijDep("jps-standalone")) { includeJars("jps-builders", "jps-builders-6") }
     testCompileOnly(intellijDep()) { includeJars("openapi", "idea", "log4j") }
     testCompile(intellijDep("jps-build-test"))
+    testCompile("org.antlr:antlr4-runtime:4.7")
     compilerModules.forEach {
         testRuntime(project(it))
     }
