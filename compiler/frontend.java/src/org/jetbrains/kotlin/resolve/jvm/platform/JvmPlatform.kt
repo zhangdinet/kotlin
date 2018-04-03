@@ -28,7 +28,6 @@ object JvmPlatform : TargetPlatform("JVM") {
         ArrayList<ImportPath>().apply {
             addAll(Common.getDefaultImports(includeKotlinComparisons))
 
-            add(ImportPath.fromString("java.lang.*"))
             add(ImportPath.fromString("kotlin.jvm.*"))
 
             fun addAllClassifiersFromScope(scope: MemberScope) {
@@ -43,6 +42,8 @@ object JvmPlatform : TargetPlatform("JVM") {
         }
 
     }
+
+    override fun getDefaultLowPriorityImports(): List<ImportPath> = listOf(ImportPath.fromString("java.lang.*"))
 
     override fun getDefaultImports(includeKotlinComparisons: Boolean): List<ImportPath> = defaultImports(includeKotlinComparisons)
 

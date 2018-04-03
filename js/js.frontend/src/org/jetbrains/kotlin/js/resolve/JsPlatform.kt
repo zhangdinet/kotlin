@@ -30,6 +30,8 @@ object JsPlatform : TargetPlatform("JS") {
         Common.getDefaultImports(includeKotlinComparisons) + ImportPath.fromString("kotlin.js.*")
     }
 
+    override fun getDefaultLowPriorityImports(): List<ImportPath> = emptyList()
+
     override fun getDefaultImports(includeKotlinComparisons: Boolean): List<ImportPath> = defaultImports(includeKotlinComparisons)
 
     override val platformConfigurator: PlatformConfigurator = JsPlatformConfigurator

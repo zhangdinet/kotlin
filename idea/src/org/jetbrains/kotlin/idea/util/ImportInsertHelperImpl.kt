@@ -59,7 +59,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
     override fun isImportedWithDefault(importPath: ImportPath, contextFile: KtFile): Boolean {
         val defaultImportProvider = contextFile.getResolutionFacade().frontendService<DefaultImportProvider>()
-        return importPath.isImported(defaultImportProvider.defaultImports, defaultImportProvider.excludedImports)
+        return importPath.isImported(defaultImportProvider.allDefaultImports, defaultImportProvider.excludedImports)
     }
 
     override fun mayImportOnShortenReferences(descriptor: DeclarationDescriptor): Boolean {
