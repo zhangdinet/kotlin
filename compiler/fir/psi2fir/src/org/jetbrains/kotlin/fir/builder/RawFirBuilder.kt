@@ -125,7 +125,6 @@ class RawFirBuilder(val session: FirSession) {
             val firValueParameter = FirValueParameterImpl(
                 session,
                 this,
-                hasValOrVar(),
                 nameAsSafeName,
                 when {
                     typeReference != null -> typeReference.toFirOrErrorType()

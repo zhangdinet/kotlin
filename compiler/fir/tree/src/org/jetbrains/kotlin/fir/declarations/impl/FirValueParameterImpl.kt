@@ -20,14 +20,13 @@ import org.jetbrains.kotlin.name.Name
 class FirValueParameterImpl(
     session: FirSession,
     psi: PsiElement?,
-    isProperty: Boolean,
     name: Name,
     override var returnType: FirType,
     override val defaultValue: FirExpression?,
     override val isCrossinline: Boolean,
     override val isNoinline: Boolean,
     override val isVararg: Boolean
-) : FirAbstractNamedAnnotatedDeclaration(session, psi, if (isProperty) PROPERTY else VALUE_PARAMETER, name), FirValueParameter {
+) : FirAbstractNamedAnnotatedDeclaration(session, psi, VALUE_PARAMETER, name), FirValueParameter {
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
         returnType = returnType.transformSingle(transformer, data)
 
