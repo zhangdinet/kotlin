@@ -23,7 +23,7 @@ val SUSPEND_COROUTINE_UNINTERCEPTED_OR_RETURN_NAME = Name.identifier("suspendCor
 fun FunctionDescriptor.isBuiltInIntercepted(languageVersionSettings: LanguageVersionSettings): Boolean {
     if (name != INTERCEPTED_NAME) return false
     val original =
-        module.getPackage(coroutinesIntrinsicsPackageFqName(languageVersionSettings)).memberScope
+        module.getPackage(languageVersionSettings.coroutinesIntrinsicsPackageFqName()).memberScope
             .getContributedFunctions(INTERCEPTED_NAME, NoLookupLocation.FROM_BACKEND)
             .singleOrNull() as CallableDescriptor
     return DescriptorEquivalenceForOverrides.areEquivalent(original, this)
@@ -40,13 +40,13 @@ fun FunctionDescriptor.isBuiltInSuspendCoroutineOrReturn(languageVersionSettings
 }
 
 fun FunctionDescriptor.getBuiltInSuspendCoroutineOrReturn(languageVersionSettings: LanguageVersionSettings) =
-    module.getPackage(coroutinesIntrinsicsPackageFqName(languageVersionSettings)).memberScope
+    module.getPackage(languageVersionSettings.coroutinesIntrinsicsPackageFqName()).memberScope
         .getContributedFunctions(SUSPEND_COROUTINE_OR_RETURN_NAME, NoLookupLocation.FROM_BACKEND)
         .singleOrNull()
 
 fun FunctionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturn(languageVersionSettings: LanguageVersionSettings): Boolean {
     if (name != SUSPEND_COROUTINE_UNINTERCEPTED_OR_RETURN_NAME) return false
-    val original = module.getPackage(coroutinesIntrinsicsPackageFqName(languageVersionSettings)).memberScope
+    val original = module.getPackage(languageVersionSettings.coroutinesIntrinsicsPackageFqName()).memberScope
         .getContributedFunctions(SUSPEND_COROUTINE_UNINTERCEPTED_OR_RETURN_NAME, NoLookupLocation.FROM_BACKEND)
         .singleOrNull() as CallableDescriptor
     return DescriptorEquivalenceForOverrides.areEquivalent(original, this)

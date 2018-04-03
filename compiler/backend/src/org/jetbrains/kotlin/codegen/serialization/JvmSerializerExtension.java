@@ -306,6 +306,7 @@ public class JvmSerializerExtension extends SerializerExtension {
         }
     }
 
+    @Override
     public boolean releaseCoroutines() {
         return isReleaseCoroutines;
     }

@@ -145,7 +145,7 @@ class RedundantLocalsEliminationMethodTransformer(private val languageVersionSet
         // Since it increases performance greatly.
         val insns = findSafeAstorePredecessors(methodNode, ignoreLocalVariableTable = true) {
             it.opcode == Opcodes.CHECKCAST &&
-                    (it as TypeInsnNode).desc == continuationAsmType(languageVersionSettings).internalName &&
+                    (it as TypeInsnNode).desc == languageVersionSettings.continuationAsmType().internalName &&
                     it.previous?.opcode == Opcodes.ALOAD
         }
 

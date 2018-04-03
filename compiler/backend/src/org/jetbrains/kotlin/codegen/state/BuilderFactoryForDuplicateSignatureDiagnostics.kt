@@ -42,16 +42,17 @@ private val PREDEFINED_SIGNATURES = listOf(
 }
 
 class BuilderFactoryForDuplicateSignatureDiagnostics(
-        builderFactory: ClassBuilderFactory,
-        bindingContext: BindingContext,
-        private val diagnostics: DiagnosticSink,
-        moduleName: String,
-        shouldGenerate: (JvmDeclarationOrigin) -> Boolean
+    builderFactory: ClassBuilderFactory,
+    bindingContext: BindingContext,
+    private val diagnostics: DiagnosticSink,
+    moduleName: String,
+    isReleaseCoroutines: Boolean,
+    shouldGenerate: (JvmDeclarationOrigin) -> Boolean
 ) : SignatureCollectingClassBuilderFactory(builderFactory, shouldGenerate) {
 
     // Avoid errors when some classes are not loaded for some reason
     private val typeMapper = KotlinTypeMapper(
-        bindingContext, ClassBuilderMode.LIGHT_CLASSES, IncompatibleClassTracker.DoNothing, moduleName, false, false, false
+        bindingContext, ClassBuilderMode.LIGHT_CLASSES, IncompatibleClassTracker.DoNothing, moduleName, false, false, isReleaseCoroutines
     )
     private val reportDiagnosticsTasks = ArrayList<() -> Unit>()
 

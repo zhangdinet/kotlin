@@ -480,7 +480,7 @@ abstract class InlineCodegen<out T: BaseExpressionCodegen>(
                         createMethodNodeForIntercepted(functionDescriptor, state.typeMapper, languageVersionSettings),
                         SMAPParser.parseOrCreateDefault(null, null, "fake", -1, -1)
                     )
-                functionDescriptor.isBuiltInCoroutineContext() ->
+                functionDescriptor.isBuiltInCoroutineContext(languageVersionSettings) ->
                     return SMAPAndMethodNode(
                         createMethodNodeForCoroutineContext(functionDescriptor, languageVersionSettings),
                         SMAPParser.parseOrCreateDefault(null, null, "fake", -1, -1)

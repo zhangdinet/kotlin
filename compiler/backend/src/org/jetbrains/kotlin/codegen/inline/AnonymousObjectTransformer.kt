@@ -55,7 +55,7 @@ class AnonymousObjectTransformer(
         createClassReader().accept(object : ClassVisitor(API, classBuilder.visitor) {
             override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String, interfaces: Array<String>) {
                 classBuilder.defineClass(null, version, access, name, signature, superName, interfaces)
-                if (coroutineImplAsmType(languageVersionSettings).internalName == superName) {
+                if (languageVersionSettings.coroutineImplAsmType().internalName == superName) {
                     inliningContext.isContinuation = true
                 }
             }

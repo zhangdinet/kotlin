@@ -292,7 +292,7 @@ class MethodInliner(
                         }
 
                         val isContinuationCreate = isContinuation && oldInfo != null && resultNode.name == "create" &&
-                                resultNode.desc.startsWith("(" + continuationAsmType(languageVersionSettings).descriptor)
+                                resultNode.desc.startsWith("(" + languageVersionSettings.continuationAsmType().descriptor)
 
                         for (capturedParamDesc in info.allRecapturedParameters) {
                             if (capturedParamDesc.fieldName == THIS && isContinuationCreate) {
@@ -653,7 +653,7 @@ class MethodInliner(
         // We can't have suspending constructors.
         assert(invoke.opcode != Opcodes.INVOKESPECIAL)
         if (Type.getReturnType(invoke.desc) != OBJECT_TYPE) return false
-        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == continuationAsmType(languageVersionSettings) }
+        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == languageVersionSettings.continuationAsmType() }
     }
 
     private fun preprocessNodeBeforeInline(node: MethodNode, labelOwner: LabelOwner) {

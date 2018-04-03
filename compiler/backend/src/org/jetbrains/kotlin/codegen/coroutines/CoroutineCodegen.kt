@@ -91,7 +91,7 @@ abstract class AbstractCoroutineCodegen(
 
     override fun generateConstructor(): Method {
         val args = calculateConstructorParameters(typeMapper, closure, asmType)
-        val argTypes = args.map { it.fieldType }.plus(continuationAsmType(languageVersionSettings)).toTypedArray()
+        val argTypes = args.map { it.fieldType }.plus(languageVersionSettings.continuationAsmType()).toTypedArray()
 
         val constructor = Method("<init>", Type.VOID_TYPE, argTypes)
         val mv = v.newMethod(
@@ -112,7 +112,7 @@ abstract class AbstractCoroutineCodegen(
             val superClassConstructorDescriptor = Type.getMethodDescriptor(
                 Type.VOID_TYPE,
                 Type.INT_TYPE,
-                continuationAsmType(languageVersionSettings)
+                languageVersionSettings.continuationAsmType()
             )
             iv.invokespecial(superClassAsmType.internalName, "<init>", superClassConstructorDescriptor, false)
 
@@ -214,7 +214,7 @@ class CoroutineCodegenForLambda private constructor(
                 v.thisName,
                 createCoroutineDescriptor.name.identifier,
                 Type.getMethodDescriptor(
-                    continuationAsmType(languageVersionSettings),
+                    languageVersionSettings.continuationAsmType(),
                     *parameterTypes.toTypedArray()
                 ),
                 false
@@ -495,7 +495,7 @@ class CoroutineCodegenForNamedFunction private constructor(
 
     private fun labelFieldStackValue(languageVersionSettings: LanguageVersionSettings) =
         StackValue.field(
-            FieldInfo.createForHiddenField(coroutineImplAsmType(languageVersionSettings), Type.INT_TYPE, COROUTINE_LABEL_FIELD_NAME),
+            FieldInfo.createForHiddenField(languageVersionSettings.coroutineImplAsmType(), Type.INT_TYPE, COROUTINE_LABEL_FIELD_NAME),
             StackValue.LOCAL_0
         )
 

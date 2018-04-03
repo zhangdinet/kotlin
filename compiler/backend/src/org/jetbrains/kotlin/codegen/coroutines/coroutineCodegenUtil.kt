@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.codegen.ExpressionCodegen
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.binding.CodegenBinding
 import org.jetbrains.kotlin.codegen.inline.addFakeContinuationMarker
+import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.codegen.topLevelClassAsmType
 import org.jetbrains.kotlin.codegen.topLevelClassInternalName
@@ -53,28 +54,28 @@ const val DO_RESUME_METHOD_NAME = "doResume"
 const val DATA_FIELD_NAME = "data"
 const val EXCEPTION_FIELD_NAME = "exception"
 
-fun coroutinesJvmInternalPackageFqName(languageVersionSettings: LanguageVersionSettings) =
-    coroutinesPackageFqName(languageVersionSettings).child(Name.identifier("jvm")).child(Name.identifier("internal"))
+fun LanguageVersionSettings.coroutinesJvmInternalPackageFqName() =
+    coroutinesPackageFqName().child(Name.identifier("jvm")).child(Name.identifier("internal"))
 
-fun continuationAsmType(languageVersionSettings: LanguageVersionSettings) =
-    continuationInterfaceFqName(languageVersionSettings).topLevelClassAsmType()
+fun LanguageVersionSettings.continuationAsmType() =
+    continuationInterfaceFqName().topLevelClassAsmType()
 
 fun continuationAsmTypes() = listOf(
-    continuationAsmType(LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3)),
-    continuationAsmType(LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_2, ApiVersion.KOTLIN_1_2))
+    LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_3, ApiVersion.KOTLIN_1_3).continuationAsmType(),
+    LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_2, ApiVersion.KOTLIN_1_2).continuationAsmType()
 )
 
-fun coroutineContextAsmType(languageVersionSettings: LanguageVersionSettings) =
-    coroutinesPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineContext")).topLevelClassAsmType()
+fun LanguageVersionSettings.coroutineContextAsmType() =
+    coroutinesPackageFqName().child(Name.identifier("CoroutineContext")).topLevelClassAsmType()
 
-fun coroutineImplAsmType(languageVersionSettings: LanguageVersionSettings) =
-    coroutinesJvmInternalPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineImpl")).topLevelClassAsmType()
+fun LanguageVersionSettings.coroutineImplAsmType() =
+    coroutinesJvmInternalPackageFqName().child(Name.identifier("CoroutineImpl")).topLevelClassAsmType()
 
-private fun coroutinesIntrinsicsFileFacadeInternalName(languageVersionSettings: LanguageVersionSettings) =
-    coroutinesIntrinsicsPackageFqName(languageVersionSettings).child(Name.identifier("IntrinsicsKt")).topLevelClassAsmType()
+private fun LanguageVersionSettings.coroutinesIntrinsicsFileFacadeInternalName() =
+    coroutinesIntrinsicsPackageFqName().child(Name.identifier("IntrinsicsKt")).topLevelClassAsmType()
 
-private fun internalCoroutineIntrinsicsOwnerInternalName(languageVersionSettings: LanguageVersionSettings) =
-    coroutinesJvmInternalPackageFqName(languageVersionSettings).child(Name.identifier("CoroutineIntrinsics")).topLevelClassInternalName()
+private fun LanguageVersionSettings.internalCoroutineIntrinsicsOwnerInternalName() =
+    coroutinesJvmInternalPackageFqName().child(Name.identifier("CoroutineIntrinsics")).topLevelClassInternalName()
 
 private val NORMALIZE_CONTINUATION_METHOD_NAME = "normalizeContinuation"
 private val GET_CONTEXT_METHOD_NAME = "getContext"
@@ -154,6 +155,16 @@ fun ResolvedCall<*>.replaceSuspensionFunctionWithRealDescriptor(
 
     return ResolvedCallWithRealDescriptor(newCall, thisExpression)
 }
+
+fun ResolvedCall<*>.replaceSuspensionFunctionWithRealDescriptor(
+    project: Project,
+    bindingContext: BindingContext,
+    state: GenerationState
+): ResolvedCallWithRealDescriptor? = replaceSuspensionFunctionWithRealDescriptor(
+    project,
+    bindingContext,
+    state.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
+)
 
 private fun ResolvedCall<VariableDescriptor>.asMutableResolvedCall(bindingContext: BindingContext): MutableResolvedCall<VariableDescriptor> {
     return when (this) {
@@ -291,7 +302,7 @@ fun createMethodNodeForSuspendCoroutineOrReturn(
     node.visitVarInsn(Opcodes.ALOAD, 0)
     node.visitVarInsn(Opcodes.ALOAD, 1)
 
-    invokeNormalizeContinuation(node, languageVersionSettings)
+    node.invokeNormalizeContinuation(languageVersionSettings)
 
     node.visitMethodInsn(
         Opcodes.INVOKEINTERFACE,
@@ -306,12 +317,12 @@ fun createMethodNodeForSuspendCoroutineOrReturn(
     return node
 }
 
-private fun invokeNormalizeContinuation(node: MethodNode, languageVersionSettings: LanguageVersionSettings) {
-    node.visitMethodInsn(
+private fun MethodNode.invokeNormalizeContinuation(languageVersionSettings: LanguageVersionSettings) {
+    visitMethodInsn(
         Opcodes.INVOKESTATIC,
-        internalCoroutineIntrinsicsOwnerInternalName(languageVersionSettings),
+        languageVersionSettings.internalCoroutineIntrinsicsOwnerInternalName(),
         NORMALIZE_CONTINUATION_METHOD_NAME,
-        Type.getMethodDescriptor(continuationAsmType(languageVersionSettings), continuationAsmType(languageVersionSettings)),
+        Type.getMethodDescriptor(languageVersionSettings.continuationAsmType(), languageVersionSettings.continuationAsmType()),
         false
     )
 }
@@ -338,7 +349,7 @@ fun createMethodNodeForIntercepted(
 
     node.visitVarInsn(Opcodes.ALOAD, 0)
 
-    invokeNormalizeContinuation(node, languageVersionSettings)
+    node.invokeNormalizeContinuation(languageVersionSettings)
 
     node.visitInsn(Opcodes.ARETURN)
     node.visitMaxs(1, 1)
@@ -350,7 +361,7 @@ fun createMethodNodeForCoroutineContext(
     functionDescriptor: FunctionDescriptor,
     languageVersionSettings: LanguageVersionSettings
 ): MethodNode {
-    assert(functionDescriptor.isBuiltInCoroutineContext()) {
+    assert(functionDescriptor.isBuiltInCoroutineContext(languageVersionSettings)) {
         "functionDescriptor must be kotlin.coroutines.intrinsics.coroutineContext property getter"
     }
 
@@ -359,7 +370,7 @@ fun createMethodNodeForCoroutineContext(
             Opcodes.ASM5,
             Opcodes.ACC_STATIC,
             "fake",
-            Type.getMethodDescriptor(coroutineContextAsmType(languageVersionSettings)),
+            Type.getMethodDescriptor(languageVersionSettings.coroutineContextAsmType()),
             null, null
         )
 
@@ -367,22 +378,12 @@ fun createMethodNodeForCoroutineContext(
 
     addFakeContinuationMarker(v)
 
-    invokeGetContext(v, languageVersionSettings)
+    v.invokeGetContext(languageVersionSettings)
 
     node.visitMaxs(1, 1)
 
     return node
 }
-
-private fun invokeGetContext(v: InstructionAdapter, languageVersionSettings: LanguageVersionSettings) {
-    v.invokeinterface(
-        continuationAsmType(languageVersionSettings).internalName,
-        GET_CONTEXT_METHOD_NAME,
-        Type.getMethodDescriptor(coroutineContextAsmType(languageVersionSettings))
-    )
-    v.areturn(coroutineContextAsmType(languageVersionSettings))
-}
-
 
 fun createMethodNodeForSuspendCoroutineUninterceptedOrReturn(
     functionDescriptor: FunctionDescriptor,
@@ -417,6 +418,16 @@ fun createMethodNodeForSuspendCoroutineUninterceptedOrReturn(
     return node
 }
 
+
+private fun InstructionAdapter.invokeGetContext(languageVersionSettings: LanguageVersionSettings) {
+    invokeinterface(
+        languageVersionSettings.continuationAsmType().internalName,
+        GET_CONTEXT_METHOD_NAME,
+        Type.getMethodDescriptor(languageVersionSettings.coroutineContextAsmType())
+    )
+    areturn(languageVersionSettings.coroutineContextAsmType())
+}
+
 @Suppress("UNCHECKED_CAST")
 fun <D : CallableDescriptor?> D.unwrapInitialDescriptorForSuspendFunction(): D =
     this.safeAs<SimpleFunctionDescriptor>()?.getUserData(INITIAL_DESCRIPTOR_FOR_SUSPEND_FUNCTION) as D ?: this
@@ -428,9 +439,12 @@ fun FunctionDescriptor.getOriginalSuspendFunctionView(bindingContext: BindingCon
     else
         this
 
+fun FunctionDescriptor.getOriginalSuspendFunctionView(bindingContext: BindingContext, state: GenerationState) =
+    getOriginalSuspendFunctionView(bindingContext, state.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines))
+
 fun InstructionAdapter.loadCoroutineSuspendedMarker(languageVersionSettings: LanguageVersionSettings) {
     invokestatic(
-        coroutinesIntrinsicsFileFacadeInternalName(languageVersionSettings).internalName,
+        languageVersionSettings.coroutinesIntrinsicsFileFacadeInternalName().internalName,
         "get$COROUTINE_SUSPENDED_NAME",
         Type.getMethodDescriptor(AsmTypes.OBJECT_TYPE),
         false

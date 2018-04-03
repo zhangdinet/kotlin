@@ -38,11 +38,11 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 val COROUTINE_CONTEXT_1_2_20_FQ_NAME =
     DescriptorUtils.COROUTINES_INTRINSICS_PACKAGE_FQ_NAME_EXPERIMENTAL.child(Name.identifier("coroutineContext"))
 
-fun FunctionDescriptor.isBuiltInCoroutineContext() =
-    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCoroutineContext() == true
+fun FunctionDescriptor.isBuiltInCoroutineContext(languageVersionSettings: LanguageVersionSettings) =
+    (this as? PropertyGetterDescriptor)?.correspondingProperty?.fqNameSafe?.isBuiltInCoroutineContext(languageVersionSettings) == true
 
-fun PropertyDescriptor.isBuiltInCoroutineContext() =
-    this.fqNameSafe.isBuiltInCoroutineContext()
+fun PropertyDescriptor.isBuiltInCoroutineContext(languageVersionSettings: LanguageVersionSettings) =
+    this.fqNameSafe.isBuiltInCoroutineContext(languageVersionSettings)
 
 object CoroutineSuspendCallChecker : CallChecker {
     private val ALLOWED_SCOPE_KINDS = setOf(LexicalScopeKind.FUNCTION_INNER_SCOPE, LexicalScopeKind.FUNCTION_HEADER_FOR_DESTRUCTURING)
@@ -52,7 +52,7 @@ object CoroutineSuspendCallChecker : CallChecker {
         when (descriptor) {
             is FunctionDescriptor -> if (!descriptor.isSuspend) return
             is PropertyDescriptor ->
-                if (descriptor.fqNameSafe != COROUTINE_CONTEXT_1_2_20_FQ_NAME && !descriptor.isBuiltInCoroutineContext()) return
+                if (descriptor.fqNameSafe != COROUTINE_CONTEXT_1_2_20_FQ_NAME && !descriptor.isBuiltInCoroutineContext(context.languageVersionSettings)) return
             else -> return
         }
 
@@ -138,7 +138,7 @@ private fun checkRestrictsSuspension(
     val enclosingSuspendReceiverValue = enclosingCallableDescriptor.extensionReceiverParameter?.value ?: return
 
     fun ReceiverValue.isRestrictsSuspensionReceiver() = (type.supertypes() + type).any {
-        it.constructor.declarationDescriptor?.annotations?.hasAnnotation(restrictsSuspensionFqName(context.languageVersionSettings)) == true
+        it.constructor.declarationDescriptor?.annotations?.hasAnnotation(context.languageVersionSettings.restrictsSuspensionFqName()) == true
     }
 
     infix fun ReceiverValue.sameInstance(other: ReceiverValue?): Boolean {

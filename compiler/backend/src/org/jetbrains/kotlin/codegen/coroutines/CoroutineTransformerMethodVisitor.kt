@@ -172,7 +172,7 @@ class CoroutineTransformerMethodVisitor(
         else
             FieldInsnNode(
                 Opcodes.GETFIELD,
-                coroutineImplAsmType(languageVersionSettings).internalName,
+                languageVersionSettings.coroutineImplAsmType().internalName,
                 COROUTINE_LABEL_FIELD_NAME, Type.INT_TYPE.descriptor
             )
 
@@ -188,7 +188,7 @@ class CoroutineTransformerMethodVisitor(
         else
             FieldInsnNode(
                 Opcodes.PUTFIELD,
-                coroutineImplAsmType(languageVersionSettings).internalName,
+                languageVersionSettings.coroutineImplAsmType().internalName,
                 COROUTINE_LABEL_FIELD_NAME, Type.INT_TYPE.descriptor
             )
 
@@ -628,23 +628,6 @@ internal fun InstructionAdapter.generateContinuationConstructorCall(
     )
 }
 
-private fun getParameterTypesIndicesForCoroutineConstructor(
-    desc: String,
-    containingFunctionAccess: Int,
-    needDispatchReceiver: Boolean,
-    thisName: String,
-    languageVersionSettings: LanguageVersionSettings
-): Collection<Pair<Type, Int>> {
-    return mutableListOf<Pair<Type, Int>>().apply {
-        if (needDispatchReceiver) {
-            add(Type.getObjectType(thisName) to 0)
-        }
-        val continuationIndex =
-            getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
-        add(continuationAsmType(languageVersionSettings) to continuationIndex)
-    }
-}
-
 private fun InstructionAdapter.generateResumeWithExceptionCheck(exceptionIndex: Int) {
     // Check if resumeWithException has been called
     load(exceptionIndex, AsmTypes.OBJECT_TYPE)
@@ -709,6 +692,23 @@ private fun getParameterTypesForCoroutineConstructor(desc: String, hasDispatchRe
             Type.getArgumentTypes(desc).last()
 
 private fun isStatic(access: Int) = access and Opcodes.ACC_STATIC != 0
+
+private fun getParameterTypesIndicesForCoroutineConstructor(
+    desc: String,
+    containingFunctionAccess: Int,
+    needDispatchReceiver: Boolean,
+    thisName: String,
+    languageVersionSettings: LanguageVersionSettings
+): Collection<Pair<Type, Int>> {
+    return mutableListOf<Pair<Type, Int>>().apply {
+        if (needDispatchReceiver) {
+            add(Type.getObjectType(thisName) to 0)
+        }
+        val continuationIndex =
+            getAllParameterTypes(desc, !isStatic(containingFunctionAccess), thisName).dropLast(1).map(Type::getSize).sum()
+        add(languageVersionSettings.continuationAsmType() to continuationIndex)
+    }
+}
 
 private fun getAllParameterTypes(desc: String, hasDispatchReceiver: Boolean, thisName: String) =
     listOfNotNull(if (!hasDispatchReceiver) null else Type.getObjectType(thisName)).toTypedArray() +

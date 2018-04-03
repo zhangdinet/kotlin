@@ -238,6 +238,7 @@ class GenerationState private constructor(
                 {
                     BuilderFactoryForDuplicateSignatureDiagnostics(
                         it, this.bindingContext, diagnostics, this.moduleName,
+                        isReleaseCoroutines = configuration.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines),
                         shouldGenerate = { !shouldOnlyCollectSignatures(it) }
                     ).apply { duplicateSignatureFactory = this }
                 },

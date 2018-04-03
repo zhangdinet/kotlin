@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.types.KotlinType
 class JvmRuntimeTypes(module: ModuleDescriptor, private val languageVersionSettings: LanguageVersionSettings) {
     private val kotlinJvmInternalPackage = MutablePackageFragmentDescriptor(module, FqName("kotlin.jvm.internal"))
     private val kotlinCoroutinesJvmInternalPackage =
-        MutablePackageFragmentDescriptor(module, coroutinesJvmInternalPackageFqName(languageVersionSettings))
+        MutablePackageFragmentDescriptor(module, languageVersionSettings.coroutinesJvmInternalPackageFqName())
 
     private fun klass(name: String) = lazy { createClass(kotlinJvmInternalPackage, name) }
 

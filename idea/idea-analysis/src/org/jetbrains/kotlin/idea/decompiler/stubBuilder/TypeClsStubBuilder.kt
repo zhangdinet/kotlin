@@ -178,12 +178,12 @@ class TypeClsStubBuilder(private val c: ClsStubBuilderContext) {
                 if (parameterType.hasClassName() && parameterType.argumentCount == 1) {
                     val classId = c.nameResolver.getClassId(parameterType.className)
                     val fqName = classId.asSingleFqName()
-                    if (fqName == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
-                        || fqName == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
-                    ) {
-                        suspendParameterType = parameterType
-                        continue
-                    }
+                    assert(
+                        fqName == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
+                                || fqName == DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
+                    )
+                    suspendParameterType = parameterType
+                    continue
                 }
             }
             val parameter = KotlinParameterStubImpl(
