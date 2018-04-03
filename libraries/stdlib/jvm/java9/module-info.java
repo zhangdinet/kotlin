@@ -20,14 +20,14 @@ module kotlin.stdlib {
     exports kotlin.coroutines.experimental.jvm.internal;
     exports kotlin.experimental;
 
-    // TODO?
-    // exports kotlin.internal;
+    exports kotlin.internal;
     exports kotlin.jvm.internal;
     exports kotlin.jvm.internal.markers;
 
     // TODO?
     // exports org.jetbrains.annotations;
 
+    // Open packages with .kotlin_builtins files to kotlin-reflect, to allow reflection to load built-in declarations there
     opens kotlin to kotlin.reflect;
     opens kotlin.annotation to kotlin.reflect;
     opens kotlin.collections to kotlin.reflect;

@@ -43,7 +43,7 @@ sourceSets {
     }
     java9 {
         java {
-            srcDir 'java9'
+            srcDir 'jvm/java9'
         }
     }
 }
