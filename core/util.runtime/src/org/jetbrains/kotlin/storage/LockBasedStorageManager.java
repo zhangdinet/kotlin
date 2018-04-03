@@ -321,8 +321,8 @@ public class LockBasedStorageManager implements StorageManager {
                 value = NotValue.COMPUTING;
                 try {
                     T typedValue = computable.invoke();
-                    value = typedValue;
                     postCompute(typedValue);
+                    value = typedValue;
                     return typedValue;
                 }
                 catch (Throwable throwable) {
