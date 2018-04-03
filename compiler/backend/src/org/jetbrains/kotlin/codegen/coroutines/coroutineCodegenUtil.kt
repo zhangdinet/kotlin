@@ -182,7 +182,8 @@ fun ResolvedCall<*>.isSuspendNoInlineCall(codegen: ExpressionCodegen): Boolean {
         ?.let { it.isCrossinline || (!it.isNoinline && codegen.context.functionDescriptor.isInline) } == true
 
     val functionDescriptor = resultingDescriptor as? FunctionDescriptor ?: return false
-    if (!functionDescriptor.isSuspend) return false
+    val initial = functionDescriptor.unwrapInitialDescriptorForSuspendFunction()
+    if (!initial.isSuspend) return false
     if (functionDescriptor.isBuiltInSuspendCoroutineOrReturnInJvm() || functionDescriptor.isBuiltInSuspendCoroutineUninterceptedOrReturnInJvm()) return true
     return !(functionDescriptor.isInline || isInlineLambda)
 }

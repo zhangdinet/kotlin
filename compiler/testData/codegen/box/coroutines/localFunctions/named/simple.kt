@@ -5,7 +5,6 @@ import helpers.*
 import kotlin.coroutines.experimental.*
 
 suspend fun callLocal(): String {
-    val l: suspend () -> Unit = {}
     suspend fun local() = "OK"
     return local()
 }
