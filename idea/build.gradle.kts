@@ -123,6 +123,8 @@ projectTest {
     doFirst {
         systemProperty("idea.home.path", intellijRootDir().canonicalPath)
     }
+    jvmArgs.removeAll { it.startsWith("-Xmx") }
+    maxHeapSize = "3g"
 }
 
 testsJar {}
